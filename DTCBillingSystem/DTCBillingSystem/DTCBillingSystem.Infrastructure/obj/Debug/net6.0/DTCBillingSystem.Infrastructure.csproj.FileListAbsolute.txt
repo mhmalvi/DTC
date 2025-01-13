@@ -1,0 +1,12 @@
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem\DTCBillingSystem.Infrastructure\bin\Debug\net6.0\DTCBillingSystem.Infrastructure.deps.json
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem\DTCBillingSystem.Infrastructure\bin\Debug\net6.0\DTCBillingSystem.Infrastructure.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem\DTCBillingSystem.Infrastructure\bin\Debug\net6.0\DTCBillingSystem.Infrastructure.pdb
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Debug\net6.0\DTCBillingSystem.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Debug\net6.0\DTCBillingSystem.Infrastructure.AssemblyInfoInputs.cache
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Debug\net6.0\DTCBillingSystem.Infrastructure.AssemblyInfo.cs
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Debug\net6.0\DTCBillingSystem.Infrastructure.csproj.CoreCompileInputs.cache
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Debug\net6.0\DTCBillingSystem.Infrastructure.sourcelink.json
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Debug\net6.0\DTCBillingSystem.Infrastructure.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Debug\net6.0\refint\DTCBillingSystem.Infrastructure.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Debug\net6.0\DTCBillingSystem.Infrastructure.pdb
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Debug\net6.0\ref\DTCBillingSystem.Infrastructure.dll

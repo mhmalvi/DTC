@@ -1,9 +1,13 @@
+using System;
 using System.IO;
 using System.Drawing.Printing;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
-using DevExpress.XtraReports.UI;
-using DevExpress.XtraPrinting;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models;
 
@@ -41,36 +45,37 @@ namespace DTCBillingSystem.Core.Services
             }
         }
 
-        public async Task<string> PrintBillAsync(int billId, bool preview = false)
+        public async Task<string> PrintBillAsync(int billId, PrintOptions options)
         {
             try
             {
                 var bill = await _unitOfWork.MonthlyBillsExt.GetBillWithDetailsAsync(billId);
                 if (bill == null)
                 {
-                    throw new KeyNotFoundException($"Bill with ID {billId} not found");
+                    throw new ArgumentException($"Bill with ID {billId} not found.");
                 }
 
                 var reportData = await GenerateBillReportDataAsync(bill);
-                var fileName = $"Bill_{bill.Customer.ShopNo}_{bill.BillingMonth:yyyyMM}.pdf";
-                var filePath = Path.Combine(_reportPath, fileName);
+                var outputPath = Path.Combine(_reportPath, $"Bill_{billId}_{DateTime.Now:yyyyMMddHHmmss}.pdf");
 
-                await GeneratePdfReportAsync(reportData, filePath);
+                await GeneratePdfReportAsync(reportData, outputPath);
 
-                if (!preview)
+                if (!options.Preview)
                 {
-                    await PrintPdfAsync(filePath);
+                    await PrintPdfAsync(outputPath);
                 }
 
                 await _auditService.LogActionAsync(
-                    "Print",
+                    "Print Bill",
+                    bill.CustomerId,
+                    AuditAction.Print,
                     billId,
-                    AuditAction.Printed,
-                    null,
-                    $"Printed bill for {bill.Customer.Name} - {bill.BillingMonth:MMM yyyy}"
-                );
+                    "MonthlyBill",
+                    $"Bill {bill.BillNo} printed successfully",
+                    outputPath,
+                    null);
 
-                return filePath;
+                return outputPath;
             }
             catch (Exception ex)
             {
@@ -79,274 +84,300 @@ namespace DTCBillingSystem.Core.Services
             }
         }
 
-        public async Task<string> PrintCustomerStatementAsync(int customerId, DateTime startDate, DateTime endDate, bool preview = false)
+        public async Task<string> PrintBillsAsync(IEnumerable<int> billIds, PrintOptions options)
         {
             try
             {
-                var customer = await _unitOfWork.CustomersExt.GetCustomerWithBillsAsync(customerId);
-                if (customer == null)
+                var outputPath = Path.Combine(_reportPath, $"Bills_Batch_{DateTime.Now:yyyyMMddHHmmss}.pdf");
+                var document = Document.Create(container =>
                 {
-                    throw new KeyNotFoundException($"Customer with ID {customerId} not found");
+                    foreach (var billId in billIds)
+                    {
+                        container.Page(page =>
+                        {
+                            var bill = _unitOfWork.MonthlyBillsExt.GetBillWithDetailsAsync(billId).Result;
+                            if (bill != null)
+                            {
+                                var reportData = GenerateBillReportDataAsync(bill).Result;
+                                ConfigureBillPage(page, reportData);
+                            }
+                        });
+                    }
+                });
+
+                document.GeneratePdf(outputPath);
+
+                if (!options.Preview)
+                {
+                    await PrintPdfAsync(outputPath);
                 }
 
-                var statement = await _reportService.GenerateCustomerStatementAsync(customerId, startDate, endDate);
-                var fileName = $"Statement_{customer.ShopNo}_{startDate:yyyyMM}_{endDate:yyyyMM}.pdf";
-                var filePath = Path.Combine(_reportPath, fileName);
-
-                await GeneratePdfReportAsync(statement, filePath);
-
-                if (!preview)
-                {
-                    await PrintPdfAsync(filePath);
-                }
-
-                await _auditService.LogActionAsync(
-                    "Print",
-                    customerId,
-                    AuditAction.Printed,
-                    null,
-                    $"Printed statement for {customer.Name} from {startDate:MMM yyyy} to {endDate:MMM yyyy}"
-                );
-
-                return filePath;
+                return outputPath;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error printing statement for customer {CustomerId}", customerId);
+                _logger.LogError(ex, "Error printing bills batch");
                 throw;
             }
         }
 
-        public async Task<string> PrintDailyCollectionReportAsync(DateTime date, bool preview = false)
+        private void ConfigureBillPage(IContainer container, BillReportData billData)
         {
-            try
+            container.Column(column =>
             {
-                var report = await _reportService.GenerateDailyCollectionReportAsync(date);
-                var fileName = $"DailyCollection_{date:yyyyMMdd}.pdf";
-                var filePath = Path.Combine(_reportPath, fileName);
-
-                await GeneratePdfReportAsync(report, filePath);
-
-                if (!preview)
+                // Header
+                column.Item().Row(row =>
                 {
-                    await PrintPdfAsync(filePath);
+                    row.RelativeItem().Column(c =>
+                    {
+                        c.Item().Text(billData.CompanyName).Bold().FontSize(20);
+                        c.Item().Text(billData.CompanyAddress);
+                    });
+                    row.RelativeItem().Column(c =>
+                    {
+                        c.Item().Text($"Bill No: {billData.BillNo}");
+                        c.Item().Text($"Date: {billData.BillDate:d}");
+                        c.Item().Text($"Due Date: {billData.DueDate:d}");
+                    });
+                });
+
+                // Customer Info
+                column.Item().PaddingVertical(10).Column(c =>
+                {
+                    c.Item().Text("Customer Information").Bold();
+                    c.Item().Text($"Name: {billData.Customer.Name}");
+                    c.Item().Text($"Shop No: {billData.Customer.ShopNo}");
+                    c.Item().Text($"Floor: {billData.Customer.Floor}");
+                    c.Item().Text($"Phone: {billData.Customer.PhoneNumber}");
+                    c.Item().Text($"Email: {billData.Customer.Email}");
+                });
+
+                // Bill Items
+                column.Item().Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.RelativeColumn();
+                        columns.RelativeColumn();
+                        columns.RelativeColumn();
+                        columns.RelativeColumn();
+                        columns.RelativeColumn();
+                        columns.RelativeColumn();
+                    });
+
+                    table.Header(header =>
+                    {
+                        header.Cell().Text("Description").Bold();
+                        header.Cell().Text("Previous").Bold();
+                        header.Cell().Text("Current").Bold();
+                        header.Cell().Text("Units").Bold();
+                        header.Cell().Text("Rate").Bold();
+                        header.Cell().Text("Amount").Bold();
+                    });
+
+                    foreach (var item in billData.LineItems)
+                    {
+                        table.Cell().Text(item.Description);
+                        table.Cell().Text($"{item.PreviousReading:N2}");
+                        table.Cell().Text($"{item.CurrentReading:N2}");
+                        table.Cell().Text($"{item.Units:N2}");
+                        table.Cell().Text($"{item.Rate:C2}");
+                        table.Cell().Text($"{item.Amount:C2}");
+                    }
+                });
+
+                // Summary
+                column.Item().PaddingTop(10).Row(row =>
+                {
+                    row.RelativeItem();
+                    row.RelativeItem().Column(c =>
+                    {
+                        c.Item().Text($"Subtotal: {billData.SubTotal:C2}");
+                        c.Item().Text($"Tax: {billData.Tax:C2}");
+                        c.Item().Text($"Total: {billData.Total:C2}").Bold();
+                    });
+                });
+
+                // Notes
+                if (!string.IsNullOrEmpty(billData.Notes))
+                {
+                    column.Item().PaddingTop(10).Text(billData.Notes);
                 }
 
-                await _auditService.LogActionAsync(
-                    "Print",
-                    0,
-                    AuditAction.Printed,
-                    null,
-                    $"Printed daily collection report for {date:d}"
-                );
-
-                return filePath;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error printing daily collection report for {Date}", date);
-                throw;
-            }
-        }
-
-        public async Task<string> PrintMonthlyBillingReportAsync(DateTime month, bool preview = false)
-        {
-            try
-            {
-                var report = await _reportService.GenerateMonthlyBillingReportAsync(month);
-                var fileName = $"MonthlyBilling_{month:yyyyMM}.pdf";
-                var filePath = Path.Combine(_reportPath, fileName);
-
-                await GeneratePdfReportAsync(report, filePath);
-
-                if (!preview)
+                // Payment Instructions
+                if (!string.IsNullOrEmpty(billData.PaymentInstructions))
                 {
-                    await PrintPdfAsync(filePath);
+                    column.Item().PaddingTop(10).Text(billData.PaymentInstructions);
                 }
-
-                await _auditService.LogActionAsync(
-                    "Print",
-                    0,
-                    AuditAction.Printed,
-                    null,
-                    $"Printed monthly billing report for {month:MMM yyyy}"
-                );
-
-                return filePath;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error printing monthly billing report for {Month}", month);
-                throw;
-            }
-        }
-
-        public async Task<string> PrintOutstandingPaymentsReportAsync(bool preview = false)
-        {
-            try
-            {
-                var report = await _reportService.GenerateOutstandingPaymentsReportAsync();
-                var fileName = $"OutstandingPayments_{DateTime.UtcNow:yyyyMMdd}.pdf";
-                var filePath = Path.Combine(_reportPath, fileName);
-
-                await GeneratePdfReportAsync(report, filePath);
-
-                if (!preview)
-                {
-                    await PrintPdfAsync(filePath);
-                }
-
-                await _auditService.LogActionAsync(
-                    "Print",
-                    0,
-                    AuditAction.Printed,
-                    null,
-                    "Printed outstanding payments report"
-                );
-
-                return filePath;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error printing outstanding payments report");
-                throw;
-            }
+            });
         }
 
         private async Task<BillReportData> GenerateBillReportDataAsync(MonthlyBill bill)
         {
-            var companyName = _configuration["AppSettings:CompanyName"];
-            var companyAddress = _configuration["AppSettings:Address"];
-            var vatPercentage = decimal.Parse(_configuration["AppSettings:VatPercentage"]);
+            var customer = await _unitOfWork.Customers.GetByIdAsync(bill.CustomerId);
+            var lineItems = new List<BillLineItem>();
 
-            // Get active billing rates
-            var electricityRate = await _unitOfWork.BillingRates
-                .FindAsync(r => r.RateType == "Electricity" && r.IsActive)
-                .FirstOrDefaultAsync();
-            var acRate = await _unitOfWork.BillingRates
-                .FindAsync(r => r.RateType == "AC" && r.IsActive)
-                .FirstOrDefaultAsync();
-
-            if (electricityRate == null || acRate == null)
+            // Add electricity charges
+            if (bill.ElectricityCharges > 0)
             {
-                throw new InvalidOperationException("Active billing rates not found");
+                lineItems.Add(new BillLineItem
+                {
+                    Description = "Electricity",
+                    PreviousReading = bill.PreviousReading,
+                    CurrentReading = bill.CurrentReading,
+                    Units = bill.UnitsConsumed,
+                    Rate = bill.ElectricityRate,
+                    Amount = bill.ElectricityCharges
+                });
             }
 
-            // Calculate amounts
-            var electricityUnits = bill.PresentReading - bill.PreviousReading;
-            var acUnits = bill.ACPresentReading - bill.ACPreviousReading;
-            var electricityAmount = electricityUnits * electricityRate.Rate;
-            var acAmount = acUnits * acRate.Rate;
-
-            var billData = new BillReportData
+            // Add AC charges if applicable
+            if (bill.ACCharges > 0)
             {
-                CompanyName = companyName,
-                CompanyAddress = companyAddress,
-                BillNo = $"BILL-{bill.Id:D6}",
-                BillDate = bill.CreatedAt,
+                lineItems.Add(new BillLineItem
+                {
+                    Description = "Air Conditioning",
+                    Amount = bill.ACCharges
+                });
+            }
+
+            // Add other charges if any
+            if (bill.OtherCharges > 0)
+            {
+                lineItems.Add(new BillLineItem
+                {
+                    Description = "Other Charges",
+                    Amount = bill.OtherCharges
+                });
+            }
+
+            return new BillReportData
+            {
+                CompanyName = _configuration["AppSettings:CompanyName"] ?? "DTC Billing System",
+                CompanyAddress = _configuration["AppSettings:CompanyAddress"] ?? "123 Main Street",
+                BillNo = bill.BillNo,
+                BillDate = bill.BillDate,
                 DueDate = bill.DueDate,
                 Customer = new CustomerInfo
                 {
-                    Name = bill.Customer.Name,
-                    ShopNo = bill.Customer.ShopNo,
-                    Floor = bill.Customer.Floor,
-                    PhoneNumber = bill.Customer.PhoneNumber,
-                    Email = bill.Customer.Email
+                    Name = customer.Name,
+                    ShopNo = customer.ShopNo,
+                    Floor = customer.Floor,
+                    PhoneNumber = customer.PhoneNumber,
+                    Email = customer.Email
                 },
-                LineItems = new List<BillLineItem>
-                {
-                    new BillLineItem
-                    {
-                        Description = "Electricity Charges",
-                        PreviousReading = bill.PreviousReading,
-                        CurrentReading = bill.PresentReading,
-                        Units = electricityUnits,
-                        Rate = electricityRate.Rate,
-                        Amount = electricityAmount
-                    },
-                    new BillLineItem
-                    {
-                        Description = "AC Charges",
-                        PreviousReading = bill.ACPreviousReading,
-                        CurrentReading = bill.ACPresentReading,
-                        Units = acUnits,
-                        Rate = acRate.Rate,
-                        Amount = acAmount
-                    }
-                },
-                SubTotal = bill.TotalAmount / (1 + vatPercentage / 100),
-                Tax = bill.TotalAmount - (bill.TotalAmount / (1 + vatPercentage / 100)),
+                LineItems = lineItems,
+                SubTotal = bill.TotalAmount - bill.Tax,
+                Tax = bill.Tax,
                 Total = bill.TotalAmount,
                 Notes = bill.Notes,
-                PaymentInstructions = "Please pay before the due date to avoid late payment charges."
+                PaymentInstructions = _configuration["AppSettings:PaymentInstructions"]
             };
-
-            // Add other charges
-            if (bill.BlowerFanCharge > 0)
-            {
-                billData.LineItems.Add(new BillLineItem
-                {
-                    Description = "Blower Fan Charges",
-                    Amount = bill.BlowerFanCharge
-                });
-            }
-
-            if (bill.GeneratorCharge > 0)
-            {
-                billData.LineItems.Add(new BillLineItem
-                {
-                    Description = "Generator Charges",
-                    Amount = bill.GeneratorCharge
-                });
-            }
-
-            if (bill.ServiceCharge > 0)
-            {
-                billData.LineItems.Add(new BillLineItem
-                {
-                    Description = "Service Charges",
-                    Amount = bill.ServiceCharge
-                });
-            }
-
-            if (bill.AdditionalCharges > 0)
-            {
-                billData.LineItems.Add(new BillLineItem
-                {
-                    Description = "Additional Charges",
-                    Amount = bill.AdditionalCharges
-                });
-            }
-
-            return billData;
         }
 
-        private async Task GeneratePdfReportAsync(object reportData, string outputPath)
+        private async Task PrintPdfAsync(string filePath)
         {
-            using (var report = new XtraReport())
+            try
             {
-                // Configure report settings
-                report.Landscape = false;
-                report.PaperKind = System.Drawing.Printing.PaperKind.A4;
-                report.Margins = new System.Drawing.Printing.Margins(50, 50, 50, 50);
-
-                // Set report data source
-                report.DataSource = reportData;
-
-                // Add report bands and controls based on report type
-                if (reportData is BillReportData billData)
-                {
-                    ConfigureBillReport(report, billData);
-                }
-                else
-                {
-                    ConfigureGenericReport(report, reportData);
-                }
-
-                // Export to PDF
-                report.ExportToPdf(outputPath);
+                var printerSettings = GetDefaultPrinterSettings();
+                var process = new System.Diagnostics.Process();
+                process.StartInfo.FileName = filePath;
+                process.StartInfo.Verb = "print";
+                process.StartInfo.CreateNoWindow = true;
+                process.StartInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+                process.Start();
+                await process.WaitForExitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error printing PDF file {FilePath}", filePath);
+                throw;
             }
         }
+
+        private PrinterSettings GetDefaultPrinterSettings()
+        {
+            var settings = new PrinterSettings();
+            settings.DefaultPageSettings.Margins = new Margins(50, 50, 50, 50);
+            return settings;
+        }
+
+        public Task<string> PrintCustomerStatementAsync(int customerId, DateTime startDate, DateTime endDate, PrintOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> PrintDailyCollectionReportAsync(DateTime date, PrintOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> PrintMonthlyBillingReportAsync(DateTime month, PrintOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> PrintReceiptAsync(int paymentId, PrintOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> PreviewDocumentAsync(object document, PrintOptions options)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IEnumerable<string>> GetAvailablePrintersAsync()
+        {
+            return Task.FromResult<IEnumerable<string>>(PrinterSettings.InstalledPrinters.Cast<string>());
+        }
+
+        public Task<string> GetPrintJobStatusAsync(string jobId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CancelPrintJobAsync(string jobId)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class BillReportData
+    {
+        public string CompanyName { get; set; }
+        public string CompanyAddress { get; set; }
+        public string BillNo { get; set; }
+        public DateTime BillDate { get; set; }
+        public DateTime DueDate { get; set; }
+        public CustomerInfo Customer { get; set; }
+        public List<BillLineItem> LineItems { get; set; }
+        public decimal SubTotal { get; set; }
+        public decimal Tax { get; set; }
+        public decimal Total { get; set; }
+        public string Notes { get; set; }
+        public string PaymentInstructions { get; set; }
+    }
+
+    public class CustomerInfo
+    {
+        public string Name { get; set; }
+        public string ShopNo { get; set; }
+        public string Floor { get; set; }
+        public string PhoneNumber { get; set; }
+        public string Email { get; set; }
+    }
+
+    public class BillLineItem
+    {
+        public string Description { get; set; }
+        public decimal PreviousReading { get; set; }
+        public decimal CurrentReading { get; set; }
+        public decimal Units { get; set; }
+        public decimal Rate { get; set; }
+        public decimal Amount { get; set; }
+    }
+}
 
         private void ConfigureBillReport(XtraReport report, BillReportData billData)
         {
@@ -1075,87 +1106,4 @@ namespace DTCBillingSystem.Core.Services
         public decimal Rate { get; set; }
         public decimal Amount { get; set; }
     }
-
-    public class DailyCollectionReport
-    {
-        public DateTime Date { get; set; }
-        public decimal TotalCollections { get; set; }
-        public decimal TotalLateCharges { get; set; }
-        public List<PaymentMethodSummary> CollectionsByPaymentMethod { get; set; }
-        public List<CollectionDetail> Collections { get; set; }
-    }
-
-    public class PaymentMethodSummary
-    {
-        public PaymentMethod PaymentMethod { get; set; }
-        public decimal Amount { get; set; }
-    }
-
-    public class CollectionDetail
-    {
-        public string ReceiptNo { get; set; }
-        public string ShopNo { get; set; }
-        public string CustomerName { get; set; }
-        public DateTime BillMonth { get; set; }
-        public decimal Amount { get; set; }
-        public decimal LateCharges { get; set; }
-        public PaymentMethod PaymentMethod { get; set; }
-    }
-
-    public class MonthlyBillingReport
-    {
-        public DateTime Month { get; set; }
-        public decimal TotalBilled { get; set; }
-        public decimal TotalPaid { get; set; }
-        public decimal TotalOutstanding { get; set; }
-        public List<FloorSummary> BillingsByFloor { get; set; }
-        public List<BillingDetail> Billings { get; set; }
-    }
-
-    public class FloorSummary
-    {
-        public string Floor { get; set; }
-        public int TotalShops { get; set; }
-        public decimal TotalAmount { get; set; }
-    }
-
-    public class BillingDetail
-    {
-        public string ShopNo { get; set; }
-        public string CustomerName { get; set; }
-        public string Floor { get; set; }
-        public decimal ElectricityCharges { get; set; }
-        public decimal ACCharges { get; set; }
-        public decimal OtherCharges { get; set; }
-        public decimal TotalAmount { get; set; }
-        public DateTime DueDate { get; set; }
-        public BillStatus Status { get; set; }
-    }
-
-    public class OutstandingPaymentsReport
-    {
-        public DateTime AsOfDate { get; set; }
-        public decimal TotalOutstanding { get; set; }
-        public List<FloorOutstanding> OutstandingByFloor { get; set; }
-        public List<OutstandingDetail> OutstandingBills { get; set; }
-    }
-
-    public class FloorOutstanding
-    {
-        public string Floor { get; set; }
-        public int TotalShops { get; set; }
-        public decimal OutstandingAmount { get; set; }
-    }
-
-    public class OutstandingDetail
-    {
-        public string ShopNo { get; set; }
-        public string CustomerName { get; set; }
-        public string Floor { get; set; }
-        public DateTime BillMonth { get; set; }
-        public decimal BillAmount { get; set; }
-        public decimal PaidAmount { get; set; }
-        public decimal OutstandingAmount { get; set; }
-        public int DaysOverdue { get; set; }
-    }
-} 
+}

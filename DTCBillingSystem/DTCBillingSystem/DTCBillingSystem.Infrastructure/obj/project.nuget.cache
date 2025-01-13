@@ -1,8 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "ikI94oYcXHj7LdkeX0aeyCY3o4dd7gkp7c+t4tuv/sX4NCkUnNJzCuL8uKeKu4YQpuEFtWWm4drpAHZeCVPAvg==",
+  "dgSpecHash": "GmCaym5P8lo=",
   "success": true,
-  "projectFilePath": "C:\\Users\\AAA Technology\\Downloads\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.Infrastructure\\DTCBillingSystem.Infrastructure.csproj",
-  "expectedPackageFiles": [],
+  "projectFilePath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.Infrastructure\\DTCBillingSystem.Infrastructure.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\d_rak\\.nuget\\packages\\microsoft.netcore.app.ref\\6.0.36\\microsoft.netcore.app.ref.6.0.36.nupkg.sha512",
+    "C:\\Users\\d_rak\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\6.0.36\\microsoft.windowsdesktop.app.ref.6.0.36.nupkg.sha512",
+    "C:\\Users\\d_rak\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\6.0.36\\microsoft.aspnetcore.app.ref.6.0.36.nupkg.sha512"
+  ],
   "logs": []
 }

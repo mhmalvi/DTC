@@ -738,19 +738,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\AAA Technology\\.nuget\\packages\\": {}
+    "C:\\Users\\d_rak\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\AAA Technology\\Downloads\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj",
+      "projectUniqueName": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj",
       "projectName": "DTCBillingSystem.Core",
-      "projectPath": "C:\\Users\\AAA Technology\\Downloads\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj",
-      "packagesPath": "C:\\Users\\AAA Technology\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\AAA Technology\\Downloads\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.Core\\obj\\",
+      "projectPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj",
+      "packagesPath": "C:\\Users\\d_rak\\.nuget\\packages\\",
+      "outputPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.Core\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\AAA Technology\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "C:\\Users\\d_rak\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net6.0"
@@ -768,6 +768,11 @@
         "warnAsError": [
           "NU1605"
         ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
       }
     },
     "frameworks": {
@@ -798,12 +803,26 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[6.0.36, 6.0.36]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[6.0.36, 6.0.36]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Ref",
+            "version": "[6.0.36, 6.0.36]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.428\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.404\\RuntimeIdentifierGraph.json"
       }
     }
   }

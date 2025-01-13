@@ -1,3 +1,8 @@
+using System;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using DTCBillingSystem.Core.Interfaces;
@@ -21,85 +26,95 @@ namespace DTCBillingSystem.Core.Services
             _currentUserService = currentUserService;
         }
 
+        public async Task LogCreateAsync<T>(T entity, int userId, string notes = null)
+        {
+            await LogActionAsync(
+                typeof(T).Name,
+                userId,
+                AuditAction.Create,
+                0,
+                null,
+                JsonSerializer.Serialize(entity),
+                notes,
+                null);
+        }
+
+        public async Task LogUpdateAsync<T>(T oldEntity, T newEntity, int userId, string notes = null)
+        {
+            await LogActionAsync(
+                typeof(T).Name,
+                userId,
+                AuditAction.Update,
+                0,
+                JsonSerializer.Serialize(oldEntity),
+                JsonSerializer.Serialize(newEntity),
+                notes,
+                null);
+        }
+
+        public async Task LogDeleteAsync<T>(T entity, int userId, string notes = null)
+        {
+            await LogActionAsync(
+                typeof(T).Name,
+                userId,
+                AuditAction.Delete,
+                0,
+                JsonSerializer.Serialize(entity),
+                null,
+                notes,
+                null);
+        }
+
         public async Task LogActionAsync(
-            string entityType,
+            string action,
+            int userId,
+            AuditAction auditAction,
             int entityId,
-            AuditAction action,
-            object oldValues,
-            object newValues)
+            string entityType,
+            string description,
+            string oldValue = null,
+            string newValue = null)
         {
             try
             {
                 var auditLog = new AuditLog
                 {
-                    EntityType = entityType,
-                    EntityId = entityId,
                     Action = action,
-                    UserId = _currentUserService.UserId,
+                    UserId = userId,
+                    AuditAction = auditAction,
+                    EntityId = entityId,
+                    EntityType = entityType,
+                    Description = description,
+                    OldValue = oldValue,
+                    NewValue = newValue,
                     Timestamp = DateTime.UtcNow,
                     IpAddress = _currentUserService.IpAddress
                 };
 
-                // Serialize old values if provided
-                if (oldValues != null)
-                {
-                    auditLog.OldValues = JsonSerializer.Serialize(oldValues, new JsonSerializerOptions
-                    {
-                        WriteIndented = true
-                    });
-                }
-
-                // Serialize new values if provided
-                if (newValues != null)
-                {
-                    // If newValues is a string, use it directly, otherwise serialize
-                    auditLog.NewValues = newValues is string ? newValues.ToString() 
-                        : JsonSerializer.Serialize(newValues, new JsonSerializerOptions
-                        {
-                            WriteIndented = true
-                        });
-                }
-
                 await _unitOfWork.AuditLogs.AddAsync(auditLog);
                 await _unitOfWork.SaveChangesAsync();
-
-                _logger.LogInformation(
-                    "Audit log created for {EntityType} {EntityId}: {Action}",
-                    entityType, entityId, action);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Error creating audit log for {EntityType} {EntityId}: {Action}",
-                    entityType, entityId, action);
+                _logger.LogError(ex, "Error logging audit action {Action} for user {UserId}", action, userId);
                 throw;
             }
         }
 
-        public async Task<IEnumerable<AuditLog>> GetEntityAuditLogsAsync(string entityType, int entityId)
+        public async Task<IEnumerable<AuditLog>> GetUserAuditLogsAsync(int userId, DateTime? fromDate = null, DateTime? toDate = null)
         {
             try
             {
-                var logs = await _unitOfWork.AuditLogs.FindAsync(l =>
-                    l.EntityType == entityType && l.EntityId == entityId);
+                var query = _unitOfWork.AuditLogs.GetAll()
+                    .Where(log => log.UserId == userId);
 
-                return logs.OrderByDescending(l => l.Timestamp);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Error retrieving audit logs for {EntityType} {EntityId}",
-                    entityType, entityId);
-                throw;
-            }
-        }
+                if (fromDate.HasValue)
+                    query = query.Where(log => log.Timestamp >= fromDate.Value);
 
-        public async Task<IEnumerable<AuditLog>> GetUserAuditLogsAsync(int userId)
-        {
-            try
-            {
-                var logs = await _unitOfWork.AuditLogs.FindAsync(l => l.UserId == userId);
-                return logs.OrderByDescending(l => l.Timestamp);
+                if (toDate.HasValue)
+                    query = query.Where(log => log.Timestamp <= toDate.Value);
+
+                return await Task.FromResult(query.OrderByDescending(log => log.Timestamp).ToList());
             }
             catch (Exception ex)
             {
@@ -108,46 +123,85 @@ namespace DTCBillingSystem.Core.Services
             }
         }
 
-        public async Task<(IEnumerable<AuditLog> Logs, int TotalCount)> GetAuditLogsPagedAsync(
-            int pageIndex,
-            int pageSize,
-            string entityType = null,
-            AuditAction? action = null,
-            DateTime? fromDate = null,
-            DateTime? toDate = null,
-            int? userId = null)
+        public async Task<IEnumerable<AuditLog>> GetActionAuditLogsAsync(AuditAction action, DateTime? fromDate = null, DateTime? toDate = null)
         {
             try
             {
-                // Build the predicate based on filter parameters
-                Expression<Func<AuditLog, bool>> predicate = l => true;
-
-                if (!string.IsNullOrEmpty(entityType))
-                {
-                    predicate = predicate.And(l => l.EntityType == entityType);
-                }
-
-                if (action.HasValue)
-                {
-                    predicate = predicate.And(l => l.Action == action.Value);
-                }
+                var query = _unitOfWork.AuditLogs.GetAll()
+                    .Where(log => log.AuditAction == action);
 
                 if (fromDate.HasValue)
-                {
-                    predicate = predicate.And(l => l.Timestamp >= fromDate.Value);
-                }
+                    query = query.Where(log => log.Timestamp >= fromDate.Value);
 
                 if (toDate.HasValue)
-                {
-                    predicate = predicate.And(l => l.Timestamp <= toDate.Value);
-                }
+                    query = query.Where(log => log.Timestamp <= toDate.Value);
+
+                return await Task.FromResult(query.OrderByDescending(log => log.Timestamp).ToList());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving audit logs for action {Action}", action);
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<AuditLog>> GetAuditLogsAsync(DateTime fromDate, DateTime toDate)
+        {
+            try
+            {
+                var query = _unitOfWork.AuditLogs.GetAll()
+                    .Where(log => log.Timestamp >= fromDate && log.Timestamp <= toDate)
+                    .OrderByDescending(log => log.Timestamp);
+
+                return await Task.FromResult(query.ToList());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving audit logs for date range {FromDate} to {ToDate}", fromDate, toDate);
+                throw;
+            }
+        }
+
+        public async Task<(IEnumerable<AuditLog> Logs, int TotalCount)> GetAuditLogsPagedAsync(
+            int pageNumber,
+            int pageSize,
+            string searchTerm = null,
+            int? userId = null,
+            AuditAction? action = null,
+            int? entityId = null,
+            DateTime? fromDate = null,
+            DateTime? toDate = null)
+        {
+            try
+            {
+                var query = _unitOfWork.AuditLogs.GetAll();
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                    query = query.Where(log => log.Description.Contains(searchTerm));
 
                 if (userId.HasValue)
-                {
-                    predicate = predicate.And(l => l.UserId == userId.Value);
-                }
+                    query = query.Where(log => log.UserId == userId.Value);
 
-                return await _unitOfWork.AuditLogs.GetPagedAsync(pageIndex, pageSize, predicate);
+                if (action.HasValue)
+                    query = query.Where(log => log.AuditAction == action.Value);
+
+                if (entityId.HasValue)
+                    query = query.Where(log => log.EntityId == entityId.Value);
+
+                if (fromDate.HasValue)
+                    query = query.Where(log => log.Timestamp >= fromDate.Value);
+
+                if (toDate.HasValue)
+                    query = query.Where(log => log.Timestamp <= toDate.Value);
+
+                var totalCount = query.Count();
+                var logs = query
+                    .OrderByDescending(log => log.Timestamp)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                return (logs, totalCount);
             }
             catch (Exception ex)
             {
@@ -156,58 +210,34 @@ namespace DTCBillingSystem.Core.Services
             }
         }
 
-        public async Task<IEnumerable<AuditLog>> GetRecentActivityAsync(int count = 50)
+        public async Task<byte[]> ExportAuditLogsAsync(DateTime fromDate, DateTime toDate)
         {
             try
             {
-                var logs = await _unitOfWork.AuditLogs.FindAsync(l => true);
-                return logs.OrderByDescending(l => l.Timestamp).Take(count);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving recent activity logs");
-                throw;
-            }
-        }
-
-        public async Task CleanupOldLogsAsync(int daysToKeep)
-        {
-            try
-            {
-                var cutoffDate = DateTime.UtcNow.AddDays(-daysToKeep);
-                var oldLogs = await _unitOfWork.AuditLogs.FindAsync(l => l.Timestamp < cutoffDate);
-
-                foreach (var log in oldLogs)
+                var logs = await GetAuditLogsAsync(fromDate, toDate);
+                var json = JsonSerializer.Serialize(logs, new JsonSerializerOptions
                 {
-                    await _unitOfWork.AuditLogs.DeleteAsync(log);
-                }
-
-                await _unitOfWork.SaveChangesAsync();
-
-                _logger.LogInformation(
-                    "Cleaned up audit logs older than {DaysToKeep} days",
-                    daysToKeep);
+                    WriteIndented = true
+                });
+                return System.Text.Encoding.UTF8.GetBytes(json);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error cleaning up old audit logs");
+                _logger.LogError(ex, "Error exporting audit logs for date range {FromDate} to {ToDate}", fromDate, toDate);
                 throw;
             }
         }
     }
 
-    // Extension method for combining predicates
     public static class PredicateBuilder
     {
         public static Expression<Func<T, bool>> And<T>(
             this Expression<Func<T, bool>> first,
             Expression<Func<T, bool>> second)
         {
-            var parameter = Expression.Parameter(typeof(T));
-            var firstBody = first.Body.Replace(first.Parameters[0], parameter);
-            var secondBody = second.Body.Replace(second.Parameters[0], parameter);
-            var body = Expression.AndAlso(firstBody, secondBody);
-            return Expression.Lambda<Func<T, bool>>(body, parameter);
+            var param = first.Parameters[0];
+            var body = Expression.AndAlso(first.Body, new ExpressionReplacer(second.Parameters[0], param).Visit(second.Body));
+            return Expression.Lambda<Func<T, bool>>(body, param);
         }
 
         private static Expression Replace(this Expression expression, Expression searchEx, Expression replaceEx)

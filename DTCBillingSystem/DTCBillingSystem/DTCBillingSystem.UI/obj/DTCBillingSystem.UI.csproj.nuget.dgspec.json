@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\AAA Technology\\Downloads\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj": {}
+    "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj": {}
   },
   "projects": {
-    "C:\\Users\\AAA Technology\\Downloads\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj": {
+    "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\AAA Technology\\Downloads\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj",
+        "projectUniqueName": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj",
         "projectName": "DTCBillingSystem.UI",
-        "projectPath": "C:\\Users\\AAA Technology\\Downloads\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj",
-        "packagesPath": "C:\\Users\\AAA Technology\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\AAA Technology\\Downloads\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.UI\\obj\\",
+        "projectPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj",
+        "packagesPath": "C:\\Users\\d_rak\\.nuget\\packages\\",
+        "outputPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem\\DTCBillingSystem.UI\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\AAA Technology\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\d_rak\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net6.0-windows"
@@ -32,6 +32,11 @@
           "warnAsError": [
             "NU1605"
           ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -48,6 +53,24 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[6.0.36, 6.0.36]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.win-x64",
+              "version": "[6.0.36, 6.0.36]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[6.0.36, 6.0.36]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[6.0.36, 6.0.36]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
@@ -56,7 +79,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.428\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.404\\RuntimeIdentifierGraph.json"
         }
       }
     }
