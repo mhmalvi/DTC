@@ -1,0 +1,219 @@
+&lt;UserControl x:Class="DTCBillingSystem.UI.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:viewmodels="clr-namespace:DTCBillingSystem.UI.ViewModels"
+             mc:Ignorable="d" 
+             d:DesignHeight="768" d:DesignWidth="1024">
+
+    &lt;ScrollViewer VerticalScrollBarVisibility="Auto">
+        &lt;Grid Margin="16">
+            &lt;Grid.RowDefinitions>
+                &lt;RowDefinition Height="Auto"/>
+                &lt;RowDefinition Height="Auto"/>
+                &lt;RowDefinition Height="*"/>
+            &lt;/Grid.RowDefinitions>
+
+            &lt;!-- Welcome Message -->
+            &lt;TextBlock Grid.Row="0" 
+                       Text="Dashboard Overview" 
+                       Style="{StaticResource MaterialDesignHeadline4TextBlock}"
+                       Margin="0,0,0,24"/>
+
+            &lt;!-- Statistics Cards -->
+            &lt;WrapPanel Grid.Row="1" Margin="0,0,0,24">
+                &lt;!-- Total Customers Card -->
+                &lt;materialDesign:Card Width="280" Margin="8" Padding="8">
+                    &lt;Grid>
+                        &lt;Grid.RowDefinitions>
+                            &lt;RowDefinition Height="Auto"/>
+                            &lt;RowDefinition Height="Auto"/>
+                        &lt;/Grid.RowDefinitions>
+                        
+                        &lt;StackPanel Grid.Row="0" Orientation="Horizontal" Margin="8">
+                            &lt;materialDesign:PackIcon Kind="AccountMultiple" 
+                                                    Width="24" Height="24"
+                                                    VerticalAlignment="Center"/>
+                            &lt;TextBlock Text="Total Customers" 
+                                     Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                     Margin="8,0,0,0"
+                                     VerticalAlignment="Center"/>
+                        &lt;/StackPanel>
+                        
+                        &lt;TextBlock Grid.Row="1" 
+                                   Text="{Binding TotalCustomers}"
+                                   Style="{StaticResource MaterialDesignHeadline4TextBlock}"
+                                   Margin="8"
+                                   HorizontalAlignment="Right"/>
+                    &lt;/Grid>
+                &lt;/materialDesign:Card>
+
+                &lt;!-- Monthly Revenue Card -->
+                &lt;materialDesign:Card Width="280" Margin="8" Padding="8">
+                    &lt;Grid>
+                        &lt;Grid.RowDefinitions>
+                            &lt;RowDefinition Height="Auto"/>
+                            &lt;RowDefinition Height="Auto"/>
+                        &lt;/Grid.RowDefinitions>
+                        
+                        &lt;StackPanel Grid.Row="0" Orientation="Horizontal" Margin="8">
+                            &lt;materialDesign:PackIcon Kind="CurrencyBdt" 
+                                                    Width="24" Height="24"
+                                                    VerticalAlignment="Center"/>
+                            &lt;TextBlock Text="Monthly Revenue" 
+                                     Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                     Margin="8,0,0,0"
+                                     VerticalAlignment="Center"/>
+                        &lt;/StackPanel>
+                        
+                        &lt;TextBlock Grid.Row="1" 
+                                   Text="{Binding MonthlyRevenue, StringFormat='{}{0:N2} BDT'}"
+                                   Style="{StaticResource MaterialDesignHeadline4TextBlock}"
+                                   Margin="8"
+                                   HorizontalAlignment="Right"/>
+                    &lt;/Grid>
+                &lt;/materialDesign:Card>
+
+                &lt;!-- Outstanding Amount Card -->
+                &lt;materialDesign:Card Width="280" Margin="8" Padding="8">
+                    &lt;Grid>
+                        &lt;Grid.RowDefinitions>
+                            &lt;RowDefinition Height="Auto"/>
+                            &lt;RowDefinition Height="Auto"/>
+                        &lt;/Grid.RowDefinitions>
+                        
+                        &lt;StackPanel Grid.Row="0" Orientation="Horizontal" Margin="8">
+                            &lt;materialDesign:PackIcon Kind="AlertCircle" 
+                                                    Width="24" Height="24"
+                                                    VerticalAlignment="Center"/>
+                            &lt;TextBlock Text="Outstanding Amount" 
+                                     Style="{StaticResource MaterialDesignBody1TextBlock}"
+                                     Margin="8,0,0,0"
+                                     VerticalAlignment="Center"/>
+                        &lt;/StackPanel>
+                        
+                        &lt;TextBlock Grid.Row="1" 
+                                   Text="{Binding OutstandingAmount, StringFormat='{}{0:N2} BDT'}"
+                                   Style="{StaticResource MaterialDesignHeadline4TextBlock}"
+                                   Margin="8"
+                                   HorizontalAlignment="Right"
+                                   Foreground="{StaticResource MaterialDesignErrorLight}"/>
+                    &lt;/Grid>
+                &lt;/materialDesign:Card>
+            &lt;/WrapPanel>
+
+            &lt;!-- Recent Activity and Charts -->
+            &lt;Grid Grid.Row="2">
+                &lt;Grid.ColumnDefinitions>
+                    &lt;ColumnDefinition Width="*"/>
+                    &lt;ColumnDefinition Width="Auto"/>
+                &lt;/Grid.ColumnDefinitions>
+
+                &lt;!-- Recent Activity List -->
+                &lt;materialDesign:Card Grid.Column="0" Margin="8" Padding="16">
+                    &lt;DockPanel>
+                        &lt;TextBlock DockPanel.Dock="Top" 
+                                   Text="Recent Activity"
+                                   Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                                   Margin="0,0,0,16"/>
+                        
+                        &lt;ListView ItemsSource="{Binding RecentActivities}">
+                            &lt;ListView.ItemTemplate>
+                                &lt;DataTemplate>
+                                    &lt;Grid Margin="8">
+                                        &lt;Grid.ColumnDefinitions>
+                                            &lt;ColumnDefinition Width="Auto"/>
+                                            &lt;ColumnDefinition Width="*"/>
+                                            &lt;ColumnDefinition Width="Auto"/>
+                                        &lt;/Grid.ColumnDefinitions>
+
+                                        &lt;materialDesign:PackIcon Grid.Column="0"
+                                                                Kind="{Binding Icon}"
+                                                                Width="24" Height="24"
+                                                                Margin="0,0,16,0"
+                                                                VerticalAlignment="Center"/>
+                                        
+                                        &lt;StackPanel Grid.Column="1">
+                                            &lt;TextBlock Text="{Binding Description}"
+                                                     Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                                            &lt;TextBlock Text="{Binding UserName}"
+                                                     Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                                     Opacity="0.6"/>
+                                        &lt;/StackPanel>
+
+                                        &lt;TextBlock Grid.Column="2"
+                                                   Text="{Binding Timestamp, StringFormat='{}{0:g}'}"
+                                                   Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                                   VerticalAlignment="Center"/>
+                                    &lt;/Grid>
+                                &lt;/DataTemplate>
+                            &lt;/ListView.ItemTemplate>
+                        &lt;/ListView>
+                    &lt;/DockPanel>
+                &lt;/materialDesign:Card>
+
+                &lt;!-- Quick Actions -->
+                &lt;StackPanel Grid.Column="1" Width="200" Margin="0,8,8,8">
+                    &lt;materialDesign:Card Padding="16" Margin="0,0,0,8">
+                        &lt;StackPanel>
+                            &lt;TextBlock Text="Quick Actions"
+                                     Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                                     Margin="0,0,0,16"/>
+                            
+                            &lt;Button Style="{StaticResource MaterialDesignRaisedButton}"
+                                    Command="{Binding NewBillCommand}"
+                                    Margin="0,4">
+                                &lt;StackPanel Orientation="Horizontal">
+                                    &lt;materialDesign:PackIcon Kind="FileDocumentPlus" Margin="0,0,8,0"/>
+                                    &lt;TextBlock Text="New Bill"/>
+                                &lt;/StackPanel>
+                            &lt;/Button>
+
+                            &lt;Button Style="{StaticResource MaterialDesignRaisedButton}"
+                                    Command="{Binding RecordPaymentCommand}"
+                                    Margin="0,4">
+                                &lt;StackPanel Orientation="Horizontal">
+                                    &lt;materialDesign:PackIcon Kind="CashPlus" Margin="0,0,8,0"/>
+                                    &lt;TextBlock Text="Record Payment"/>
+                                &lt;/StackPanel>
+                            &lt;/Button>
+
+                            &lt;Button Style="{StaticResource MaterialDesignRaisedButton}"
+                                    Command="{Binding GenerateReportCommand}"
+                                    Margin="0,4">
+                                &lt;StackPanel Orientation="Horizontal">
+                                    &lt;materialDesign:PackIcon Kind="FileChart" Margin="0,0,8,0"/>
+                                    &lt;TextBlock Text="Generate Report"/>
+                                &lt;/StackPanel>
+                            &lt;/Button>
+                        &lt;/StackPanel>
+                    &lt;/materialDesign:Card>
+
+                    &lt;materialDesign:Card Padding="16">
+                        &lt;StackPanel>
+                            &lt;TextBlock Text="System Status"
+                                     Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                                     Margin="0,0,0,16"/>
+                            
+                            &lt;StackPanel Orientation="Horizontal" Margin="0,4">
+                                &lt;materialDesign:PackIcon Kind="Database" Margin="0,0,8,0"/>
+                                &lt;TextBlock Text="Last Backup:"/>
+                                &lt;TextBlock Text="{Binding LastBackupTime, StringFormat='{}{0:g}'}"
+                                         Margin="8,0,0,0"/>
+                            &lt;/StackPanel>
+
+                            &lt;StackPanel Orientation="Horizontal" Margin="0,4">
+                                &lt;materialDesign:PackIcon Kind="Sync" Margin="0,0,8,0"/>
+                                &lt;TextBlock Text="Last Sync:"/>
+                                &lt;TextBlock Text="{Binding LastSyncTime, StringFormat='{}{0:g}'}"
+                                         Margin="8,0,0,0"/>
+                            &lt;/StackPanel>
+                        &lt;/StackPanel>
+                    &lt;/materialDesign:Card>
+                &lt;/StackPanel>
+            &lt;/Grid>
+        &lt;/Grid>
+    &lt;/ScrollViewer>
+&lt;/UserControl> 

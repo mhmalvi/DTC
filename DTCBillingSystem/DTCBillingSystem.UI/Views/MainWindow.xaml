@@ -1,0 +1,100 @@
+&lt;Window x:Class="DTCBillingSystem.UI.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:viewmodels="clr-namespace:DTCBillingSystem.UI.ViewModels"
+        mc:Ignorable="d"
+        Title="DTC Billing System" 
+        Height="768" 
+        Width="1366"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized">
+
+    &lt;Window.DataContext>
+        &lt;viewmodels:MainViewModel/>
+    &lt;/Window.DataContext>
+
+    &lt;materialDesign:DialogHost Identifier="RootDialog" SnackbarMessageQueue="{Binding ElementName=MainSnackbar, Path=MessageQueue}">
+        &lt;materialDesign:DrawerHost IsLeftDrawerOpen="{Binding ElementName=MenuToggleButton, Path=IsChecked}">
+            &lt;materialDesign:DrawerHost.LeftDrawerContent>
+                &lt;DockPanel MinWidth="220">
+                    &lt;StackPanel DockPanel.Dock="Top" Margin="0,20">
+                        &lt;Image Source="/Assets/logo.png" Height="80" Width="80"/>
+                        &lt;TextBlock Text="DTC Billing System"
+                                 Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                                 HorizontalAlignment="Center"
+                                 Margin="0,10"/>
+                    &lt;/StackPanel>
+
+                    &lt;ListBox x:Name="MenuListBox" Margin="0,16">
+                        &lt;ListBoxItem>
+                            &lt;StackPanel Orientation="Horizontal">
+                                &lt;materialDesign:PackIcon Kind="ViewDashboard" Height="25" Width="25"/>
+                                &lt;TextBlock Text="Dashboard" Margin="10,0"/>
+                            &lt;/StackPanel>
+                        &lt;/ListBoxItem>
+                        &lt;ListBoxItem>
+                            &lt;StackPanel Orientation="Horizontal">
+                                &lt;materialDesign:PackIcon Kind="AccountMultiple" Height="25" Width="25"/>
+                                &lt;TextBlock Text="Customers" Margin="10,0"/>
+                            &lt;/StackPanel>
+                        &lt;/ListBoxItem>
+                        &lt;ListBoxItem>
+                            &lt;StackPanel Orientation="Horizontal">
+                                &lt;materialDesign:PackIcon Kind="FileDocument" Height="25" Width="25"/>
+                                &lt;TextBlock Text="Bills" Margin="10,0"/>
+                            &lt;/StackPanel>
+                        &lt;/ListBoxItem>
+                        &lt;ListBoxItem>
+                            &lt;StackPanel Orientation="Horizontal">
+                                &lt;materialDesign:PackIcon Kind="CashRegister" Height="25" Width="25"/>
+                                &lt;TextBlock Text="Payments" Margin="10,0"/>
+                            &lt;/StackPanel>
+                        &lt;/ListBoxItem>
+                        &lt;ListBoxItem>
+                            &lt;StackPanel Orientation="Horizontal">
+                                &lt;materialDesign:PackIcon Kind="ChartBar" Height="25" Width="25"/>
+                                &lt;TextBlock Text="Reports" Margin="10,0"/>
+                            &lt;/StackPanel>
+                        &lt;/ListBoxItem>
+                        &lt;ListBoxItem>
+                            &lt;StackPanel Orientation="Horizontal">
+                                &lt;materialDesign:PackIcon Kind="Cog" Height="25" Width="25"/>
+                                &lt;TextBlock Text="Settings" Margin="10,0"/>
+                            &lt;/StackPanel>
+                        &lt;/ListBoxItem>
+                    &lt;/ListBox>
+                &lt;/DockPanel>
+            &lt;/materialDesign:DrawerHost.LeftDrawerContent>
+
+            &lt;DockPanel>
+                &lt;materialDesign:ColorZone Padding="16" materialDesign:ShadowAssist.ShadowDepth="Depth2"
+                                        Mode="PrimaryMid" DockPanel.Dock="Top">
+                    &lt;DockPanel>
+                        &lt;ToggleButton x:Name="MenuToggleButton"
+                                    Style="{StaticResource MaterialDesignHamburgerToggleButton}"/>
+                        &lt;materialDesign:PopupBox DockPanel.Dock="Right" PlacementMode="BottomAndAlignRightEdges">
+                            &lt;ListBox>
+                                &lt;ListBoxItem Content="Profile"/>
+                                &lt;ListBoxItem Content="Settings"/>
+                                &lt;ListBoxItem Content="Help"/>
+                                &lt;Separator/>
+                                &lt;ListBoxItem Content="Logout"/>
+                            &lt;/ListBox>
+                        &lt;/materialDesign:PopupBox>
+                        &lt;TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="22">
+                            Welcome to DTC Billing System
+                        &lt;/TextBlock>
+                    &lt;/DockPanel>
+                &lt;/materialDesign:ColorZone>
+
+                &lt;Grid>
+                    &lt;ContentControl Content="{Binding CurrentViewModel}"/>
+                    &lt;materialDesign:Snackbar MessageQueue="{materialDesign:MessageQueue}" x:Name="MainSnackbar"/>
+                &lt;/Grid>
+            &lt;/DockPanel>
+        &lt;/materialDesign:DrawerHost>
+    &lt;/materialDesign:DialogHost>
+&lt;/Window> 

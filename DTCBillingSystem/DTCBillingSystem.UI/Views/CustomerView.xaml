@@ -1,0 +1,136 @@
+&lt;UserControl x:Class="DTCBillingSystem.UI.Views.CustomerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:viewmodels="clr-namespace:DTCBillingSystem.UI.ViewModels"
+             mc:Ignorable="d" 
+             d:DesignHeight="768" d:DesignWidth="1024">
+
+    &lt;Grid Margin="16">
+        &lt;Grid.RowDefinitions>
+            &lt;RowDefinition Height="Auto"/>
+            &lt;RowDefinition Height="Auto"/>
+            &lt;RowDefinition Height="*"/>
+        &lt;/Grid.RowDefinitions>
+
+        &lt;!-- Header -->
+        &lt;Grid Grid.Row="0">
+            &lt;Grid.ColumnDefinitions>
+                &lt;ColumnDefinition Width="*"/>
+                &lt;ColumnDefinition Width="Auto"/>
+            &lt;/Grid.ColumnDefinitions>
+
+            &lt;TextBlock Text="Customer Management"
+                       Style="{StaticResource MaterialDesignHeadline4TextBlock}"/>
+
+            &lt;Button Grid.Column="1"
+                    Command="{Binding AddCustomerCommand}"
+                    Style="{StaticResource MaterialDesignRaisedButton}">
+                &lt;StackPanel Orientation="Horizontal">
+                    &lt;materialDesign:PackIcon Kind="AccountPlus" Margin="0,0,8,0"/>
+                    &lt;TextBlock Text="Add Customer"/>
+                &lt;/StackPanel>
+            &lt;/Button>
+        &lt;/Grid>
+
+        &lt;!-- Search and Filter -->
+        &lt;Grid Grid.Row="1" Margin="0,16">
+            &lt;Grid.ColumnDefinitions>
+                &lt;ColumnDefinition Width="*"/>
+                &lt;ColumnDefinition Width="Auto"/>
+                &lt;ColumnDefinition Width="Auto"/>
+            &lt;/Grid.ColumnDefinitions>
+
+            &lt;TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     materialDesign:HintAssist.Hint="Search customers..."
+                     Style="{StaticResource MaterialDesignOutlinedTextBox}">
+                &lt;TextBox.InputBindings>
+                    &lt;KeyBinding Key="Return" Command="{Binding SearchCommand}"/>
+                &lt;/TextBox.InputBindings>
+            &lt;/TextBox>
+
+            &lt;ComboBox Grid.Column="1"
+                      Margin="16,0"
+                      Width="120"
+                      ItemsSource="{Binding Floors}"
+                      SelectedItem="{Binding SelectedFloor}"
+                      materialDesign:HintAssist.Hint="Floor"
+                      Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+
+            &lt;ToggleButton Grid.Column="2"
+                          IsChecked="{Binding ShowInactiveCustomers}"
+                          Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                          ToolTip="Show inactive customers"/>
+        &lt;/Grid>
+
+        &lt;!-- Customer List -->
+        &lt;materialDesign:Card Grid.Row="2">
+            &lt;DataGrid ItemsSource="{Binding Customers}"
+                      SelectedItem="{Binding SelectedCustomer}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      IsReadOnly="True"
+                      materialDesign:DataGridAssist.CellPadding="13 8 8 8"
+                      materialDesign:DataGridAssist.ColumnHeaderPadding="8">
+                &lt;DataGrid.Columns>
+                    &lt;DataGridTextColumn Header="Shop No"
+                                        Binding="{Binding ShopNo}"
+                                        Width="100"/>
+                    &lt;DataGridTextColumn Header="Name"
+                                        Binding="{Binding Name}"
+                                        Width="*"/>
+                    &lt;DataGridTextColumn Header="Floor"
+                                        Binding="{Binding Floor}"
+                                        Width="80"/>
+                    &lt;DataGridTextColumn Header="Phone"
+                                        Binding="{Binding PhoneNumber}"
+                                        Width="120"/>
+                    &lt;DataGridTextColumn Header="Email"
+                                        Binding="{Binding Email}"
+                                        Width="200"/>
+                    &lt;DataGridTemplateColumn Header="Status" Width="100">
+                        &lt;DataGridTemplateColumn.CellTemplate>
+                            &lt;DataTemplate>
+                                &lt;TextBlock Text="{Binding IsActive, Converter={StaticResource BooleanToActiveStatusConverter}}"
+                                           Foreground="{Binding IsActive, Converter={StaticResource BooleanToStatusColorConverter}}"/>
+                            &lt;/DataTemplate>
+                        &lt;/DataGridTemplateColumn.CellTemplate>
+                    &lt;/DataGridTemplateColumn>
+                    &lt;DataGridTemplateColumn Width="120">
+                        &lt;DataGridTemplateColumn.CellTemplate>
+                            &lt;DataTemplate>
+                                &lt;StackPanel Orientation="Horizontal">
+                                    &lt;Button Command="{Binding DataContext.EditCustomerCommand, 
+                                              RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignIconButton}"
+                                            ToolTip="Edit">
+                                        &lt;materialDesign:PackIcon Kind="Pencil"/>
+                                    &lt;/Button>
+                                    &lt;Button Command="{Binding DataContext.ViewBillsCommand,
+                                              RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignIconButton}"
+                                            ToolTip="View Bills">
+                                        &lt;materialDesign:PackIcon Kind="FileDocument"/>
+                                    &lt;/Button>
+                                    &lt;Button Command="{Binding DataContext.ToggleCustomerStatusCommand,
+                                              RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource MaterialDesignIconButton}"
+                                            ToolTip="Toggle Status">
+                                        &lt;materialDesign:PackIcon Kind="{Binding IsActive, 
+                                                                  Converter={StaticResource BooleanToStatusIconConverter}}"/>
+                                    &lt;/Button>
+                                &lt;/StackPanel>
+                            &lt;/DataTemplate>
+                        &lt;/DataGridTemplateColumn.CellTemplate>
+                    &lt;/DataGridTemplateColumn>
+                &lt;/DataGrid.Columns>
+            &lt;/DataGrid>
+        &lt;/materialDesign:Card>
+    &lt;/Grid>
+&lt;/UserControl> 

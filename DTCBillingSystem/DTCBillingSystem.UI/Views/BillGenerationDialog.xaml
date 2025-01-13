@@ -1,0 +1,140 @@
+<UserControl x:Class="DTCBillingSystem.UI.Views.BillGenerationDialog"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             Width="500">
+    
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0" 
+                   Text="Generate Bill"
+                   Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                   Margin="0,0,0,16"/>
+
+        <!-- Billing Month -->
+        <DatePicker Grid.Row="1"
+                    SelectedDate="{Binding BillingMonth}"
+                    Style="{StaticResource MaterialDesignOutlinedDatePicker}"
+                    materialDesign:HintAssist.Hint="Billing Month"
+                    Margin="0,0,0,16"/>
+
+        <!-- Electricity Readings -->
+        <GroupBox Grid.Row="2"
+                  Header="Electricity Readings"
+                  Style="{StaticResource MaterialDesignGroupBox}"
+                  Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0"
+                         Text="{Binding PreviousReading}"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         materialDesign:HintAssist.Hint="Previous Reading"
+                         Margin="0,0,8,0"/>
+                <TextBox Grid.Column="1"
+                         Text="{Binding PresentReading}"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         materialDesign:HintAssist.Hint="Present Reading"
+                         Margin="8,0,0,0"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- AC Readings -->
+        <GroupBox Grid.Row="3"
+                  Header="AC Readings"
+                  Style="{StaticResource MaterialDesignGroupBox}"
+                  Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0"
+                         Text="{Binding ACPreviousReading}"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         materialDesign:HintAssist.Hint="Previous Reading"
+                         Margin="0,0,8,0"/>
+                <TextBox Grid.Column="1"
+                         Text="{Binding ACPresentReading}"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         materialDesign:HintAssist.Hint="Present Reading"
+                         Margin="8,0,0,0"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Other Charges -->
+        <GroupBox Grid.Row="4"
+                  Header="Other Charges"
+                  Style="{StaticResource MaterialDesignGroupBox}"
+                  Margin="0,0,0,16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0"
+                         Text="{Binding BlowerFanCharge}"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         materialDesign:HintAssist.Hint="Blower Fan"
+                         Margin="0,0,8,0"/>
+                <TextBox Grid.Column="1"
+                         Text="{Binding GeneratorCharge}"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         materialDesign:HintAssist.Hint="Generator"
+                         Margin="8,0,8,0"/>
+                <TextBox Grid.Column="2"
+                         Text="{Binding ServiceCharge}"
+                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                         materialDesign:HintAssist.Hint="Service"
+                         Margin="8,0,0,0"/>
+            </Grid>
+        </GroupBox>
+
+        <!-- Due Date -->
+        <DatePicker Grid.Row="5"
+                    SelectedDate="{Binding DueDate}"
+                    Style="{StaticResource MaterialDesignOutlinedDatePicker}"
+                    materialDesign:HintAssist.Hint="Due Date"
+                    Margin="0,0,0,16"/>
+
+        <!-- Notes -->
+        <TextBox Grid.Row="6"
+                 Text="{Binding Notes}"
+                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                 materialDesign:HintAssist.Hint="Notes"
+                 TextWrapping="Wrap"
+                 Height="80"
+                 AcceptsReturn="True"
+                 VerticalScrollBarVisibility="Auto"
+                 Margin="0,0,0,16"/>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="7" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right">
+            <Button Command="{Binding CancelCommand}"
+                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                    Content="Cancel"
+                    Margin="0,0,8,0"/>
+            <Button Command="{Binding SaveCommand}"
+                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    Content="Generate Bill"/>
+        </StackPanel>
+    </Grid>
+</UserControl> 
