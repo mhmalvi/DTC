@@ -4,9 +4,72 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DTCBillingSystem.UI"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="DTC Billing System" Height="720" Width="1280"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        Background="{DynamicResource MaterialDesignPaper}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        FontFamily="{materialDesign:MaterialDesignFont}">
+    
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
+        <!-- Top Menu Bar -->
+        <materialDesign:ColorZone Mode="PrimaryMid" Grid.ColumnSpan="2" Padding="16">
+            <DockPanel>
+                <TextBlock Text="DTC Billing System" VerticalAlignment="Center" FontSize="22" DockPanel.Dock="Left"/>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" Content="Settings"/>
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" Content="Account"/>
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" Content="Logout"/>
+                </StackPanel>
+            </DockPanel>
+        </materialDesign:ColorZone>
+
+        <!-- Left Navigation Menu -->
+        <ListBox Grid.Row="1" Grid.Column="0" Style="{StaticResource MaterialDesignListBox}">
+            <ListBoxItem>
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="AccountMultiple" VerticalAlignment="Center"/>
+                    <TextBlock Text="Customers" Margin="8 0 0 0"/>
+                </StackPanel>
+            </ListBoxItem>
+            <ListBoxItem>
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="FileDocument" VerticalAlignment="Center"/>
+                    <TextBlock Text="Bills" Margin="8 0 0 0"/>
+                </StackPanel>
+            </ListBoxItem>
+            <ListBoxItem>
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="CashMultiple" VerticalAlignment="Center"/>
+                    <TextBlock Text="Payments" Margin="8 0 0 0"/>
+                </StackPanel>
+            </ListBoxItem>
+            <ListBoxItem>
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="ChartBar" VerticalAlignment="Center"/>
+                    <TextBlock Text="Reports" Margin="8 0 0 0"/>
+                </StackPanel>
+            </ListBoxItem>
+        </ListBox>
+
+        <!-- Main Content Area -->
+        <materialDesign:Card Grid.Row="1" Grid.Column="1" Margin="16">
+            <TextBlock Text="Welcome to DTC Billing System" 
+                       Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"/>
+        </materialDesign:Card>
     </Grid>
 </Window>

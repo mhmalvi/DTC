@@ -1,9 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using DTCBillingSystem.Core.Models;
-using DTCBillingSystem.Core.Models.Enums;
 using DTCBillingSystem.Core.Models.Authentication;
+using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Interfaces
 {
@@ -15,7 +13,7 @@ namespace DTCBillingSystem.Core.Interfaces
         /// <summary>
         /// Authenticate user and return auth token
         /// </summary>
-        Task<AuthenticationResult> AuthenticateAsync(string username, string password);
+        Task<LoginResult> AuthenticateAsync(string username, string password);
 
         /// <summary>
         /// Register a new user
@@ -36,7 +34,7 @@ namespace DTCBillingSystem.Core.Interfaces
         /// <summary>
         /// Reset user's password and send temporary password
         /// </summary>
-        Task<PasswordResetResult> ResetPasswordAsync(string email);
+        Task<PasswordResetResult> ResetPasswordAsync(string username);
 
         /// <summary>
         /// Update user profile

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DTCBillingSystem.Shared.Models.Enums;
 
 namespace DTCBillingSystem.Core.Models
 {
@@ -9,24 +10,39 @@ namespace DTCBillingSystem.Core.Models
     public class Customer : BaseEntity
     {
         /// <summary>
-        /// Full name of the customer
+        /// Customer code
         /// </summary>
-        public string Name { get; set; }
+        public string CustomerCode { get; set; }
 
         /// <summary>
-        /// Shop number in the trade center
+        /// First name of the customer
         /// </summary>
-        public string ShopNo { get; set; }
+        public string FirstName { get; set; }
 
         /// <summary>
-        /// Floor number where the shop is located
+        /// Last name of the customer
         /// </summary>
-        public string Floor { get; set; }
+        public string LastName { get; set; }
 
         /// <summary>
-        /// Contact phone number
+        /// Address of the customer
         /// </summary>
-        public string PhoneNumber { get; set; }
+        public string Address { get; set; }
+
+        /// <summary>
+        /// Contact number of the customer
+        /// </summary>
+        public string ContactNumber { get; set; }
+
+        /// <summary>
+        /// Email address of the customer
+        /// </summary>
+        public string Email { get; set; }
+
+        /// <summary>
+        /// Type of customer (Residential, Commercial, etc.)
+        /// </summary>
+        public CustomerType CustomerType { get; set; }
 
         /// <summary>
         /// When the customer registered their shop
@@ -39,25 +55,16 @@ namespace DTCBillingSystem.Core.Models
         public bool IsActive { get; set; }
 
         /// <summary>
-        /// Email address for notifications
-        /// </summary>
-        public string Email { get; set; }
-
-        /// <summary>
-        /// Additional notes about the customer
-        /// </summary>
-        public string Notes { get; set; }
-
-        /// <summary>
         /// Navigation property for customer's bills
         /// </summary>
         public virtual ICollection<MonthlyBill> Bills { get; set; }
 
         public Customer()
         {
-            Bills = new List<MonthlyBill>();
+            Bills = new HashSet<MonthlyBill>();
+            RegistrationDate = DateTime.Now;
             IsActive = true;
-            RegistrationDate = DateTime.UtcNow;
+            CustomerType = CustomerType.Residential; // Default to Residential
         }
     }
 } 

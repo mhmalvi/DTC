@@ -34,7 +34,7 @@ namespace DTCBillingSystem.Core.Interfaces
         /// <summary>
         /// Send system alert to administrators
         /// </summary>
-        Task SendSystemAlertAsync(string message, AlertPriority priority);
+        Task SendSystemAlertAsync(string message, NotificationType alertType);
 
         /// <summary>
         /// Send bulk notifications
@@ -42,19 +42,19 @@ namespace DTCBillingSystem.Core.Interfaces
         Task SendBulkNotificationsAsync(IEnumerable<NotificationMessage> messages);
 
         /// <summary>
-        /// Get notification history for a customer
+        /// Get unread notifications for a user
         /// </summary>
-        Task<IEnumerable<NotificationHistory>> GetCustomerNotificationHistoryAsync(int customerId);
+        Task<IEnumerable<NotificationMessage>> GetUserNotificationsAsync(int userId);
 
         /// <summary>
-        /// Get notification settings for a customer
+        /// Get notification settings for a user
         /// </summary>
-        Task<NotificationSettings> GetCustomerNotificationSettingsAsync(int customerId);
+        Task<NotificationSettings> GetUserNotificationSettingsAsync(int userId);
 
         /// <summary>
-        /// Update notification settings for a customer
+        /// Update notification settings for a user
         /// </summary>
-        Task UpdateCustomerNotificationSettingsAsync(int customerId, NotificationSettings settings);
+        Task UpdateUserNotificationSettingsAsync(int userId, NotificationSettings settings);
 
         /// <summary>
         /// Schedule a notification for future delivery

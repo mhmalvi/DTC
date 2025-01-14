@@ -4,6 +4,10 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTCBillingSystem.Core", "DTCBillingSystem.Core\DTCBillingSystem.Core.csproj", "{A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTCBillingSystem.Shared", "DTCBillingSystem.Shared\DTCBillingSystem.Shared.csproj", "{3B7ECAAA-ECB2-414C-A70A-338F40BAB602}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTCBillingSystem.Infrastructure", "DTCBillingSystem.Infrastructure\DTCBillingSystem.Infrastructure.csproj", "{0734A7FD-712D-4156-8025-20279DA51ED2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +18,14 @@ Global
 		{A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B7ECAAA-ECB2-414C-A70A-338F40BAB602}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B7ECAAA-ECB2-414C-A70A-338F40BAB602}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B7ECAAA-ECB2-414C-A70A-338F40BAB602}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B7ECAAA-ECB2-414C-A70A-338F40BAB602}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0734A7FD-712D-4156-8025-20279DA51ED2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0734A7FD-712D-4156-8025-20279DA51ED2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0734A7FD-712D-4156-8025-20279DA51ED2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0734A7FD-712D-4156-8025-20279DA51ED2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

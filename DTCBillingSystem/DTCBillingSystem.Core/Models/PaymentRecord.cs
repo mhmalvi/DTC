@@ -1,36 +1,26 @@
 using System;
-using DTCBillingSystem.Core.Models.Enums;
+using DTCBillingSystem.Shared.Models.Enums;
 
 namespace DTCBillingSystem.Core.Models
 {
-    /// <summary>
-    /// Represents a payment made against a bill
-    /// </summary>
     public class PaymentRecord : BaseEntity
     {
-        /// <summary>
-        /// Reference to the bill this payment is for
-        /// </summary>
         public int BillId { get; set; }
-        public decimal Amount { get; set; }
+        public string PaymentNumber { get; set; }
         public DateTime PaymentDate { get; set; }
-        public PaymentMethod Method { get; set; }
-        public string TransactionId { get; set; }
-        public string PaymentDetails { get; set; }
-        public string ReceivedBy { get; set; }
-        public bool IsVerified { get; set; }
-        public DateTime? VerifiedAt { get; set; }
-        public string VerifiedBy { get; set; }
+        public decimal PaymentAmount { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
+        public string TransactionReference { get; set; }
+        public PaymentStatus Status { get; set; }
         public string Notes { get; set; }
 
-        /// <summary>
-        /// Navigation properties
-        /// </summary>
+        // Navigation property
         public virtual MonthlyBill Bill { get; set; }
 
         public PaymentRecord()
         {
-            PaymentDate = DateTime.UtcNow;
+            PaymentDate = DateTime.Now;
+            Status = PaymentStatus.Completed;
         }
     }
 } 

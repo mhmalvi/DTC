@@ -1,79 +1,64 @@
-﻿using System;
-using System.IO;
-using System.Windows;
-using Microsoft.Extensions.Configuration;
+﻿using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
-using DTCBillingSystem.Core.Interfaces;
-using DTCBillingSystem.Core.Services;
 using DTCBillingSystem.Infrastructure.Data;
+using DTCBillingSystem.Core;
+using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Infrastructure.Repositories;
+using System.IO;
 
 namespace DTCBillingSystem.UI
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
     public partial class App : Application
     {
-        private IServiceProvider _serviceProvider;
-        private IConfiguration _configuration;
+        private ServiceProvider serviceProvider;
+        public IConfiguration Configuration { get; private set; }
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            base.OnStartup(e);
-
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
-            _configuration = builder.Build();
+            Configuration = builder.Build();
 
             var services = new ServiceCollection();
             ConfigureServices(services);
 
-            _serviceProvider = services.BuildServiceProvider();
+            serviceProvider = services.BuildServiceProvider();
 
-            // Create database and apply migrations
-            using (var scope = _serviceProvider.CreateScope())
+            // Ensure database creation and apply migrations
+            using (var scope = serviceProvider.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 context.Database.Migrate();
             }
 
-            var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+            var mainWindow = serviceProvider.GetRequiredService<MainWindow>();
             mainWindow.Show();
         }
 
         private void ConfigureServices(IServiceCollection services)
         {
-            // Add configuration
-            services.AddSingleton(_configuration);
-
-            // Add DbContext
+            // Configure DbContext
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(_configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-            // Add repositories
+            // Register Core Services
+            services.AddCoreServices();
+
+            // Register Infrastructure Services
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
-            // Add services
-            services.AddScoped<IAuditService, AuditService>();
-            services.AddScoped<IPrintService, PrintService>();
-            services.AddScoped<ICurrentUserService, CurrentUserService>();
-            services.AddScoped<IReportService, ReportService>();
-
-            // Add windows
+            // Register Windows
             services.AddTransient<MainWindow>();
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
             base.OnExit(e);
-            if (_serviceProvider is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
+            serviceProvider?.Dispose();
         }
     }
 }

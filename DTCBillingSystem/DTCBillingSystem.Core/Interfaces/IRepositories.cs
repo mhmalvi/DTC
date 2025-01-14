@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using DTCBillingSystem.Core.Models;
-using DTCBillingSystem.Core.Models.Enums;
+using DTCBillingSystem.Shared.Models.Entities;
+using DTCBillingSystem.Shared.Models.Enums;
+using DTCBillingSystem.Shared.Interfaces;
 
 namespace DTCBillingSystem.Core.Interfaces
 {
@@ -21,32 +22,32 @@ namespace DTCBillingSystem.Core.Interfaces
 
     public interface IBillRepository : IRepository<MonthlyBill>
     {
-        Task<IEnumerable<MonthlyBill>> GetOutstandingBillsAsync(int customerId);
+        Task<IEnumerable<MonthlyBill>> GetOutstandingBillsAsync(string customerId);
         Task<IEnumerable<MonthlyBill>> GetBillsDueAsync(DateTime dueDate);
-        Task<IEnumerable<MonthlyBill>> GetForCustomerPeriodAsync(int customerId, DateTime startDate, DateTime endDate);
+        Task<IEnumerable<MonthlyBill>> GetForCustomerPeriodAsync(string customerId, DateTime startDate, DateTime endDate);
         Task<IEnumerable<MonthlyBill>> GetForPeriodAsync(DateTime startDate, DateTime endDate);
     }
 
     public interface IPaymentRepository : IRepository<PaymentRecord>
     {
-        Task<IEnumerable<PaymentRecord>> GetPaymentHistoryAsync(int customerId, DateTime? startDate = null, DateTime? endDate = null);
+        Task<IEnumerable<PaymentRecord>> GetPaymentHistoryAsync(string customerId, DateTime? startDate = null, DateTime? endDate = null);
         Task<IEnumerable<PaymentRecord>> GetForDateAsync(DateTime date);
         Task<IEnumerable<PaymentRecord>> GetForPeriodAsync(DateTime startDate, DateTime endDate);
     }
 
     public interface IAuditLogRepository : IRepository<AuditLog>
     {
-        Task<IEnumerable<AuditLog>> GetByEntityAsync(string entityType, int entityId);
-        Task<IEnumerable<AuditLog>> GetByUserAsync(int userId, DateTime? startDate = null, DateTime? endDate = null);
+        Task<IEnumerable<AuditLog>> GetByEntityAsync(string entityType, string entityId);
+        Task<IEnumerable<AuditLog>> GetByUserAsync(string userId, DateTime? startDate = null, DateTime? endDate = null);
         Task<IEnumerable<AuditLog>> GetByActionAsync(AuditAction action, DateTime? startDate = null, DateTime? endDate = null);
         Task<IEnumerable<AuditLog>> GetByDateRangeAsync(DateTime startDate, DateTime endDate);
         Task<(IEnumerable<AuditLog> Logs, int TotalCount)> GetPagedAsync(
-            int pageIndex,
+            int pageNumber,
             int pageSize,
             string entityType = null,
-            int? entityId = null,
+            string entityId = null,
             AuditAction? action = null,
-            int? userId = null,
+            string userId = null,
             DateTime? startDate = null,
             DateTime? endDate = null);
     }
@@ -59,19 +60,19 @@ namespace DTCBillingSystem.Core.Interfaces
 
     public interface IMeterReadingRepository : IRepository<MeterReading>
     {
-        Task<IEnumerable<MeterReading>> GetForBillingPeriodAsync(int customerId, DateTime billingMonth);
-        Task<MeterReading> GetLatestReadingAsync(int customerId);
+        Task<IEnumerable<MeterReading>> GetForBillingPeriodAsync(string customerId, DateTime billingMonth);
+        Task<MeterReading> GetLatestReadingAsync(string customerId);
     }
 
     public interface INotificationHistoryRepository : IRepository<NotificationHistory>
     {
-        Task<IEnumerable<NotificationHistory>> GetByCustomerIdAsync(int customerId);
+        Task<IEnumerable<NotificationHistory>> GetByCustomerIdAsync(string customerId);
         Task<IEnumerable<NotificationHistory>> GetByTypeAsync(NotificationType type);
     }
 
     public interface INotificationSettingsRepository : IRepository<NotificationSettings>
     {
-        Task<NotificationSettings> GetByCustomerIdAsync(int customerId);
+        Task<NotificationSettings> GetByCustomerIdAsync(string customerId);
     }
 
     public interface INotificationMessageRepository : IRepository<NotificationMessage>
@@ -88,7 +89,7 @@ namespace DTCBillingSystem.Core.Interfaces
 
     public interface IBackupInfoRepository : IRepository<BackupInfo>
     {
-        Task<IEnumerable<BackupInfo>> GetByTypeAsync(BackupType type);
+        Task<IEnumerable<BackupInfo>> GetByTypeAsync(string type);
         Task<BackupInfo> GetLatestBackupAsync();
     }
 

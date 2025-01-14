@@ -1,210 +1,85 @@
 using System;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using DTCBillingSystem.Core.Interfaces;
-using DTCBillingSystem.Core.Models;
-using Microsoft.Extensions.Logging;
-using System.IO;
-using System.Text.Json;
+using DTCBillingSystem.Shared.Interfaces;
+using DTCBillingSystem.Shared.Models.Entities;
 
 namespace DTCBillingSystem.Core.Services
 {
     public class BackupService : IBackupService
     {
-        private readonly ILogger<BackupService> _logger;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly string _backupDirectory;
+        private readonly IAuditService _auditService;
 
-        public BackupService(ILogger<BackupService> logger, IUnitOfWork unitOfWork, string backupDirectory)
+        public BackupService(IUnitOfWork unitOfWork, IAuditService auditService)
         {
-            _logger = logger;
             _unitOfWork = unitOfWork;
-            _backupDirectory = backupDirectory;
+            _auditService = auditService;
         }
 
-        public async Task<BackupInfo> CreateFullBackupAsync(string backupPath)
+        public async Task<BackupSchedule> CreateBackupScheduleAsync(BackupSchedule schedule, int userId)
         {
-            try
+            if (schedule == null)
             {
-                _logger.LogInformation("Starting full backup to {BackupPath}", backupPath);
-                
-                // Ensure backup directory exists
-                Directory.CreateDirectory(Path.GetDirectoryName(backupPath));
-
-                // TODO: Implement full backup logic
-                var backupInfo = new BackupInfo
-                {
-                    Name = $"Full_Backup_{DateTime.UtcNow:yyyyMMdd_HHmmss}",
-                    Path = backupPath,
-                    CreatedAt = DateTime.UtcNow,
-                    Type = BackupType.Full,
-                    Description = "Full system backup",
-                    CreatedBy = "System"
-                };
-
-                await _unitOfWork.BackupInfo.AddAsync(backupInfo);
-                await _unitOfWork.SaveChangesAsync();
-
-                return backupInfo;
+                throw new ArgumentNullException(nameof(schedule));
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating full backup");
-                throw;
-            }
+
+            schedule.CreatedAt = DateTime.UtcNow;
+            schedule.CreatedBy = userId.ToString();
+
+            await _unitOfWork.BackupSchedules.AddAsync(schedule);
+            await _unitOfWork.SaveChangesAsync();
+            await _auditService.LogCreateAsync(schedule, userId);
+
+            return schedule;
         }
 
-        public async Task<BackupInfo> CreateDifferentialBackupAsync(string backupPath)
+        public async Task<BackupInfo> CreateBackupAsync(int scheduleId, int userId)
         {
-            try
+            var schedule = await _unitOfWork.BackupSchedules.GetByIdAsync(scheduleId)
+                ?? throw new ArgumentException($"Backup schedule with ID {scheduleId} not found.");
+
+            var backup = new BackupInfo
             {
-                _logger.LogInformation("Starting differential backup to {BackupPath}", backupPath);
-                
-                // Ensure backup directory exists
-                Directory.CreateDirectory(Path.GetDirectoryName(backupPath));
+                BackupScheduleId = scheduleId,
+                StartTime = DateTime.UtcNow,
+                Status = "Pending",
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = userId.ToString()
+            };
 
-                // TODO: Implement differential backup logic
-                var backupInfo = new BackupInfo
-                {
-                    Name = $"Diff_Backup_{DateTime.UtcNow:yyyyMMdd_HHmmss}",
-                    Path = backupPath,
-                    CreatedAt = DateTime.UtcNow,
-                    Type = BackupType.Differential,
-                    Description = "Differential system backup",
-                    CreatedBy = "System"
-                };
+            await _unitOfWork.Backups.AddAsync(backup);
+            await _unitOfWork.SaveChangesAsync();
+            await _auditService.LogCreateAsync(backup, userId);
 
-                await _unitOfWork.BackupInfo.AddAsync(backupInfo);
-                await _unitOfWork.SaveChangesAsync();
-
-                return backupInfo;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating differential backup");
-                throw;
-            }
+            return backup;
         }
 
-        public async Task<bool> RestoreFromBackupAsync(string backupPath)
+        public async Task UpdateBackupStatusAsync(int backupId, string status, int userId)
         {
-            try
-            {
-                _logger.LogInformation("Starting restore from backup {BackupPath}", backupPath);
+            var backup = await _unitOfWork.Backups.GetByIdAsync(backupId)
+                ?? throw new ArgumentException($"Backup with ID {backupId} not found.");
 
-                if (!File.Exists(backupPath))
-                {
-                    throw new FileNotFoundException("Backup file not found", backupPath);
-                }
+            backup.Status = status;
+            backup.LastModifiedAt = DateTime.UtcNow;
+            backup.LastModifiedBy = userId.ToString();
 
-                // TODO: Implement restore logic
-                await Task.CompletedTask;
-                return true;
-            }
-            catch (Exception ex)
+            if (status == "Completed")
             {
-                _logger.LogError(ex, "Error restoring from backup");
-                throw;
+                backup.CompletedAt = DateTime.UtcNow;
             }
+
+            await _unitOfWork.SaveChangesAsync();
+            await _auditService.LogUpdateAsync(backup, userId);
         }
 
-        public async Task<IEnumerable<BackupInfo>> GetBackupListAsync()
+        public async Task DeleteBackupScheduleAsync(int scheduleId, int userId)
         {
-            try
-            {
-                return await _unitOfWork.BackupInfo.GetAllAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving backup list");
-                throw;
-            }
-        }
+            var schedule = await _unitOfWork.BackupSchedules.GetByIdAsync(scheduleId)
+                ?? throw new ArgumentException($"Backup schedule with ID {scheduleId} not found.");
 
-        public async Task<bool> VerifyBackupAsync(string backupPath)
-        {
-            try
-            {
-                _logger.LogInformation("Verifying backup {BackupPath}", backupPath);
-
-                if (!File.Exists(backupPath))
-                {
-                    return false;
-                }
-
-                // TODO: Implement backup verification logic
-                await Task.CompletedTask;
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error verifying backup");
-                throw;
-            }
-        }
-
-        public async Task ScheduleAutomatedBackupAsync(BackupSchedule schedule)
-        {
-            try
-            {
-                _logger.LogInformation("Scheduling automated backup with schedule {ScheduleName}", schedule.Name);
-
-                // Validate schedule
-                if (schedule.StartDate < DateTime.UtcNow)
-                {
-                    throw new ArgumentException("Schedule start date must be in the future");
-                }
-
-                await _unitOfWork.BackupSchedules.AddAsync(schedule);
-                await _unitOfWork.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error scheduling automated backup");
-                throw;
-            }
-        }
-
-        public async Task<string> ExportToJsonAsync()
-        {
-            try
-            {
-                _logger.LogInformation("Starting data export to JSON");
-
-                var data = await _unitOfWork.GetAllDataAsync();
-                return JsonSerializer.Serialize(data, new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error exporting data to JSON");
-                throw;
-            }
-        }
-
-        public async Task<bool> ImportFromJsonAsync(string jsonData)
-        {
-            try
-            {
-                _logger.LogInformation("Starting data import from JSON");
-
-                if (string.IsNullOrEmpty(jsonData))
-                {
-                    throw new ArgumentException("JSON data cannot be null or empty");
-                }
-
-                var data = JsonSerializer.Deserialize<object>(jsonData);
-                // TODO: Implement data import logic
-                await Task.CompletedTask;
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error importing data from JSON");
-                throw;
-            }
+            await _unitOfWork.BackupSchedules.DeleteAsync(schedule);
+            await _unitOfWork.SaveChangesAsync();
+            await _auditService.LogDeleteAsync(schedule, userId);
         }
     }
 } 

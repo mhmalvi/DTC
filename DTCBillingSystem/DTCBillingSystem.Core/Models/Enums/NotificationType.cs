@@ -9,7 +9,10 @@ namespace DTCBillingSystem.Core.Models.Enums
         PaymentReceived,
         PaymentDue,
         PaymentOverdue,
+        PaymentDueReminder,
+        OverduePayment,
         SystemAlert,
-        General
+        General,
+        Error
     }
 } 

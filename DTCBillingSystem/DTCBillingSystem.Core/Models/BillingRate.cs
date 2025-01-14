@@ -8,29 +8,9 @@ namespace DTCBillingSystem.Core.Models
     public class BillingRate : BaseEntity
     {
         /// <summary>
-        /// Type of the rate (e.g., Electricity, AC, Generator)
+        /// The rate code
         /// </summary>
-        public string RateType { get; set; }
-
-        /// <summary>
-        /// The actual rate amount
-        /// </summary>
-        public decimal Rate { get; set; }
-
-        /// <summary>
-        /// When this rate becomes effective
-        /// </summary>
-        public DateTime EffectiveDate { get; set; }
-
-        /// <summary>
-        /// When this rate expires (null if current)
-        /// </summary>
-        public DateTime? EndDate { get; set; }
-
-        /// <summary>
-        /// Whether this rate is currently active
-        /// </summary>
-        public bool IsActive { get; set; }
+        public string RateCode { get; set; }
 
         /// <summary>
         /// Description or notes about the rate
@@ -38,14 +18,34 @@ namespace DTCBillingSystem.Core.Models
         public string Description { get; set; }
 
         /// <summary>
-        /// Unit of measurement (e.g., per kWh, per hour)
+        /// The base rate amount
         /// </summary>
-        public string Unit { get; set; }
+        public decimal BaseRate { get; set; }
+
+        /// <summary>
+        /// The tax rate amount
+        /// </summary>
+        public decimal TaxRate { get; set; }
+
+        /// <summary>
+        /// Whether this rate is currently active
+        /// </summary>
+        public bool IsActive { get; set; }
+
+        /// <summary>
+        /// When this rate becomes effective
+        /// </summary>
+        public DateTime EffectiveFrom { get; set; }
+
+        /// <summary>
+        /// When this rate expires (null if current)
+        /// </summary>
+        public DateTime? EffectiveTo { get; set; }
 
         public BillingRate()
         {
             IsActive = true;
-            EffectiveDate = DateTime.UtcNow;
+            EffectiveFrom = DateTime.Now;
         }
     }
 } 

@@ -1,20 +1,40 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Models
 {
     public class BackupInfo : BaseEntity
     {
-        public string Name { get; set; }
-        public string Path { get; set; }
+        [Required]
+        public string Name { get; set; } = string.Empty;
+
+        [Required]
+        public string Path { get; set; } = string.Empty;
+
+        [Required]
         public BackupType Type { get; set; }
-        public string Description { get; set; }
-        public new DateTime CreatedAt { get; set; }
-        public new string CreatedBy { get; set; }
+
+        [Required]
+        public string Description { get; set; } = string.Empty;
+
         public long SizeInBytes { get; set; }
+
         public bool IsVerified { get; set; }
+
         public DateTime? VerifiedAt { get; set; }
-        public string VerifiedBy { get; set; }
-        public string Checksum { get; set; }
+
+        [Required]
+        public string VerifiedBy { get; set; } = string.Empty;
+
+        [Required]
+        public string Checksum { get; set; } = string.Empty;
+
+        public BackupInfo()
+        {
+            IsVerified = false;
+            Type = BackupType.Full;
+            SizeInBytes = 0;
+        }
     }
 } 

@@ -1,58 +1,38 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Models
 {
-    /// <summary>
-    /// Represents an audit log entry in the system
-    /// </summary>
     public class AuditLog : BaseEntity
     {
-        /// <summary>
-        /// Type of entity being audited
-        /// </summary>
-        public string EntityType { get; set; }
+        [Required]
+        public string EntityName { get; set; } = string.Empty;
 
-        /// <summary>
-        /// ID of the entity being audited
-        /// </summary>
+        [Required]
         public int EntityId { get; set; }
 
-        /// <summary>
-        /// Type of action performed
-        /// </summary>
+        [Required]
         public AuditAction Action { get; set; }
 
-        /// <summary>
-        /// User who performed the action
-        /// </summary>
+        [Required]
         public int UserId { get; set; }
-        public virtual User User { get; set; }
 
-        /// <summary>
-        /// When the action was performed
-        /// </summary>
-        public DateTime Timestamp { get; set; }
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
-        /// <summary>
-        /// Previous state of the entity (JSON)
-        /// </summary>
-        public string OldValues { get; set; }
+        [Required]
+        public string OldValues { get; set; } = string.Empty;
 
-        /// <summary>
-        /// New state of the entity (JSON)
-        /// </summary>
-        public string NewValues { get; set; }
+        [Required]
+        public string NewValues { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Additional information about the change
-        /// </summary>
-        public string Notes { get; set; }
+        [Required]
+        public string AffectedColumns { get; set; } = string.Empty;
 
-        /// <summary>
-        /// IP address of the user
-        /// </summary>
-        public string IpAddress { get; set; }
+        [Required]
+        public string IPAddress { get; set; } = string.Empty;
+
+        public string? Notes { get; set; }
 
         public AuditLog()
         {
