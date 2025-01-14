@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Models
 {
@@ -75,16 +76,5 @@ namespace DTCBillingSystem.Core.Models
             IsLocked = false;
             Role = UserRole.Staff;
         }
-    }
-
-    /// <summary>
-    /// Represents different user roles in the system
-    /// </summary>
-    public enum UserRole
-    {
-        Administrator,
-        Manager,
-        Staff,
-        ReadOnly
     }
 } 

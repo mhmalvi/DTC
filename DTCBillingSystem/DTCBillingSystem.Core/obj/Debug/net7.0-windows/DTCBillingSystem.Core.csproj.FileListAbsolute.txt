@@ -1,0 +1,5 @@
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Debug\net7.0-windows\DTCBillingSystem.Core.csproj.AssemblyReference.cache
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Debug\net7.0-windows\DTCBillingSystem\DTCBillingSystem.UI\App.g.cs
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Debug\net7.0-windows\DTCBillingSystem\DTCBillingSystem.UI\MainWindow.g.cs
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Debug\net7.0-windows\DTCBillingSystem.Core_MarkupCompile.cache
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Debug\net7.0-windows\DTCBillingSystem.Core_MarkupCompile.lref

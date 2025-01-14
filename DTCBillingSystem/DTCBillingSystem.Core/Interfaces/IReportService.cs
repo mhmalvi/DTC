@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DTCBillingSystem.Core.Models;
+using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Interfaces
 {
@@ -48,7 +49,7 @@ namespace DTCBillingSystem.Core.Interfaces
         /// <summary>
         /// Generate custom report
         /// </summary>
-        Task<object> GenerateCustomReportAsync(string reportName, Dictionary<string, object> parameters);
+        Task<Dictionary<string, object>> GenerateCustomReportAsync(string reportType, Dictionary<string, object> parameters);
     }
 
     public class DailyCollectionReport

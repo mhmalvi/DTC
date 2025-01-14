@@ -1,4 +1,5 @@
 using System;
+using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Models
 {
@@ -57,21 +58,5 @@ namespace DTCBillingSystem.Core.Models
         {
             Timestamp = DateTime.UtcNow;
         }
-    }
-
-    /// <summary>
-    /// Represents different types of audit actions
-    /// </summary>
-    public enum AuditAction
-    {
-        Created,
-        Updated,
-        Deleted,
-        Viewed,
-        Printed,
-        StatusChanged,
-        LoginAttempt,
-        PasswordChanged,
-        Other
     }
 } 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DTCBillingSystem.Core.Models;
+using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Interfaces
 {
@@ -13,22 +14,22 @@ namespace DTCBillingSystem.Core.Interfaces
         /// <summary>
         /// Log an entity creation
         /// </summary>
-        Task LogCreateAsync<T>(T entity, int userId, string ipAddress = null) where T : BaseEntity;
+        Task<AuditLog> LogCreateAsync<T>(T entity, int userId, string ipAddress = null) where T : BaseEntity;
 
         /// <summary>
         /// Log an entity update
         /// </summary>
-        Task LogUpdateAsync<T>(T oldEntity, T newEntity, int userId, string ipAddress = null) where T : BaseEntity;
+        Task<AuditLog> LogUpdateAsync<T>(T oldEntity, T newEntity, int userId, string ipAddress = null) where T : BaseEntity;
 
         /// <summary>
         /// Log an entity deletion
         /// </summary>
-        Task LogDeleteAsync<T>(T entity, int userId, string ipAddress = null) where T : BaseEntity;
+        Task<AuditLog> LogDeleteAsync<T>(T entity, int userId, string ipAddress = null) where T : BaseEntity;
 
         /// <summary>
         /// Log a custom action
         /// </summary>
-        Task LogActionAsync(
+        Task<AuditLog> LogActionAsync(
             string entityType,
             int entityId,
             AuditAction action,

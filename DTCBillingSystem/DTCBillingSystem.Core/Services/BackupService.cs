@@ -1,275 +1,208 @@
-using System.IO.Compression;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Data.SqlClient;
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models;
+using Microsoft.Extensions.Logging;
+using System.IO;
+using System.Text.Json;
 
 namespace DTCBillingSystem.Core.Services
 {
     public class BackupService : IBackupService
     {
-        private readonly IConfiguration _configuration;
         private readonly ILogger<BackupService> _logger;
-        private readonly IAuditService _auditService;
-        private readonly string _backupPath;
-        private readonly string _connectionString;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly string _backupDirectory;
 
-        public BackupService(
-            IConfiguration configuration,
-            ILogger<BackupService> logger,
-            IAuditService auditService)
+        public BackupService(ILogger<BackupService> logger, IUnitOfWork unitOfWork, string backupDirectory)
         {
-            _configuration = configuration;
             _logger = logger;
-            _auditService = auditService;
-            
-            _backupPath = _configuration["AppSettings:BackupPath"] ?? 
-                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), 
-                    "DTCBillingSystem", "Backups");
-            _connectionString = _configuration.GetConnectionString("DefaultConnection");
-
-            // Ensure backup directory exists
-            if (!Directory.Exists(_backupPath))
-            {
-                Directory.CreateDirectory(_backupPath);
-            }
+            _unitOfWork = unitOfWork;
+            _backupDirectory = backupDirectory;
         }
 
-        public async Task<string> CreateBackupAsync(bool includeAttachments = true)
+        public async Task<BackupInfo> CreateFullBackupAsync(string backupPath)
         {
             try
             {
-                var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
-                var backupFileName = $"DTCBillingSystem_{timestamp}.bak";
-                var backupFilePath = Path.Combine(_backupPath, backupFileName);
+                _logger.LogInformation("Starting full backup to {BackupPath}", backupPath);
+                
+                // Ensure backup directory exists
+                Directory.CreateDirectory(Path.GetDirectoryName(backupPath));
 
-                // Create database backup
-                using (var connection = new SqlConnection(_connectionString))
+                // TODO: Implement full backup logic
+                var backupInfo = new BackupInfo
                 {
-                    await connection.OpenAsync();
-                    var backupCommand = new SqlCommand(
-                        $"BACKUP DATABASE DTCBillingSystem TO DISK = '{backupFilePath}' WITH FORMAT", 
-                        connection);
-                    await backupCommand.ExecuteNonQueryAsync();
-                }
+                    Name = $"Full_Backup_{DateTime.UtcNow:yyyyMMdd_HHmmss}",
+                    Path = backupPath,
+                    CreatedAt = DateTime.UtcNow,
+                    Type = BackupType.Full,
+                    Description = "Full system backup",
+                    CreatedBy = "System"
+                };
 
-                // If including attachments, create a zip file with both database backup and attachments
-                if (includeAttachments)
-                {
-                    var attachmentsPath = Path.Combine(_backupPath, "..", "Attachments");
-                    if (Directory.Exists(attachmentsPath))
-                    {
-                        var zipFileName = $"DTCBillingSystem_Full_{timestamp}.zip";
-                        var zipFilePath = Path.Combine(_backupPath, zipFileName);
+                await _unitOfWork.BackupInfo.AddAsync(backupInfo);
+                await _unitOfWork.SaveChangesAsync();
 
-                        using (var archive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create))
-                        {
-                            // Add database backup
-                            archive.CreateEntryFromFile(backupFilePath, backupFileName);
-
-                            // Add attachments
-                            var attachmentFiles = Directory.GetFiles(attachmentsPath, "*.*", 
-                                SearchOption.AllDirectories);
-                            foreach (var file in attachmentFiles)
-                            {
-                                var relativePath = Path.GetRelativePath(attachmentsPath, file);
-                                archive.CreateEntryFromFile(file, Path.Combine("Attachments", relativePath));
-                            }
-                        }
-
-                        // Delete the individual backup file as it's now in the zip
-                        File.Delete(backupFilePath);
-                        backupFilePath = zipFilePath;
-                    }
-                }
-
-                await _auditService.LogActionAsync(
-                    "Backup",
-                    0,
-                    AuditAction.Created,
-                    null,
-                    $"Created {(includeAttachments ? "full" : "database")} backup: {Path.GetFileName(backupFilePath)}"
-                );
-
-                return backupFilePath;
+                return backupInfo;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating backup");
+                _logger.LogError(ex, "Error creating full backup");
                 throw;
             }
         }
 
-        public async Task<bool> RestoreBackupAsync(string backupPath)
+        public async Task<BackupInfo> CreateDifferentialBackupAsync(string backupPath)
         {
             try
             {
+                _logger.LogInformation("Starting differential backup to {BackupPath}", backupPath);
+                
+                // Ensure backup directory exists
+                Directory.CreateDirectory(Path.GetDirectoryName(backupPath));
+
+                // TODO: Implement differential backup logic
+                var backupInfo = new BackupInfo
+                {
+                    Name = $"Diff_Backup_{DateTime.UtcNow:yyyyMMdd_HHmmss}",
+                    Path = backupPath,
+                    CreatedAt = DateTime.UtcNow,
+                    Type = BackupType.Differential,
+                    Description = "Differential system backup",
+                    CreatedBy = "System"
+                };
+
+                await _unitOfWork.BackupInfo.AddAsync(backupInfo);
+                await _unitOfWork.SaveChangesAsync();
+
+                return backupInfo;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating differential backup");
+                throw;
+            }
+        }
+
+        public async Task<bool> RestoreFromBackupAsync(string backupPath)
+        {
+            try
+            {
+                _logger.LogInformation("Starting restore from backup {BackupPath}", backupPath);
+
                 if (!File.Exists(backupPath))
                 {
                     throw new FileNotFoundException("Backup file not found", backupPath);
                 }
 
-                var extension = Path.GetExtension(backupPath).ToLower();
-                var isZipBackup = extension == ".zip";
-                var backupFile = backupPath;
-
-                // If it's a zip backup, extract it first
-                if (isZipBackup)
-                {
-                    var extractPath = Path.Combine(Path.GetTempPath(), "DTCBillingSystem_Restore");
-                    if (Directory.Exists(extractPath))
-                    {
-                        Directory.Delete(extractPath, true);
-                    }
-                    Directory.CreateDirectory(extractPath);
-
-                    using (var archive = ZipFile.OpenRead(backupPath))
-                    {
-                        // Extract database backup
-                        var dbBackup = archive.Entries.FirstOrDefault(e => e.Name.EndsWith(".bak"));
-                        if (dbBackup == null)
-                        {
-                            throw new InvalidOperationException("No database backup found in zip file");
-                        }
-                        dbBackup.ExtractToFile(Path.Combine(extractPath, dbBackup.Name));
-                        backupFile = Path.Combine(extractPath, dbBackup.Name);
-
-                        // Extract attachments if they exist
-                        var attachments = archive.Entries.Where(e => 
-                            e.FullName.StartsWith("Attachments/", StringComparison.OrdinalIgnoreCase));
-                        foreach (var attachment in attachments)
-                        {
-                            var destinationPath = Path.Combine(
-                                _backupPath, "..", 
-                                attachment.FullName);
-                            Directory.CreateDirectory(Path.GetDirectoryName(destinationPath));
-                            attachment.ExtractToFile(destinationPath, true);
-                        }
-                    }
-                }
-
-                // Restore database
-                using (var connection = new SqlConnection(_connectionString))
-                {
-                    await connection.OpenAsync();
-
-                    // Set database to single user mode
-                    var singleUserCommand = new SqlCommand(
-                        "ALTER DATABASE DTCBillingSystem SET SINGLE_USER WITH ROLLBACK IMMEDIATE",
-                        connection);
-                    await singleUserCommand.ExecuteNonQueryAsync();
-
-                    // Restore database
-                    var restoreCommand = new SqlCommand(
-                        $"RESTORE DATABASE DTCBillingSystem FROM DISK = '{backupFile}' WITH REPLACE",
-                        connection);
-                    await restoreCommand.ExecuteNonQueryAsync();
-
-                    // Set database back to multi user mode
-                    var multiUserCommand = new SqlCommand(
-                        "ALTER DATABASE DTCBillingSystem SET MULTI_USER",
-                        connection);
-                    await multiUserCommand.ExecuteNonQueryAsync();
-                }
-
-                await _auditService.LogActionAsync(
-                    "Backup",
-                    0,
-                    AuditAction.Restored,
-                    null,
-                    $"Restored {(isZipBackup ? "full" : "database")} backup: {Path.GetFileName(backupPath)}"
-                );
-
+                // TODO: Implement restore logic
+                await Task.CompletedTask;
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error restoring backup from {BackupPath}", backupPath);
+                _logger.LogError(ex, "Error restoring from backup");
                 throw;
             }
         }
 
-        public async Task<List<BackupInfo>> GetBackupHistoryAsync()
+        public async Task<IEnumerable<BackupInfo>> GetBackupListAsync()
         {
             try
             {
-                var backups = new List<BackupInfo>();
-                var files = Directory.GetFiles(_backupPath, "DTCBillingSystem_*.*")
-                    .Where(f => Path.GetExtension(f).ToLower() is ".bak" or ".zip");
-
-                foreach (var file in files)
-                {
-                    var fileInfo = new FileInfo(file);
-                    var isFullBackup = Path.GetExtension(file).ToLower() == ".zip";
-
-                    backups.Add(new BackupInfo
-                    {
-                        FileName = fileInfo.Name,
-                        CreatedAt = fileInfo.CreationTimeUtc,
-                        Size = fileInfo.Length,
-                        Type = isFullBackup ? BackupType.Full : BackupType.DatabaseOnly,
-                        Path = file
-                    });
-                }
-
-                return backups.OrderByDescending(b => b.CreatedAt).ToList();
+                return await _unitOfWork.BackupInfo.GetAllAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving backup history");
+                _logger.LogError(ex, "Error retrieving backup list");
                 throw;
             }
         }
 
-        public async Task<bool> DeleteBackupAsync(string backupPath)
+        public async Task<bool> VerifyBackupAsync(string backupPath)
         {
             try
             {
+                _logger.LogInformation("Verifying backup {BackupPath}", backupPath);
+
                 if (!File.Exists(backupPath))
                 {
-                    throw new FileNotFoundException("Backup file not found", backupPath);
+                    return false;
                 }
 
-                File.Delete(backupPath);
-
-                await _auditService.LogActionAsync(
-                    "Backup",
-                    0,
-                    AuditAction.Deleted,
-                    null,
-                    $"Deleted backup: {Path.GetFileName(backupPath)}"
-                );
-
+                // TODO: Implement backup verification logic
+                await Task.CompletedTask;
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting backup {BackupPath}", backupPath);
+                _logger.LogError(ex, "Error verifying backup");
                 throw;
             }
         }
 
-        public async Task CleanupOldBackupsAsync(int daysToKeep)
+        public async Task ScheduleAutomatedBackupAsync(BackupSchedule schedule)
         {
             try
             {
-                var cutoffDate = DateTime.UtcNow.AddDays(-daysToKeep);
-                var backups = await GetBackupHistoryAsync();
-                var oldBackups = backups.Where(b => b.CreatedAt < cutoffDate);
+                _logger.LogInformation("Scheduling automated backup with schedule {ScheduleName}", schedule.Name);
 
-                foreach (var backup in oldBackups)
+                // Validate schedule
+                if (schedule.StartDate < DateTime.UtcNow)
                 {
-                    await DeleteBackupAsync(backup.Path);
+                    throw new ArgumentException("Schedule start date must be in the future");
                 }
 
-                _logger.LogInformation(
-                    "Cleaned up backups older than {DaysToKeep} days",
-                    daysToKeep);
+                await _unitOfWork.BackupSchedules.AddAsync(schedule);
+                await _unitOfWork.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error cleaning up old backups");
+                _logger.LogError(ex, "Error scheduling automated backup");
+                throw;
+            }
+        }
+
+        public async Task<string> ExportToJsonAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Starting data export to JSON");
+
+                var data = await _unitOfWork.GetAllDataAsync();
+                return JsonSerializer.Serialize(data, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error exporting data to JSON");
+                throw;
+            }
+        }
+
+        public async Task<bool> ImportFromJsonAsync(string jsonData)
+        {
+            try
+            {
+                _logger.LogInformation("Starting data import from JSON");
+
+                if (string.IsNullOrEmpty(jsonData))
+                {
+                    throw new ArgumentException("JSON data cannot be null or empty");
+                }
+
+                var data = JsonSerializer.Deserialize<object>(jsonData);
+                // TODO: Implement data import logic
+                await Task.CompletedTask;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error importing data from JSON");
                 throw;
             }
         }

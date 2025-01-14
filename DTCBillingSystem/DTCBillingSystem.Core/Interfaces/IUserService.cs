@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DTCBillingSystem.Core.Models;
+using DTCBillingSystem.Core.Models.Enums;
+using DTCBillingSystem.Core.Models.Authentication;
 
 namespace DTCBillingSystem.Core.Interfaces
 {
@@ -18,7 +20,7 @@ namespace DTCBillingSystem.Core.Interfaces
         /// <summary>
         /// Register a new user
         /// </summary>
-        Task<User> RegisterUserAsync(
+        Task<UserRegistrationResult> RegisterUserAsync(
             string username,
             string password,
             string fullName,
@@ -29,17 +31,17 @@ namespace DTCBillingSystem.Core.Interfaces
         /// <summary>
         /// Change user's password
         /// </summary>
-        Task ChangePasswordAsync(int userId, string currentPassword, string newPassword);
+        Task<bool> ChangePasswordAsync(int userId, string currentPassword, string newPassword);
 
         /// <summary>
         /// Reset user's password and send temporary password
         /// </summary>
-        Task<string> ResetPasswordAsync(string email);
+        Task<PasswordResetResult> ResetPasswordAsync(string email);
 
         /// <summary>
         /// Update user profile
         /// </summary>
-        Task UpdateUserProfileAsync(
+        Task<bool> UpdateUserProfileAsync(
             int userId,
             string fullName,
             string email,
@@ -63,44 +65,16 @@ namespace DTCBillingSystem.Core.Interfaces
         /// <summary>
         /// Update user's role
         /// </summary>
-        Task UpdateUserRoleAsync(int userId, UserRole newRole);
+        Task<bool> UpdateUserRoleAsync(int userId, UserRole newRole);
 
         /// <summary>
         /// Deactivate user account
         /// </summary>
-        Task DeactivateUserAsync(int userId);
-
-        /// <summary>
-        /// Activate user account
-        /// </summary>
-        Task ActivateUserAsync(int userId);
-
-        /// <summary>
-        /// Lock user account
-        /// </summary>
-        Task LockUserAsync(int userId, TimeSpan duration);
-
-        /// <summary>
-        /// Unlock user account
-        /// </summary>
-        Task UnlockUserAsync(int userId);
+        Task<bool> DeactivateUserAsync(int userId);
 
         /// <summary>
         /// Check if user has specific permission
         /// </summary>
         Task<bool> HasPermissionAsync(int userId, string permission);
-    }
-
-    /// <summary>
-    /// Result of authentication attempt
-    /// </summary>
-    public class AuthenticationResult
-    {
-        public bool Success { get; set; }
-        public string Token { get; set; }
-        public string RefreshToken { get; set; }
-        public DateTime TokenExpiration { get; set; }
-        public User User { get; set; }
-        public string ErrorMessage { get; set; }
     }
 } 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DTCBillingSystem.Core.Models;
+using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Interfaces
 {
@@ -56,72 +57,8 @@ namespace DTCBillingSystem.Core.Interfaces
         Task UpdateCustomerNotificationSettingsAsync(int customerId, NotificationSettings settings);
 
         /// <summary>
-        /// Schedule a notification
+        /// Schedule a notification for future delivery
         /// </summary>
         Task ScheduleNotificationAsync(NotificationMessage message, DateTime scheduledTime);
-    }
-
-    public class NotificationMessage
-    {
-        public int RecipientId { get; set; }
-        public string Subject { get; set; }
-        public string Body { get; set; }
-        public NotificationType Type { get; set; }
-        public Dictionary<string, string> Parameters { get; set; }
-        public NotificationChannel[] Channels { get; set; }
-        public AlertPriority Priority { get; set; }
-    }
-
-    public class NotificationHistory
-    {
-        public int Id { get; set; }
-        public int RecipientId { get; set; }
-        public DateTime SentTime { get; set; }
-        public NotificationType Type { get; set; }
-        public NotificationChannel Channel { get; set; }
-        public string Subject { get; set; }
-        public string Body { get; set; }
-        public bool Successful { get; set; }
-        public string ErrorMessage { get; set; }
-    }
-
-    public class NotificationSettings
-    {
-        public bool EmailEnabled { get; set; }
-        public bool SmsEnabled { get; set; }
-        public bool WhatsAppEnabled { get; set; }
-        public string EmailAddress { get; set; }
-        public string PhoneNumber { get; set; }
-        public NotificationType[] EnabledNotificationTypes { get; set; }
-        public Dictionary<NotificationType, NotificationChannel[]> ChannelPreferences { get; set; }
-        public TimeSpan? QuietHoursStart { get; set; }
-        public TimeSpan? QuietHoursEnd { get; set; }
-    }
-
-    public enum NotificationType
-    {
-        BillGenerated,
-        PaymentReceived,
-        PaymentDue,
-        PaymentOverdue,
-        SystemAlert,
-        AccountUpdate,
-        MaintenanceNotice
-    }
-
-    public enum NotificationChannel
-    {
-        Email,
-        SMS,
-        WhatsApp,
-        InApp
-    }
-
-    public enum AlertPriority
-    {
-        Low,
-        Medium,
-        High,
-        Critical
     }
 } 

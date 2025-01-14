@@ -51,82 +51,13 @@ namespace DTCBillingSystem.Core.Interfaces
         Task<IEnumerable<PrinterInfo>> GetAvailablePrintersAsync();
 
         /// <summary>
-        /// Get print job status
+        /// Get status of a print job
         /// </summary>
         Task<PrintJobStatus> GetPrintJobStatusAsync(string jobId);
 
         /// <summary>
-        /// Cancel print job
+        /// Cancel a print job
         /// </summary>
         Task CancelPrintJobAsync(string jobId);
-    }
-
-    public class PrintOptions
-    {
-        public string PrinterName { get; set; }
-        public int Copies { get; set; } = 1;
-        public bool Duplex { get; set; }
-        public PaperSize PaperSize { get; set; } = PaperSize.A4;
-        public PrintQuality Quality { get; set; } = PrintQuality.Normal;
-        public bool ColorPrint { get; set; }
-        public string Watermark { get; set; }
-        public Dictionary<string, object> CustomSettings { get; set; }
-    }
-
-    public class PrintResult
-    {
-        public bool Success { get; set; }
-        public string JobId { get; set; }
-        public DateTime PrintTime { get; set; }
-        public string PrinterName { get; set; }
-        public int PagesPrinted { get; set; }
-        public string ErrorMessage { get; set; }
-    }
-
-    public class PrinterInfo
-    {
-        public string Name { get; set; }
-        public bool IsDefault { get; set; }
-        public bool IsOnline { get; set; }
-        public bool SupportsColor { get; set; }
-        public bool SupportsDuplex { get; set; }
-        public List<PaperSize> SupportedPaperSizes { get; set; }
-        public string Location { get; set; }
-    }
-
-    public class PrintJobStatus
-    {
-        public string JobId { get; set; }
-        public string DocumentName { get; set; }
-        public PrintJobState State { get; set; }
-        public int PagesPrinted { get; set; }
-        public int TotalPages { get; set; }
-        public DateTime SubmissionTime { get; set; }
-        public string StatusMessage { get; set; }
-    }
-
-    public enum PaperSize
-    {
-        A4,
-        A5,
-        Letter,
-        Legal,
-        Custom
-    }
-
-    public enum PrintQuality
-    {
-        Draft,
-        Normal,
-        High
-    }
-
-    public enum PrintJobState
-    {
-        Pending,
-        Printing,
-        Completed,
-        Failed,
-        Cancelled
     }
 } 

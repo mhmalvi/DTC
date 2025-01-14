@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using DTCBillingSystem.Core.Models;
+using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Interfaces
 {
@@ -39,7 +40,7 @@ namespace DTCBillingSystem.Core.Interfaces
             decimal amount,
             PaymentMethod paymentMethod,
             string transactionReference,
-            string notes);
+            string notes = null);
 
         /// <summary>
         /// Get outstanding bills for a customer
@@ -49,7 +50,10 @@ namespace DTCBillingSystem.Core.Interfaces
         /// <summary>
         /// Get payment history for a customer
         /// </summary>
-        Task<IEnumerable<PaymentRecord>> GetPaymentHistoryAsync(int customerId, DateTime? startDate = null, DateTime? endDate = null);
+        Task<IEnumerable<PaymentRecord>> GetPaymentHistoryAsync(
+            int customerId,
+            DateTime? startDate = null,
+            DateTime? endDate = null);
 
         /// <summary>
         /// Get bills due for payment
@@ -57,7 +61,7 @@ namespace DTCBillingSystem.Core.Interfaces
         Task<IEnumerable<MonthlyBill>> GetBillsDueAsync(DateTime? dueDate = null);
 
         /// <summary>
-        /// Calculate late payment charges for overdue bills
+        /// Calculate late payment charges for a bill
         /// </summary>
         Task<decimal> CalculateLatePaymentChargesAsync(int billId);
 
@@ -70,19 +74,5 @@ namespace DTCBillingSystem.Core.Interfaces
         /// Get billing summary for a period
         /// </summary>
         Task<BillingSummary> GetBillingSummaryAsync(DateTime startDate, DateTime endDate);
-    }
-
-    /// <summary>
-    /// Represents a summary of billing for a period
-    /// </summary>
-    public class BillingSummary
-    {
-        public decimal TotalBilled { get; set; }
-        public decimal TotalCollected { get; set; }
-        public decimal TotalOutstanding { get; set; }
-        public decimal TotalLateCharges { get; set; }
-        public int TotalBillsGenerated { get; set; }
-        public int TotalPaymentsReceived { get; set; }
-        public int TotalOverdueBills { get; set; }
     }
 } 

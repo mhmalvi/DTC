@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Models
 {
@@ -90,18 +91,5 @@ namespace DTCBillingSystem.Core.Models
             Status = BillStatus.Pending;
             DueDate = DateTime.UtcNow.AddDays(30);
         }
-    }
-
-    /// <summary>
-    /// Represents the status of a bill
-    /// </summary>
-    public enum BillStatus
-    {
-        Pending,
-        PartiallyPaid,
-        Paid,
-        Overdue,
-        Cancelled,
-        Disputed
     }
 } 
