@@ -8,7 +8,7 @@ namespace DTCBillingSystem.Core.Models.Enums
         Pending = 0,
         Sent = 1,
         Failed = 2,
-        Retrying = 3,
-        Cancelled = 4
+        Cancelled = 3,
+        Scheduled = 4
     }
 } 

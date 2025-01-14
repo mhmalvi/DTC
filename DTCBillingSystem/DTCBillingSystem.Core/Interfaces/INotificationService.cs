@@ -34,7 +34,7 @@ namespace DTCBillingSystem.Core.Interfaces
         /// <summary>
         /// Send system alert to administrators
         /// </summary>
-        Task SendSystemAlertAsync(string message, NotificationType alertType);
+        Task SendSystemAlertAsync(string message, Models.Enums.NotificationType alertType);
 
         /// <summary>
         /// Send bulk notifications

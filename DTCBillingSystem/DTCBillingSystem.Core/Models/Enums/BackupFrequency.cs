@@ -6,38 +6,33 @@ namespace DTCBillingSystem.Core.Models.Enums
     public enum BackupFrequency
     {
         /// <summary>
-        /// Run backup once
-        /// </summary>
-        Once,
-
-        /// <summary>
-        /// Run backup hourly
-        /// </summary>
-        Hourly,
-
-        /// <summary>
         /// Run backup daily
         /// </summary>
-        Daily,
+        Daily = 0,
 
         /// <summary>
         /// Run backup weekly
         /// </summary>
-        Weekly,
+        Weekly = 1,
 
         /// <summary>
         /// Run backup monthly
         /// </summary>
-        Monthly,
+        Monthly = 2,
 
         /// <summary>
         /// Run backup quarterly
         /// </summary>
-        Quarterly,
+        Quarterly = 3,
 
         /// <summary>
         /// Run backup yearly
         /// </summary>
-        Yearly
+        Yearly = 4,
+
+        /// <summary>
+        /// Run backup custom
+        /// </summary>
+        Custom = 5
     }
 } 

@@ -31,5 +31,10 @@ namespace DTCBillingSystem.Core.Interfaces
         /// Gets whether the current user is authenticated
         /// </summary>
         Task<bool> IsAuthenticatedAsync();
+
+        int UserId { get; }
+        string Username { get; }
+        string Role { get; }
+        bool IsAuthenticated { get; }
     }
 } 

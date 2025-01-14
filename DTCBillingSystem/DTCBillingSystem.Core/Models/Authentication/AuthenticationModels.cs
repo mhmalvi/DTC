@@ -2,28 +2,31 @@ using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Models.Authentication
 {
-    public class LoginResult
+    public class AuthenticationResult
     {
         public bool Success { get; set; }
-        public string Message { get; set; }
-        public string Token { get; set; }
-        public int UserId { get; set; }
-        public string Username { get; set; }
-        public UserRole UserRole { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public string? Token { get; set; }
+        public string? Username { get; set; }
+        public UserRole? Role { get; set; }
     }
 
-    public class UserRegistrationResult
+    public class RegistrationResult
     {
         public bool Success { get; set; }
-        public string Message { get; set; }
-        public int UserId { get; set; }
-        public string Username { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public string? Username { get; set; }
     }
 
-    public class PasswordResetResult
+    public class PasswordChangeResult
     {
         public bool Success { get; set; }
-        public string Message { get; set; }
-        public string NewPassword { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
     }
+
+    public class AuthenticationResponse : AuthenticationResult { }
+    public class RegistrationResponse : RegistrationResult { }
+    public class PasswordChangeResponse : PasswordChangeResult { }
+    public class PasswordResetResponse : PasswordChangeResult { }
 } 

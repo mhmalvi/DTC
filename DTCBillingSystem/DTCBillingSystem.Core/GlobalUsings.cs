@@ -1,0 +1,11 @@
+global using DTCBillingSystem.Core.Models;
+global using DTCBillingSystem.Core.Models.Entities;
+global using DTCBillingSystem.Core.Models.Enums;
+global using DTCBillingSystem.Core.Models.Reports;
+global using DTCBillingSystem.Core.Models.Authentication;
+global using DTCBillingSystem.Core.Interfaces;
+global using System;
+global using System.Collections.Generic;
+global using System.Threading.Tasks;
+global using System.Linq;
+global using System.Linq.Expressions; 

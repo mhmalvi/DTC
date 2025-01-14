@@ -1,99 +1,81 @@
-using Microsoft.EntityFrameworkCore;
 using DTCBillingSystem.Core.Interfaces;
-using DTCBillingSystem.Core.Models;
+using DTCBillingSystem.Core.Models.Entities;
 using DTCBillingSystem.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore;
 
-namespace DTCBillingSystem.Infrastructure.Repositories
+namespace DTCBillingSystem.Infrastructure.Repositories;
+
+public class UnitOfWork : IUnitOfWork
 {
-    public class UnitOfWork : IUnitOfWork
+    private readonly ApplicationDbContext _context;
+    private bool _disposed;
+
+    public ICustomerRepository Customers { get; }
+    public IBillingRateRepository BillingRates { get; }
+    public IMonthlyBillRepository MonthlyBills { get; }
+    public IPaymentRecordRepository PaymentRecords { get; }
+    public IUserRepository Users { get; }
+    public IAuditLogRepository AuditLogs { get; }
+    public IMeterReadingRepository MeterReadings { get; }
+    public INotificationHistoryRepository NotificationHistories { get; }
+    public INotificationSettingsRepository NotificationSettings { get; }
+    public IPrintJobRepository PrintJobs { get; }
+
+    public UnitOfWork(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context;
-        private IDbContextTransaction? _transaction;
-        private bool _disposed;
+        _context = context;
+        Customers = new CustomerRepository(_context);
+        BillingRates = new BillingRateRepository(_context);
+        MonthlyBills = new MonthlyBillRepository(_context);
+        PaymentRecords = new PaymentRecordRepository(_context);
+        Users = new UserRepository(_context);
+        AuditLogs = new AuditLogRepository(_context);
+        MeterReadings = new MeterReadingRepository(_context);
+        NotificationHistories = new NotificationHistoryRepository(_context);
+        NotificationSettings = new NotificationSettingsRepository(_context);
+        PrintJobs = new PrintJobRepository(_context);
+    }
 
-        private ICustomerRepository? _customers;
-        private IBillingRateRepository? _billingRates;
-        private IBillRepository? _bills;
-        private IPaymentRepository? _payments;
-        private IUserRepository? _users;
-        private IAuditLogRepository? _auditLogs;
-        private IMeterReadingRepository? _meterReadings;
-        private INotificationHistoryRepository? _notificationHistory;
-        private INotificationSettingsRepository? _notificationSettings;
-        private INotificationMessageRepository? _notificationMessages;
-        private IPrintJobRepository? _printJobs;
-        private IBackupInfoRepository? _backupInfo;
-        private IBackupScheduleRepository? _backupSchedules;
+    public async Task<int> SaveChangesAsync()
+    {
+        return await _context.SaveChangesAsync();
+    }
 
-        public UnitOfWork(ApplicationDbContext context)
+    public async Task BeginTransactionAsync()
+    {
+        await _context.Database.BeginTransactionAsync();
+    }
+
+    public async Task CommitAsync()
+    {
+        try
         {
-            _context = context;
+            await _context.Database.CommitTransactionAsync();
         }
-
-        public ICustomerRepository Customers => _customers ??= new CustomerRepository(_context);
-        public IBillingRateRepository BillingRates => _billingRates ??= new BillingRateRepository(_context);
-        public IBillRepository Bills => _bills ??= new BillRepository(_context);
-        public IPaymentRepository Payments => _payments ??= new PaymentRepository(_context);
-        public IUserRepository Users => _users ??= new UserRepository(_context);
-        public IAuditLogRepository AuditLogs => _auditLogs ??= new AuditLogRepository(_context);
-        public IMeterReadingRepository MeterReadings => _meterReadings ??= new MeterReadingRepository(_context);
-        public INotificationHistoryRepository NotificationHistory => _notificationHistory ??= new NotificationHistoryRepository(_context);
-        public INotificationSettingsRepository NotificationSettings => _notificationSettings ??= new NotificationSettingsRepository(_context);
-        public INotificationMessageRepository NotificationMessages => _notificationMessages ??= new NotificationMessageRepository(_context);
-        public IPrintJobRepository PrintJobs => _printJobs ??= new PrintJobRepository(_context);
-        public IBackupInfoRepository BackupInfo => _backupInfo ??= new BackupInfoRepository(_context);
-        public IBackupScheduleRepository BackupSchedules => _backupSchedules ??= new BackupScheduleRepository(_context);
-
-        public async Task<int> SaveChangesAsync()
+        catch
         {
-            return await _context.SaveChangesAsync();
+            await _context.Database.RollbackTransactionAsync();
+            throw;
         }
+    }
 
-        public async Task BeginTransactionAsync()
-        {
-            _transaction = await _context.Database.BeginTransactionAsync();
-        }
+    public async Task RollbackAsync()
+    {
+        await _context.Database.RollbackTransactionAsync();
+    }
 
-        public async Task CommitTransactionAsync()
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed && disposing)
         {
-            try
-            {
-                await SaveChangesAsync();
-                if (_transaction != null)
-                {
-                    await _transaction.CommitAsync();
-                }
-            }
-            catch
-            {
-                await RollbackTransactionAsync();
-                throw;
-            }
+            _context.Dispose();
         }
+        _disposed = true;
+    }
 
-        public async Task RollbackTransactionAsync()
-        {
-            if (_transaction != null)
-            {
-                await _transaction.RollbackAsync();
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed && disposing)
-            {
-                _transaction?.Dispose();
-                _context.Dispose();
-            }
-            _disposed = true;
-        }
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 } 

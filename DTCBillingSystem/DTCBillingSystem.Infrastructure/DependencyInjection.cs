@@ -1,33 +1,33 @@
-using Microsoft.Extensions.DependencyInjection;
-using DTCBillingSystem.Core.Interfaces;
+using DTCBillingSystem.Shared.Interfaces;
+using DTCBillingSystem.Shared.Models.Entities;
 using DTCBillingSystem.Infrastructure.Data;
 using DTCBillingSystem.Infrastructure.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DTCBillingSystem.Infrastructure
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddInfrastructureServices(this IServiceCollection services)
+        public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, string connectionString)
         {
-            // Register repositories
-            services.AddScoped<ICustomerRepository, CustomerRepository>();
-            services.AddScoped<IBillRepository, BillRepository>();
-            services.AddScoped<IPaymentRepository, PaymentRepository>();
-            services.AddScoped<IMeterReadingRepository, MeterReadingRepository>();
-            services.AddScoped<INotificationHistoryRepository, NotificationHistoryRepository>();
-            services.AddScoped<INotificationSettingsRepository, NotificationSettingsRepository>();
-            services.AddScoped<INotificationMessageRepository, NotificationMessageRepository>();
-            services.AddScoped<IBackupInfoRepository, BackupInfoRepository>();
-            services.AddScoped<IBackupScheduleRepository, BackupScheduleRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IAuditLogRepository, AuditLogRepository>();
-            services.AddScoped<IBillingRateRepository, BillingRateRepository>();
-            services.AddScoped<IPrintJobRepository, PrintJobRepository>();
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(connectionString));
 
-            // Register DbContext
-            services.AddScoped<ApplicationDbContext>();
+            services.AddScoped<DbContext>(provider => provider.GetService<ApplicationDbContext>());
 
-            // Register unit of work
+            services.AddScoped<IRepository<Customer>, Repository<Customer>>();
+            services.AddScoped<IRepository<MonthlyBill>, Repository<MonthlyBill>>();
+            services.AddScoped<IRepository<PaymentRecord>, Repository<PaymentRecord>>();
+            services.AddScoped<IRepository<MeterReading>, Repository<MeterReading>>();
+            services.AddScoped<IRepository<NotificationMessage>, Repository<NotificationMessage>>();
+            services.AddScoped<IRepository<BackupInfo>, Repository<BackupInfo>>();
+            services.AddScoped<IRepository<BackupSchedule>, Repository<BackupSchedule>>();
+            services.AddScoped<IRepository<User>, Repository<User>>();
+            services.AddScoped<IRepository<AuditLog>, Repository<AuditLog>>();
+            services.AddScoped<IRepository<BillingRate>, Repository<BillingRate>>();
+            services.AddScoped<IRepository<PrintJob>, Repository<PrintJob>>();
+
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;

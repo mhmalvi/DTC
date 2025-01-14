@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using DTCBillingSystem.Shared.Models.Entities;
+using DTCBillingSystem.Core.Models.Entities;
 
 namespace DTCBillingSystem.Core.Interfaces
 {

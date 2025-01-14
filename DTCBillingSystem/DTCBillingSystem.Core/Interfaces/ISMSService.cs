@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
+using DTCBillingSystem.Core.Models;
 
 namespace DTCBillingSystem.Core.Interfaces
 {
     public interface ISMSService
     {
-        Task SendSMSAsync(string phoneNumber, string message);
-        bool ValidatePhoneNumber(string phoneNumber);
-        Task<bool> CheckDeliveryStatusAsync(string messageId);
+        Task SendSMSAsync(NotificationMessage message);
+        Task SendBulkSMSAsync(IEnumerable<NotificationMessage> messages);
     }
 } 

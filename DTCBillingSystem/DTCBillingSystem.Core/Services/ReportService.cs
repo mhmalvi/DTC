@@ -1,68 +1,184 @@
 using System;
-using System.Threading.Tasks;
 using System.Collections.Generic;
-using DTCBillingSystem.Shared.Interfaces;
-using DTCBillingSystem.Shared.Models.Entities;
-using DTCBillingSystem.Shared.Models.Enums;
-using Microsoft.Extensions.Logging;
+using System.Linq;
+using System.Threading.Tasks;
+using DTCBillingSystem.Core.Interfaces;
+using DTCBillingSystem.Core.Models.Entities;
+using DTCBillingSystem.Core.Models.Enums;
+using DTCBillingSystem.Core.Models.Reports;
 
 namespace DTCBillingSystem.Core.Services
 {
     public class ReportService : IReportService
     {
-        private readonly ILogger<ReportService> _logger;
         private readonly IUnitOfWork _unitOfWork;
 
-        public ReportService(ILogger<ReportService> logger, IUnitOfWork unitOfWork)
+        public ReportService(IUnitOfWork unitOfWork)
         {
-            _logger = logger;
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<IEnumerable<MonthlyBill>> GetUnpaidBillsReportAsync(DateTime startDate, DateTime endDate)
+        public async Task<BillingSummary> GetBillingSummaryAsync(DateTime startDate, DateTime endDate)
         {
-            try
+            var bills = await _unitOfWork.MonthlyBills
+                .FindAsync(b => b.BillDate >= startDate && b.BillDate <= endDate);
+
+            var payments = await _unitOfWork.PaymentRecords
+                .FindAsync(p => p.CreatedAt >= startDate && p.CreatedAt <= endDate);
+
+            var billsList = bills.ToList();
+            var paymentsList = payments.ToList();
+
+            var summary = new BillingSummary
             {
-                return await _unitOfWork.MonthlyBills.FindAsync(b => 
-                    b.BillingDate >= startDate && 
-                    b.BillingDate <= endDate && 
-                    b.Status == BillStatus.Unpaid);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error generating unpaid bills report");
-                throw;
-            }
+                StartDate = startDate,
+                EndDate = endDate,
+                TotalBillsGenerated = billsList.Count(),
+                TotalBillAmount = billsList.Sum(b => b.TotalAmount),
+                TotalPaymentsReceived = paymentsList.Sum(p => p.Amount),
+                TotalOutstandingAmount = billsList.Sum(b => b.TotalAmount) - paymentsList.Sum(p => p.Amount),
+
+                BillsByStatus = billsList
+                    .GroupBy(b => b.Status)
+                    .Select(g => new BillStatusSummary
+                    {
+                        Status = g.Key,
+                        Count = g.Count(),
+                        TotalAmount = g.Sum(b => b.TotalAmount)
+                    })
+                    .ToList(),
+
+                PaymentsByMethod = paymentsList
+                    .GroupBy(p => p.PaymentMethod)
+                    .Select(g => new PaymentMethodSummary
+                    {
+                        Method = g.Key,
+                        Count = g.Count(),
+                        TotalAmount = g.Sum(p => p.Amount)
+                    })
+                    .ToList()
+            };
+
+            return summary;
         }
 
-        public async Task<IEnumerable<PaymentRecord>> GetPaymentHistoryReportAsync(DateTime startDate, DateTime endDate)
+        public async Task<CustomerStatement> GetCustomerStatementAsync(int customerId, DateTime startDate, DateTime endDate)
         {
-            try
+            var customer = await _unitOfWork.Customers.GetByIdAsync(customerId)
+                ?? throw new InvalidOperationException($"Customer with ID {customerId} not found.");
+
+            var bills = await _unitOfWork.MonthlyBills
+                .FindAsync(b => b.CustomerId == customerId && b.BillDate >= startDate && b.BillDate <= endDate);
+
+            var payments = await _unitOfWork.PaymentRecords
+                .FindAsync(p => p.MonthlyBill.CustomerId == customerId && p.CreatedAt >= startDate && p.CreatedAt <= endDate);
+
+            var billsList = bills.ToList();
+            var paymentsList = payments.ToList();
+
+            var statement = new CustomerStatement
             {
-                return await _unitOfWork.PaymentRecords.FindAsync(p => 
-                    p.PaymentDate >= startDate && 
-                    p.PaymentDate <= endDate);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error generating payment history report");
-                throw;
-            }
+                CustomerId = customerId,
+                CustomerName = $"{customer.FirstName} {customer.LastName}",
+                StartDate = startDate,
+                EndDate = endDate,
+                OpeningBalance = await GetOpeningBalanceAsync(customerId, startDate),
+                ClosingBalance = await GetClosingBalanceAsync(customerId, endDate),
+                Transactions = await GetTransactionsAsync(customerId, startDate, endDate),
+                OverdueBills = await GetOverdueBillsAsync(customerId, endDate)
+            };
+
+            return statement;
         }
 
-        public async Task<IEnumerable<MeterReading>> GetMeterReadingsReportAsync(DateTime startDate, DateTime endDate)
+        private async Task<decimal> GetOpeningBalanceAsync(int customerId, DateTime startDate)
         {
-            try
+            var previousBills = await _unitOfWork.MonthlyBills
+                .FindAsync(b => b.CustomerId == customerId && b.BillDate < startDate);
+
+            var previousPayments = await _unitOfWork.PaymentRecords
+                .FindAsync(p => p.MonthlyBill.CustomerId == customerId && p.CreatedAt < startDate);
+
+            return previousBills.Sum(b => b.TotalAmount) - previousPayments.Sum(p => p.Amount);
+        }
+
+        private async Task<decimal> GetClosingBalanceAsync(int customerId, DateTime endDate)
+        {
+            var allBills = await _unitOfWork.MonthlyBills
+                .FindAsync(b => b.CustomerId == customerId && b.BillDate <= endDate);
+
+            var allPayments = await _unitOfWork.PaymentRecords
+                .FindAsync(p => p.MonthlyBill.CustomerId == customerId && p.CreatedAt <= endDate);
+
+            return allBills.Sum(b => b.TotalAmount) - allPayments.Sum(p => p.Amount);
+        }
+
+        private async Task<List<StatementTransaction>> GetTransactionsAsync(int customerId, DateTime startDate, DateTime endDate)
+        {
+            var transactions = new List<StatementTransaction>();
+
+            var bills = await _unitOfWork.MonthlyBills
+                .FindAsync(b => b.CustomerId == customerId && b.BillDate >= startDate && b.BillDate <= endDate);
+
+            var payments = await _unitOfWork.PaymentRecords
+                .FindAsync(p => p.MonthlyBill.CustomerId == customerId && p.CreatedAt >= startDate && p.CreatedAt <= endDate);
+
+            foreach (var bill in bills)
             {
-                return await _unitOfWork.MeterReadings.FindAsync(m => 
-                    m.ReadingDate >= startDate && 
-                    m.ReadingDate <= endDate);
+                transactions.Add(new StatementTransaction
+                {
+                    Date = bill.BillDate,
+                    Description = $"Bill #{bill.BillNumber}",
+                    ReferenceNumber = bill.BillNumber,
+                    TransactionType = "BILL",
+                    Amount = bill.TotalAmount,
+                    Balance = 0 // Will be calculated later
+                });
             }
-            catch (Exception ex)
+
+            foreach (var payment in payments)
             {
-                _logger.LogError(ex, "Error generating meter readings report");
-                throw;
+                transactions.Add(new StatementTransaction
+                {
+                    Date = payment.CreatedAt,
+                    Description = $"Payment - {payment.PaymentMethod}",
+                    ReferenceNumber = payment.TransactionId,
+                    TransactionType = "PAYMENT",
+                    Amount = -payment.Amount,
+                    Balance = 0 // Will be calculated later
+                });
             }
+
+            transactions = transactions.OrderBy(t => t.Date).ToList();
+            decimal runningBalance = await GetOpeningBalanceAsync(customerId, startDate);
+
+            foreach (var transaction in transactions)
+            {
+                runningBalance += transaction.Amount;
+                transaction.Balance = runningBalance;
+            }
+
+            return transactions;
+        }
+
+        private async Task<List<OverdueBill>> GetOverdueBillsAsync(int customerId, DateTime asOfDate)
+        {
+            var overdueBills = await _unitOfWork.MonthlyBills
+                .FindAsync(b => b.CustomerId == customerId && 
+                               b.DueDate < asOfDate && 
+                               b.Status != BillStatus.Paid);
+
+            return overdueBills
+                .Select(b => new OverdueBill
+                {
+                    BillNumber = b.BillNumber,
+                    BillDate = b.BillDate,
+                    DueDate = b.DueDate,
+                    Amount = b.TotalAmount,
+                    DaysOverdue = (int)(asOfDate - b.DueDate).TotalDays
+                })
+                .OrderBy(b => b.DueDate)
+                .ToList();
         }
     }
 } 

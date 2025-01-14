@@ -1,0 +1,174 @@
+<UserControl x:Class="DTCBillingSystem.UI.Views.CustomersView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:local="clr-namespace:DTCBillingSystem.UI.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="768" d:DesignWidth="1024">
+    
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Top Actions Bar -->
+        <Grid Grid.Row="0" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Title -->
+            <TextBlock Grid.Column="0" 
+                      Text="Customers" 
+                      Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                      VerticalAlignment="Center"/>
+
+            <!-- Search Box -->
+            <materialDesign:Card Grid.Column="1" Margin="16,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <materialDesign:PackIcon Kind="Magnify" Margin="8" VerticalAlignment="Center"/>
+                    <TextBox Grid.Column="1" 
+                             materialDesign:HintAssist.Hint="Search customers by name, account number, or phone..."
+                             Style="{StaticResource MaterialDesignTextBox}"
+                             Margin="8"/>
+                </Grid>
+            </materialDesign:Card>
+
+            <!-- Add Customer Button -->
+            <Button Grid.Column="2" 
+                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    materialDesign:ButtonAssist.CornerRadius="4">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="AccountPlus" Margin="0,0,8,0"/>
+                    <TextBlock Text="Add Customer"/>
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <!-- Customers List -->
+        <materialDesign:Card Grid.Row="1">
+            <Grid Margin="16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Filters -->
+                <WrapPanel Grid.Row="0" Margin="0,0,0,16">
+                    <ComboBox materialDesign:HintAssist.Hint="Customer Type"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                              Width="200"
+                              Margin="0,0,16,0">
+                        <ComboBoxItem Content="All"/>
+                        <ComboBoxItem Content="Residential"/>
+                        <ComboBoxItem Content="Commercial"/>
+                        <ComboBoxItem Content="Industrial"/>
+                    </ComboBox>
+
+                    <ComboBox materialDesign:HintAssist.Hint="Status"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                              Width="200"
+                              Margin="0,0,16,0">
+                        <ComboBoxItem Content="All"/>
+                        <ComboBoxItem Content="Active"/>
+                        <ComboBoxItem Content="Inactive"/>
+                    </ComboBox>
+
+                    <ComboBox materialDesign:HintAssist.Hint="Sort By"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                              Width="200">
+                        <ComboBoxItem Content="Name (A-Z)"/>
+                        <ComboBoxItem Content="Name (Z-A)"/>
+                        <ComboBoxItem Content="Account Number"/>
+                        <ComboBoxItem Content="Date Added"/>
+                    </ComboBox>
+                </WrapPanel>
+
+                <!-- Customers DataGrid -->
+                <DataGrid Grid.Row="1" 
+                          AutoGenerateColumns="False"
+                          IsReadOnly="True"
+                          materialDesign:DataGridAssist.CellPadding="13 8 8 8"
+                          materialDesign:DataGridAssist.ColumnHeaderPadding="8">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Account Number" 
+                                          Binding="{Binding AccountNumber}"
+                                          Width="150"/>
+                        <DataGridTextColumn Header="Name" 
+                                          Binding="{Binding Name}"
+                                          Width="200"/>
+                        <DataGridTextColumn Header="Phone" 
+                                          Binding="{Binding Phone}"
+                                          Width="150"/>
+                        <DataGridTextColumn Header="Email" 
+                                          Binding="{Binding Email}"
+                                          Width="200"/>
+                        <DataGridTextColumn Header="Type" 
+                                          Binding="{Binding Type}"
+                                          Width="120"/>
+                        <DataGridTextColumn Header="Status" 
+                                          Binding="{Binding Status}"
+                                          Width="100"/>
+                        <DataGridTemplateColumn Width="120">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Style="{StaticResource MaterialDesignIconButton}"
+                                                ToolTip="Edit Customer">
+                                            <materialDesign:PackIcon Kind="Pencil"/>
+                                        </Button>
+                                        <Button Style="{StaticResource MaterialDesignIconButton}"
+                                                ToolTip="View Bills">
+                                            <materialDesign:PackIcon Kind="FileDocument"/>
+                                        </Button>
+                                        <Button Style="{StaticResource MaterialDesignIconButton}"
+                                                ToolTip="More Options">
+                                            <materialDesign:PackIcon Kind="DotsVertical"/>
+                                        </Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Pagination -->
+                <StackPanel Grid.Row="2" 
+                           Orientation="Horizontal" 
+                           HorizontalAlignment="Right"
+                           Margin="0,16,0,0">
+                    <TextBlock Text="Rows per page:" 
+                               VerticalAlignment="Center"
+                               Margin="0,0,8,0"/>
+                    <ComboBox Width="70"
+                              SelectedIndex="0">
+                        <ComboBoxItem Content="10"/>
+                        <ComboBoxItem Content="25"/>
+                        <ComboBoxItem Content="50"/>
+                        <ComboBoxItem Content="100"/>
+                    </ComboBox>
+                    <TextBlock Text="1-10 of 100" 
+                               VerticalAlignment="Center"
+                               Margin="16,0"/>
+                    <Button Style="{StaticResource MaterialDesignIconButton}"
+                            IsEnabled="False">
+                        <materialDesign:PackIcon Kind="ChevronLeft"/>
+                    </Button>
+                    <Button Style="{StaticResource MaterialDesignIconButton}">
+                        <materialDesign:PackIcon Kind="ChevronRight"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </materialDesign:Card>
+    </Grid>
+</UserControl> 
