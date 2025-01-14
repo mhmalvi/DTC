@@ -1,58 +1,56 @@
-# Dhaka Trade Center Billing System
+# DTC Billing System
 
-A modern Windows desktop application for managing billing operations at Dhaka Trade Center.
+A comprehensive billing system for managing customer accounts, meter readings, and payment processing.
+
+## Project Structure
+
+- **DTCBillingSystem.Core**: Contains business logic, services, and domain models
+- **DTCBillingSystem.Infrastructure**: Data access layer and external service implementations
+- **DTCBillingSystem.Shared**: Shared models, interfaces, and utilities
+- **DTCBillingSystem.UI**: User interface project
 
 ## Prerequisites
 
-- Windows 10 or later
-- .NET 6.0 SDK
-- SQL Server Express 2019 or later
-- Visual Studio 2022 (recommended) or VS Code with C# extensions
+- .NET 6.0 SDK or later
+- Windows PowerShell
+- Visual Studio 2022 (optional)
 
-## Installation
+## Building and Running
 
-1. Install .NET 6.0 SDK from [https://dotnet.microsoft.com/download/dotnet/6.0](https://dotnet.microsoft.com/download/dotnet/6.0)
-2. Install SQL Server Express from [https://www.microsoft.com/en-us/sql-server/sql-server-downloads](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
-3. Clone this repository
-4. Open the solution in Visual Studio 2022
-5. Restore NuGet packages
-6. Update the connection string in `appsettings.json`
-7. Run database migrations
-8. Build and run the application
+### Using PowerShell Script
+
+1. Open PowerShell
+2. Navigate to the solution directory
+3. Run the build script:
+```powershell
+.\build.ps1
+```
+
+### Manual Build
+
+1. Open PowerShell
+2. Navigate to the solution directory
+3. Run the following commands:
+```powershell
+dotnet restore
+dotnet build
+dotnet run --project DTCBillingSystem.UI/DTCBillingSystem.UI.csproj
+```
 
 ## Features
 
 - Customer Management
-- Monthly Bill Generation
-- Historical Data Tracking
-- Multiple Copy Generation (Customer/Office)
-- Automated Calculations
-- Report Generation
-- Data Backup and Recovery
-- User Authentication and Authorization
+- Meter Reading Management
+- Billing Generation
+- Payment Processing
+- Audit Logging
+- Notifications
+- Report Generation and Printing
 
-## Project Structure
+## Architecture
 
-```
-DTCBillingSystem/
-├── src/                    # Source code
-├── docs/                   # Documentation
-└── tests/                  # Test projects
-```
-
-## Technology Stack
-
-- Framework: .NET 6.0 (WPF)
-- Database: SQL Server Express
-- ORM: Entity Framework Core
-- UI Components: DevExpress/Syncfusion WPF Controls
-- Reporting: Crystal Reports/DevExpress Reporting
-- Architecture: MVVM (Model-View-ViewModel)
-
-## License
-
-Proprietary - All rights reserved
-
-## Support
-
-For support, please contact the development team. 
+The application follows a clean architecture pattern with the following layers:
+- Core (Business Logic)
+- Infrastructure (Data Access)
+- Shared (Common Components)
+- UI (Presentation) 

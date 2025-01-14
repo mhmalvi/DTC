@@ -1,0 +1,14 @@
+using System;
+
+namespace DTCBillingSystem.Shared.Models.Entities
+{
+    public abstract class BaseEntity
+    {
+        public int Id { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string CreatedBy { get; set; } = string.Empty;
+        public DateTime? LastModifiedAt { get; set; }
+        public string? LastModifiedBy { get; set; }
+        public bool IsDeleted { get; set; }
+    }
+} 

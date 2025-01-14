@@ -1,77 +1,23 @@
 using System;
+using DTCBillingSystem.Shared.Models.Entities;
+using DTCBillingSystem.Shared.Models.Enums;
 
 namespace DTCBillingSystem.Core.Models
 {
-    /// <summary>
-    /// Represents an audit log entry in the system
-    /// </summary>
     public class AuditLog : BaseEntity
     {
-        /// <summary>
-        /// Type of entity being audited
-        /// </summary>
-        public string EntityType { get; set; }
-
-        /// <summary>
-        /// ID of the entity being audited
-        /// </summary>
-        public int EntityId { get; set; }
-
-        /// <summary>
-        /// Type of action performed
-        /// </summary>
-        public AuditAction Action { get; set; }
-
-        /// <summary>
-        /// User who performed the action
-        /// </summary>
-        public int UserId { get; set; }
-        public virtual User User { get; set; }
-
-        /// <summary>
-        /// When the action was performed
-        /// </summary>
+        public Guid UserId { get; set; }
+        public string Action { get; set; } = string.Empty;
+        public string EntityType { get; set; } = string.Empty;
+        public Guid EntityId { get; set; }
+        public string? OldValues { get; set; }
+        public string? NewValues { get; set; }
+        public string? AffectedColumns { get; set; }
+        public string? ClientIp { get; set; }
+        public string? UserAgent { get; set; }
         public DateTime Timestamp { get; set; }
 
-        /// <summary>
-        /// Previous state of the entity (JSON)
-        /// </summary>
-        public string OldValues { get; set; }
-
-        /// <summary>
-        /// New state of the entity (JSON)
-        /// </summary>
-        public string NewValues { get; set; }
-
-        /// <summary>
-        /// Additional information about the change
-        /// </summary>
-        public string Notes { get; set; }
-
-        /// <summary>
-        /// IP address of the user
-        /// </summary>
-        public string IpAddress { get; set; }
-
-        public AuditLog()
-        {
-            Timestamp = DateTime.UtcNow;
-        }
-    }
-
-    /// <summary>
-    /// Represents different types of audit actions
-    /// </summary>
-    public enum AuditAction
-    {
-        Created,
-        Updated,
-        Deleted,
-        Viewed,
-        Printed,
-        StatusChanged,
-        LoginAttempt,
-        PasswordChanged,
-        Other
+        // Navigation properties
+        public virtual User? User { get; set; }
     }
 } 
