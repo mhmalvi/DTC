@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using DTCBillingSystem.Shared.Interfaces;
 using DTCBillingSystem.Shared.Models.Entities;
+using DTCBillingSystem.Shared.Models.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace DTCBillingSystem.Core.Services
@@ -25,7 +26,7 @@ namespace DTCBillingSystem.Core.Services
                 return await _unitOfWork.MonthlyBills.FindAsync(b => 
                     b.BillingDate >= startDate && 
                     b.BillingDate <= endDate && 
-                    b.Status == "Unpaid");
+                    b.Status == BillStatus.Unpaid);
             }
             catch (Exception ex)
             {

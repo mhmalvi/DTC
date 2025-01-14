@@ -2,13 +2,10 @@ namespace DTCBillingSystem.Shared.Models.Enums
 {
     public enum BillStatus
     {
-        Pending,
-        Paid,
-        PartiallyPaid,
-        Overdue,
-        Cancelled,
-        Disputed,
-        Refunded,
-        WriteOff
+        Pending = 0,
+        Unpaid = 1,
+        Paid = 2,
+        Overdue = 3,
+        Cancelled = 4
     }
 } 

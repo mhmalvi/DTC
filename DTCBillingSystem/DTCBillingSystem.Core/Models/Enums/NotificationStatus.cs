@@ -5,11 +5,10 @@ namespace DTCBillingSystem.Core.Models.Enums
     /// </summary>
     public enum NotificationStatus
     {
-        Pending,
-        Scheduled,
-        Sent,
-        Failed,
-        Cancelled,
-        Read
+        Pending = 0,
+        Sent = 1,
+        Failed = 2,
+        Retrying = 3,
+        Cancelled = 4
     }
 } 

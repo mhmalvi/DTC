@@ -4,3 +4,13 @@ I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Release
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Release\net7.0\DTCBillingSystem.Core.AssemblyInfo.cs
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Release\net7.0\DTCBillingSystem.Core.csproj.CoreCompileInputs.cache
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Release\net7.0\DTCBillingSystem.Core.sourcelink.json
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\bin\Release\net7.0\DTCBillingSystem.Core.deps.json
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\bin\Release\net7.0\DTCBillingSystem.Core.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\bin\Release\net7.0\DTCBillingSystem.Core.pdb
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\bin\Release\net7.0\DTCBillingSystem.Shared.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\bin\Release\net7.0\DTCBillingSystem.Shared.pdb
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Release\net7.0\DTCBilli.DC82C0F9.Up2Date
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Release\net7.0\DTCBillingSystem.Core.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Release\net7.0\refint\DTCBillingSystem.Core.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Release\net7.0\DTCBillingSystem.Core.pdb
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Release\net7.0\ref\DTCBillingSystem.Core.dll

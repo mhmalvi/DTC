@@ -8,7 +8,6 @@ namespace DTCBillingSystem.Shared.Models.Enums
         BankTransfer,
         Check,
         OnlineBanking,
-        MobileWallet,
-        Other
+        MobileWallet
     }
 } 

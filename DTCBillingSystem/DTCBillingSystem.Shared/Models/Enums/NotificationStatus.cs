@@ -4,8 +4,8 @@ namespace DTCBillingSystem.Shared.Models.Enums
     {
         Pending,
         Sent,
+        Failed,
         Delivered,
-        Read,
-        Failed
+        Read
     }
 } 

@@ -1,91 +1,108 @@
 using System;
 using System.Threading.Tasks;
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
 using DTCBillingSystem.Shared.Interfaces;
 using DTCBillingSystem.Shared.Models.Entities;
 using DTCBillingSystem.Shared.Models.Enums;
-using System.Text.Json;
 
 namespace DTCBillingSystem.Core.Services
 {
     public class AuditService : IAuditService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ILogger<AuditService> _logger;
 
-        public AuditService(IUnitOfWork unitOfWork)
+        public AuditService(IUnitOfWork unitOfWork, ILogger<AuditService> logger)
         {
             _unitOfWork = unitOfWork;
+            _logger = logger;
         }
 
-        public async Task LogCreateAsync<T>(T entity, int userId, string notes = null) where T : BaseEntity
+        public async Task LogCreateAsync<T>(T entity, Guid userId, string? notes = null) where T : class
         {
             var auditLog = new AuditLog
             {
-                EntityName = typeof(T).Name,
-                EntityId = entity.Id.ToString(),
-                Action = AuditAction.Create,
+                EntityType = typeof(T).Name,
+                EntityId = GetEntityId(entity),
+                Action = AuditAction.Create.ToString(),
+                OldValues = null,
                 NewValues = JsonSerializer.Serialize(entity),
-                OldValues = string.Empty,
-                Notes = notes ?? $"Created {typeof(T).Name}",
-                UserId = userId.ToString(),
-                IpAddress = "127.0.0.1" // Placeholder
+                AffectedColumns = null,
+                UserId = userId,
+                ClientIp = "127.0.0.1", // TODO: Get actual IP address
+                Timestamp = DateTime.UtcNow
             };
 
             await _unitOfWork.AuditLogs.AddAsync(auditLog);
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task LogUpdateAsync<T>(T entity, int userId, string notes = null) where T : BaseEntity
+        public async Task LogUpdateAsync<T>(T entity, Guid userId, string? notes = null) where T : class
         {
             var auditLog = new AuditLog
             {
-                EntityName = typeof(T).Name,
-                EntityId = entity.Id.ToString(),
-                Action = AuditAction.Update,
+                EntityType = typeof(T).Name,
+                EntityId = GetEntityId(entity),
+                Action = AuditAction.Update.ToString(),
+                OldValues = null, // TODO: Get old values from tracking
                 NewValues = JsonSerializer.Serialize(entity),
-                OldValues = string.Empty, // Should retrieve old values from DB before update
-                Notes = notes ?? $"Updated {typeof(T).Name}",
-                UserId = userId.ToString(),
-                IpAddress = "127.0.0.1" // Placeholder
+                AffectedColumns = null,
+                UserId = userId,
+                ClientIp = "127.0.0.1", // TODO: Get actual IP address
+                Timestamp = DateTime.UtcNow
             };
 
             await _unitOfWork.AuditLogs.AddAsync(auditLog);
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task LogDeleteAsync<T>(T entity, int userId, string notes = null) where T : BaseEntity
+        public async Task LogDeleteAsync<T>(T entity, Guid userId, string? notes = null) where T : class
         {
             var auditLog = new AuditLog
             {
-                EntityName = typeof(T).Name,
-                EntityId = entity.Id.ToString(),
-                Action = AuditAction.Delete,
-                NewValues = string.Empty,
+                EntityType = typeof(T).Name,
+                EntityId = GetEntityId(entity),
+                Action = AuditAction.Delete.ToString(),
                 OldValues = JsonSerializer.Serialize(entity),
-                Notes = notes ?? $"Deleted {typeof(T).Name}",
-                UserId = userId.ToString(),
-                IpAddress = "127.0.0.1" // Placeholder
+                NewValues = null,
+                AffectedColumns = null,
+                UserId = userId,
+                ClientIp = "127.0.0.1", // TODO: Get actual IP address
+                Timestamp = DateTime.UtcNow
             };
 
             await _unitOfWork.AuditLogs.AddAsync(auditLog);
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task LogActionAsync(string entityType, int entityId, string action, int userId, string oldValues = null, string newValues = null, string notes = null)
+        private Guid GetEntityId<T>(T entity) where T : class
         {
-            var auditLog = new AuditLog
+            var idProperty = typeof(T).GetProperty("Id");
+            if (idProperty == null)
             {
-                EntityName = entityType,
-                EntityId = entityId.ToString(),
-                Action = AuditAction.Other,
-                NewValues = newValues ?? string.Empty,
-                OldValues = oldValues ?? string.Empty,
-                Notes = notes ?? $"Custom action on {entityType}",
-                UserId = userId.ToString(),
-                IpAddress = "127.0.0.1" // Placeholder
-            };
+                throw new InvalidOperationException($"Entity {typeof(T).Name} does not have an Id property");
+            }
 
-            await _unitOfWork.AuditLogs.AddAsync(auditLog);
-            await _unitOfWork.SaveChangesAsync();
+            var id = idProperty.GetValue(entity);
+            if (id == null)
+            {
+                throw new InvalidOperationException($"Entity {typeof(T).Name} has a null Id");
+            }
+
+            if (id is Guid guidId)
+            {
+                return guidId;
+            }
+            else if (id is int intId)
+            {
+                // Convert int to Guid using a deterministic method
+                return new Guid($"00000000-0000-0000-0000-{intId:D12}");
+            }
+            else
+            {
+                throw new InvalidOperationException($"Entity {typeof(T).Name} Id type {id.GetType().Name} is not supported");
+            }
         }
     }
 } 

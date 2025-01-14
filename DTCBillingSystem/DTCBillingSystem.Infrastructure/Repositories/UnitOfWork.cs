@@ -12,24 +12,38 @@ namespace DTCBillingSystem.Infrastructure.Repositories
         private IDbContextTransaction? _transaction;
         private bool _disposed;
 
-        private IRepository<Customer>? _customers;
-        private IRepository<BillingRate>? _billingRates;
-        private IRepository<MonthlyBill>? _bills;
-        private IRepository<PaymentRecord>? _payments;
-        private IRepository<User>? _users;
-        private IRepository<AuditLog>? _auditLogs;
+        private ICustomerRepository? _customers;
+        private IBillingRateRepository? _billingRates;
+        private IBillRepository? _bills;
+        private IPaymentRepository? _payments;
+        private IUserRepository? _users;
+        private IAuditLogRepository? _auditLogs;
+        private IMeterReadingRepository? _meterReadings;
+        private INotificationHistoryRepository? _notificationHistory;
+        private INotificationSettingsRepository? _notificationSettings;
+        private INotificationMessageRepository? _notificationMessages;
+        private IPrintJobRepository? _printJobs;
+        private IBackupInfoRepository? _backupInfo;
+        private IBackupScheduleRepository? _backupSchedules;
 
         public UnitOfWork(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        public IRepository<Customer> Customers => _customers ??= new BaseRepository<Customer>(_context);
-        public IRepository<BillingRate> BillingRates => _billingRates ??= new BaseRepository<BillingRate>(_context);
-        public IRepository<MonthlyBill> Bills => _bills ??= new BaseRepository<MonthlyBill>(_context);
-        public IRepository<PaymentRecord> Payments => _payments ??= new BaseRepository<PaymentRecord>(_context);
-        public IRepository<User> Users => _users ??= new BaseRepository<User>(_context);
-        public IRepository<AuditLog> AuditLogs => _auditLogs ??= new BaseRepository<AuditLog>(_context);
+        public ICustomerRepository Customers => _customers ??= new CustomerRepository(_context);
+        public IBillingRateRepository BillingRates => _billingRates ??= new BillingRateRepository(_context);
+        public IBillRepository Bills => _bills ??= new BillRepository(_context);
+        public IPaymentRepository Payments => _payments ??= new PaymentRepository(_context);
+        public IUserRepository Users => _users ??= new UserRepository(_context);
+        public IAuditLogRepository AuditLogs => _auditLogs ??= new AuditLogRepository(_context);
+        public IMeterReadingRepository MeterReadings => _meterReadings ??= new MeterReadingRepository(_context);
+        public INotificationHistoryRepository NotificationHistory => _notificationHistory ??= new NotificationHistoryRepository(_context);
+        public INotificationSettingsRepository NotificationSettings => _notificationSettings ??= new NotificationSettingsRepository(_context);
+        public INotificationMessageRepository NotificationMessages => _notificationMessages ??= new NotificationMessageRepository(_context);
+        public IPrintJobRepository PrintJobs => _printJobs ??= new PrintJobRepository(_context);
+        public IBackupInfoRepository BackupInfo => _backupInfo ??= new BackupInfoRepository(_context);
+        public IBackupScheduleRepository BackupSchedules => _backupSchedules ??= new BackupScheduleRepository(_context);
 
         public async Task<int> SaveChangesAsync()
         {

@@ -4,12 +4,12 @@ namespace DTCBillingSystem.Shared.Models.Entities
 {
     public class BackupInfo : BaseEntity
     {
-        public int BackupScheduleId { get; set; }
-        public string BackupPath { get; set; }
-        public string Status { get; set; }
+        public int ScheduleId { get; set; }
         public DateTime StartTime { get; set; }
-        public DateTime? CompletedAt { get; set; }
-        public string ErrorMessage { get; set; }
-        public BackupSchedule Schedule { get; set; }
+        public DateTime? EndTime { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string? ErrorMessage { get; set; }
+        public string BackupPath { get; set; } = string.Empty;
+        public BackupSchedule Schedule { get; set; } = null!;
     }
 } 

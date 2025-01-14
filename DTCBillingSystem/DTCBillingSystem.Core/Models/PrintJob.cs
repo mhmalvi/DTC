@@ -1,4 +1,6 @@
 using System;
+using DTCBillingSystem.Shared.Models.Entities;
+using DTCBillingSystem.Shared.Models.Enums;
 
 namespace DTCBillingSystem.Core.Models
 {
@@ -9,13 +11,11 @@ namespace DTCBillingSystem.Core.Models
         public int DocumentId { get; set; }
         public string Status { get; set; }
         public string ErrorMessage { get; set; }
-        public new DateTime CreatedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
         public string PrinterName { get; set; }
         public int Copies { get; set; }
         public bool IsDuplex { get; set; }
         public string PaperSize { get; set; }
         public string Orientation { get; set; }
-        public new string CreatedBy { get; set; }
     }
 } 

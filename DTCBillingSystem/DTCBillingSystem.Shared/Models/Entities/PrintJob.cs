@@ -4,16 +4,21 @@ namespace DTCBillingSystem.Shared.Models.Entities
 {
     public class PrintJob : BaseEntity
     {
-        public string DocumentType { get; set; }
-        public string DocumentId { get; set; }
-        public string Status { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime? PrintedDate { get; set; }
-        public string PrintedBy { get; set; }
+        public string JobId { get; set; } = string.Empty;
+        public string DocumentType { get; set; } = string.Empty;
+        public Guid DocumentId { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string? ErrorMessage { get; set; }
         public int Copies { get; set; }
-        public string PrinterName { get; set; }
-        public string ErrorMessage { get; set; }
-        public int RetryCount { get; set; }
-        public bool IsCompleted { get; set; }
+        public string PrinterName { get; set; } = string.Empty;
+        public DateTime? PrintedAt { get; set; }
+        public string PaperSize { get; set; } = string.Empty;
+        public string Orientation { get; set; } = string.Empty;
+        public bool IsDuplex { get; set; }
+        public bool IsColor { get; set; }
+        public Guid UserId { get; set; }
+
+        // Navigation properties
+        public virtual User? User { get; set; }
     }
 } 

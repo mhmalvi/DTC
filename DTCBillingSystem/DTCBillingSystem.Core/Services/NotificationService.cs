@@ -1,90 +1,67 @@
 using System;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using DTCBillingSystem.Shared.Interfaces;
 using DTCBillingSystem.Shared.Models.Entities;
+using DTCBillingSystem.Shared.Interfaces;
 using DTCBillingSystem.Shared.Models.Enums;
-using Microsoft.Extensions.Logging;
 
 namespace DTCBillingSystem.Core.Services
 {
     public class NotificationService : INotificationService
     {
-        private readonly ILogger<NotificationService> _logger;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IAuditService _auditService;
+        private readonly IEmailService _emailService;
+        private readonly ISMSService _smsService;
 
         public NotificationService(
-            ILogger<NotificationService> logger,
             IUnitOfWork unitOfWork,
-            IAuditService auditService)
+            IEmailService emailService,
+            ISMSService smsService)
         {
-            _logger = logger;
             _unitOfWork = unitOfWork;
-            _auditService = auditService;
+            _emailService = emailService;
+            _smsService = smsService;
         }
 
-        public async Task<NotificationMessage> CreateNotificationAsync(NotificationMessage notification, int userId)
+        public async Task<NotificationMessage> CreateNotificationAsync(NotificationMessage message, int userId)
         {
+            message.Status = NotificationStatus.Pending;
+            message.CreatedAt = DateTime.UtcNow;
+            message.CreatedBy = userId.ToString();
+
+            await _unitOfWork.NotificationMessages.AddAsync(message);
+            await _unitOfWork.SaveChangesAsync();
+
+            // Send notification based on type
             try
             {
-                notification.Status = NotificationStatus.Pending;
-                notification.CreatedAt = DateTime.UtcNow;
-
-                await _unitOfWork.Notifications.AddAsync(notification);
-                await _unitOfWork.SaveChangesAsync();
-                await _auditService.LogCreateAsync(notification, userId);
-                return notification;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating notification");
-                throw;
-            }
-        }
-
-        public async Task UpdateNotificationStatusAsync(int notificationId, string status, int userId)
-        {
-            try
-            {
-                var notification = await _unitOfWork.Notifications.GetByIdAsync(notificationId);
-                if (notification == null)
+                switch (message.Type)
                 {
-                    throw new ArgumentException("Notification not found", nameof(notificationId));
+                    case NotificationType.Email:
+                        await _emailService.SendEmailAsync(message.Recipient, message.Title, message.Content);
+                        message.Status = NotificationStatus.Sent;
+                        break;
+
+                    case NotificationType.SMS:
+                        await _smsService.SendSMSAsync(message.Recipient, message.Content);
+                        message.Status = NotificationStatus.Sent;
+                        break;
+
+                    default:
+                        throw new ArgumentException($"Unsupported notification type: {message.Type}");
                 }
 
-                notification.Status = Enum.Parse<NotificationStatus>(status);
-                notification.UpdatedAt = DateTime.UtcNow;
-
+                message.SentAt = DateTime.UtcNow;
                 await _unitOfWork.SaveChangesAsync();
-                await _auditService.LogUpdateAsync(notification, userId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating notification status for notification {NotificationId}", notificationId);
-                throw;
-            }
-        }
-
-        public async Task DeleteNotificationAsync(int notificationId, int userId)
-        {
-            try
-            {
-                var notification = await _unitOfWork.Notifications.GetByIdAsync(notificationId);
-                if (notification == null)
-                {
-                    throw new ArgumentException("Notification not found", nameof(notificationId));
-                }
-
-                await _unitOfWork.Notifications.DeleteAsync(notification);
+                message.Status = NotificationStatus.Failed;
+                message.ErrorMessage = ex.Message;
                 await _unitOfWork.SaveChangesAsync();
-                await _auditService.LogDeleteAsync(notification, userId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting notification {NotificationId}", notificationId);
                 throw;
             }
+
+            return message;
         }
     }
 } 

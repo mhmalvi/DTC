@@ -1,42 +1,23 @@
 using System;
-using System.ComponentModel.DataAnnotations;
-using DTCBillingSystem.Core.Models.Enums;
+using DTCBillingSystem.Shared.Models.Entities;
+using DTCBillingSystem.Shared.Models.Enums;
 
 namespace DTCBillingSystem.Core.Models
 {
     public class AuditLog : BaseEntity
     {
-        [Required]
-        public string EntityName { get; set; } = string.Empty;
+        public Guid UserId { get; set; }
+        public string Action { get; set; } = string.Empty;
+        public string EntityType { get; set; } = string.Empty;
+        public Guid EntityId { get; set; }
+        public string? OldValues { get; set; }
+        public string? NewValues { get; set; }
+        public string? AffectedColumns { get; set; }
+        public string? ClientIp { get; set; }
+        public string? UserAgent { get; set; }
+        public DateTime Timestamp { get; set; }
 
-        [Required]
-        public int EntityId { get; set; }
-
-        [Required]
-        public AuditAction Action { get; set; }
-
-        [Required]
-        public int UserId { get; set; }
-
-        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-
-        [Required]
-        public string OldValues { get; set; } = string.Empty;
-
-        [Required]
-        public string NewValues { get; set; } = string.Empty;
-
-        [Required]
-        public string AffectedColumns { get; set; } = string.Empty;
-
-        [Required]
-        public string IPAddress { get; set; } = string.Empty;
-
-        public string? Notes { get; set; }
-
-        public AuditLog()
-        {
-            Timestamp = DateTime.UtcNow;
-        }
+        // Navigation properties
+        public virtual User? User { get; set; }
     }
 } 

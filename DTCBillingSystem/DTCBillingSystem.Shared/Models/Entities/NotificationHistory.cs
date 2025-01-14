@@ -5,11 +5,13 @@ namespace DTCBillingSystem.Shared.Models.Entities
 {
     public class NotificationHistory : BaseEntity
     {
-        public string NotificationId { get; set; }
-        public DateTime SentDate { get; set; }
+        public Guid NotificationMessageId { get; set; }
+        public DateTime AttemptDate { get; set; }
         public NotificationStatus Status { get; set; }
-        public string ErrorMessage { get; set; }
-        public int RetryCount { get; set; }
-        public DateTime? LastRetryDate { get; set; }
+        public string? ErrorMessage { get; set; }
+        public int AttemptNumber { get; set; }
+
+        // Navigation properties
+        public virtual NotificationMessage? NotificationMessage { get; set; }
     }
 } 

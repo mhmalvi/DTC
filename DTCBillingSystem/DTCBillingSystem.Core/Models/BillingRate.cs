@@ -1,51 +1,16 @@
-using System;
+using DTCBillingSystem.Shared.Models.Entities;
+using DTCBillingSystem.Shared.Models.Enums;
 
 namespace DTCBillingSystem.Core.Models
 {
-    /// <summary>
-    /// Represents different types of billing rates in the system
-    /// </summary>
     public class BillingRate : BaseEntity
     {
-        /// <summary>
-        /// The rate code
-        /// </summary>
-        public string RateCode { get; set; }
-
-        /// <summary>
-        /// Description or notes about the rate
-        /// </summary>
-        public string Description { get; set; }
-
-        /// <summary>
-        /// The base rate amount
-        /// </summary>
-        public decimal BaseRate { get; set; }
-
-        /// <summary>
-        /// The tax rate amount
-        /// </summary>
+        public string RateCode { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public CustomerType CustomerType { get; set; }
+        public decimal Rate { get; set; }
         public decimal TaxRate { get; set; }
-
-        /// <summary>
-        /// Whether this rate is currently active
-        /// </summary>
+        public decimal LatePaymentRate { get; set; }
         public bool IsActive { get; set; }
-
-        /// <summary>
-        /// When this rate becomes effective
-        /// </summary>
-        public DateTime EffectiveFrom { get; set; }
-
-        /// <summary>
-        /// When this rate expires (null if current)
-        /// </summary>
-        public DateTime? EffectiveTo { get; set; }
-
-        public BillingRate()
-        {
-            IsActive = true;
-            EffectiveFrom = DateTime.Now;
-        }
     }
 } 
