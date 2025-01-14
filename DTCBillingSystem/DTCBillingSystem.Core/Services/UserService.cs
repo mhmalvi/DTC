@@ -1,8 +1,10 @@
 using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models.Authentication;
 using DTCBillingSystem.Core.Models.Enums;
+using DTCBillingSystem.Core.Models.Entities;
 
 namespace DTCBillingSystem.Core.Services
 {
@@ -25,7 +27,7 @@ namespace DTCBillingSystem.Core.Services
             _auditService = auditService;
         }
 
-        private DTCBillingSystem.Core.Models.User ConvertToUser(DTCBillingSystem.Core.Models.Entities.User entityUser)
+        private DTCBillingSystem.Core.Models.User ConvertToUser(User entityUser)
         {
             return new DTCBillingSystem.Core.Models.User
             {
@@ -48,9 +50,9 @@ namespace DTCBillingSystem.Core.Services
             };
         }
 
-        private DTCBillingSystem.Core.Models.Entities.User ConvertToEntityUser(DTCBillingSystem.Core.Models.User user)
+        private User ConvertToEntityUser(DTCBillingSystem.Core.Models.User user)
         {
-            return new DTCBillingSystem.Core.Models.Entities.User
+            return new User
             {
                 Id = user.Id,
                 Username = user.Username,
@@ -79,6 +81,11 @@ namespace DTCBillingSystem.Core.Services
                 return new AuthenticationResponse { Success = false, Message = "Invalid username or password" };
             }
 
+            if (!entityUser.IsActive)
+            {
+                return new AuthenticationResponse { Success = false, Message = "Account is deactivated" };
+            }
+
             var (storedHash, storedSalt) = (entityUser.PasswordHash, entityUser.PasswordSalt);
             if (!_passwordHasher.VerifyPassword(password, storedHash, storedSalt))
             {
@@ -90,13 +97,17 @@ namespace DTCBillingSystem.Core.Services
 
             var user = ConvertToUser(entityUser);
             var token = _tokenService.GenerateToken(user);
+            
+            await _auditService.LogAsync("User", user.Id.ToString(), user.Id.ToString(), AuditAction.Login);
+
             return new AuthenticationResponse
             {
                 Success = true,
                 Message = "Authentication successful",
                 Token = token,
                 Username = user.Username,
-                Role = user.Role
+                Role = user.Role,
+                RequirePasswordChange = user.RequirePasswordChange
             };
         }
 
@@ -113,7 +124,7 @@ namespace DTCBillingSystem.Core.Services
             }
 
             var (hash, salt) = _passwordHasher.HashPassword(password);
-            var user = new DTCBillingSystem.Core.Models.Entities.User
+            var user = new User
             {
                 Username = username,
                 Email = email,
@@ -152,16 +163,12 @@ namespace DTCBillingSystem.Core.Services
             entityUser.PasswordHash = hash;
             entityUser.PasswordSalt = salt;
             entityUser.RequirePasswordChange = false;
+            entityUser.LastModifiedAt = DateTime.UtcNow;
 
             await _unitOfWork.SaveChangesAsync();
             await _auditService.LogAsync("User", entityUser.Id.ToString(), entityUser.Id.ToString(), AuditAction.Update, "Password changed");
 
-            return new PasswordChangeResponse
-            {
-                Success = true,
-                Message = "Password changed successfully",
-                NewPassword = newPassword
-            };
+            return new PasswordChangeResponse { Success = true, Message = "Password changed successfully" };
         }
 
         public async Task<DTCBillingSystem.Core.Models.User?> GetUserByIdAsync(int userId)
@@ -189,6 +196,7 @@ namespace DTCBillingSystem.Core.Services
             entityUser.PasswordHash = hash;
             entityUser.PasswordSalt = salt;
             entityUser.RequirePasswordChange = true;
+            entityUser.LastModifiedAt = DateTime.UtcNow;
 
             await _unitOfWork.SaveChangesAsync();
             await _auditService.LogAsync("User", entityUser.Id.ToString(), entityUser.Id.ToString(), AuditAction.Update, "Password reset");
@@ -201,9 +209,39 @@ namespace DTCBillingSystem.Core.Services
             };
         }
 
+        public async Task<bool> DeactivateUserAsync(int userId, string deactivatedBy)
+        {
+            var entityUser = await _unitOfWork.Users.GetByIdAsync(userId);
+            if (entityUser == null) return false;
+
+            entityUser.IsActive = false;
+            entityUser.LastModifiedAt = DateTime.UtcNow;
+            entityUser.LastModifiedBy = deactivatedBy;
+
+            await _unitOfWork.SaveChangesAsync();
+            await _auditService.LogAsync("User", entityUser.Id.ToString(), deactivatedBy, AuditAction.Update, "User deactivated");
+
+            return true;
+        }
+
+        public async Task<bool> ActivateUserAsync(int userId, string activatedBy)
+        {
+            var entityUser = await _unitOfWork.Users.GetByIdAsync(userId);
+            if (entityUser == null) return false;
+
+            entityUser.IsActive = true;
+            entityUser.LastModifiedAt = DateTime.UtcNow;
+            entityUser.LastModifiedBy = activatedBy;
+
+            await _unitOfWork.SaveChangesAsync();
+            await _auditService.LogAsync("User", entityUser.Id.ToString(), activatedBy, AuditAction.Update, "User activated");
+
+            return true;
+        }
+
         private string GenerateTemporaryPassword()
         {
-            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%^&*";
             var random = new Random();
             var tempPassword = new char[12];
             for (var i = 0; i < tempPassword.Length; i++)

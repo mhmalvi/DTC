@@ -3,24 +3,42 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using DTCBillingSystem.Shared.Models.Entities;
-using DTCBillingSystem.Shared.Models.Enums;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using DTCBillingSystem.Core.Interfaces;
+using DTCBillingSystem.Core.Models.Entities;
+using DTCBillingSystem.Core.Models.Enums;
+using DTCBillingSystem.UI.Commands;
+using DTCBillingSystem.UI.Services;
 
 namespace DTCBillingSystem.UI.ViewModels
 {
     public class CustomersViewModel : INotifyPropertyChanged
     {
+        private readonly ICustomerService _customerService;
+        private readonly IDialogService _dialogService;
+        private readonly INavigationService _navigationService;
         private ObservableCollection<Customer> _customers;
         private string _searchText;
         private CustomerType _selectedCustomerType;
-        private bool _isActive;
-        private string _sortBy;
-        private int _currentPage;
-        private int _itemsPerPage;
+        private bool _isActive = true;
+        private string _sortBy = "Name";
+        private int _currentPage = 1;
+        private int _itemsPerPage = 10;
         private int _totalItems;
+        private bool _isLoading;
+        private string _errorMessage;
+        private readonly List<int> _pageSizes = new() { 10, 25, 50, 100 };
 
-        public CustomersViewModel()
+        public CustomersViewModel(
+            ICustomerService customerService,
+            IDialogService dialogService,
+            INavigationService navigationService)
         {
+            _customerService = customerService ?? throw new ArgumentNullException(nameof(customerService));
+            _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
+            _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+
             // Initialize collections
             Customers = new ObservableCollection<Customer>();
             
@@ -29,10 +47,11 @@ namespace DTCBillingSystem.UI.ViewModels
             EditCustomerCommand = new RelayCommand<Customer>(ExecuteEditCustomer);
             ViewBillsCommand = new RelayCommand<Customer>(ExecuteViewBills);
             RefreshCommand = new RelayCommand(ExecuteRefresh);
-            
-            // Set default values
-            ItemsPerPage = 10;
-            CurrentPage = 1;
+            DeactivateCustomerCommand = new RelayCommand<Customer>(ExecuteDeactivateCustomer);
+            ActivateCustomerCommand = new RelayCommand<Customer>(ExecuteActivateCustomer);
+            DeleteCustomerCommand = new RelayCommand<Customer>(ExecuteDeleteCustomer);
+            NextPageCommand = new RelayCommand(ExecuteNextPage, CanExecuteNextPage);
+            PreviousPageCommand = new RelayCommand(ExecutePreviousPage, CanExecutePreviousPage);
             
             // Load initial data
             LoadCustomers();
@@ -99,6 +118,8 @@ namespace DTCBillingSystem.UI.ViewModels
             {
                 _currentPage = value;
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(CanGoToPreviousPage));
+                OnPropertyChanged(nameof(CanGoToNextPage));
                 LoadCustomers();
             }
         }
@@ -110,6 +131,7 @@ namespace DTCBillingSystem.UI.ViewModels
             {
                 _itemsPerPage = value;
                 OnPropertyChanged();
+                CurrentPage = 1; // Reset to first page when changing page size
                 LoadCustomers();
             }
         }
@@ -122,69 +144,209 @@ namespace DTCBillingSystem.UI.ViewModels
                 _totalItems = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(TotalPages));
+                OnPropertyChanged(nameof(CanGoToPreviousPage));
+                OnPropertyChanged(nameof(CanGoToNextPage));
+            }
+        }
+
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set
+            {
+                _isLoading = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string ErrorMessage
+        {
+            get => _errorMessage;
+            set
+            {
+                _errorMessage = value;
+                OnPropertyChanged();
             }
         }
 
         public int TotalPages => (TotalItems + ItemsPerPage - 1) / ItemsPerPage;
+        public bool CanGoToPreviousPage => CurrentPage > 1;
+        public bool CanGoToNextPage => CurrentPage < TotalPages;
+        public List<int> PageSizes => _pageSizes;
 
         public ICommand AddCustomerCommand { get; }
         public ICommand EditCustomerCommand { get; }
         public ICommand ViewBillsCommand { get; }
         public ICommand RefreshCommand { get; }
+        public ICommand DeactivateCustomerCommand { get; }
+        public ICommand ActivateCustomerCommand { get; }
+        public ICommand DeleteCustomerCommand { get; }
+        public ICommand NextPageCommand { get; }
+        public ICommand PreviousPageCommand { get; }
 
-        private async void LoadCustomers()
+        private async Task LoadCustomers()
         {
             try
             {
-                // TODO: Implement actual data loading from service
-                // var customers = await _customerService.GetCustomersAsync(
-                //     CurrentPage, 
-                //     ItemsPerPage, 
-                //     SearchText, 
-                //     SelectedCustomerType, 
-                //     IsActive, 
-                //     SortBy);
-                
-                // Customers = new ObservableCollection<Customer>(customers);
-                // TotalItems = await _customerService.GetTotalCustomersCountAsync();
+                IsLoading = true;
+                ErrorMessage = null;
+
+                var customers = await _customerService.GetCustomersAsync(
+                    CurrentPage,
+                    ItemsPerPage,
+                    SearchText,
+                    SelectedCustomerType,
+                    IsActive,
+                    SortBy);
+
+                Customers = new ObservableCollection<Customer>(customers);
+                TotalItems = await _customerService.GetTotalCustomersCountAsync(
+                    SearchText,
+                    SelectedCustomerType,
+                    IsActive);
             }
             catch (Exception ex)
             {
-                // TODO: Handle error and show message to user
-                System.Diagnostics.Debug.WriteLine($"Error loading customers: {ex.Message}");
+                ErrorMessage = "Error loading customers. Please try again.";
+                await _dialogService.ShowErrorAsync("Error", ex.Message);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
         private void FilterCustomers()
         {
-            LoadCustomers(); // Reload with new filters
+            CurrentPage = 1; // Reset to first page when filtering
+            LoadCustomers();
         }
 
         private void SortCustomers()
         {
-            LoadCustomers(); // Reload with new sort
-        }
-
-        private void ExecuteAddCustomer()
-        {
-            // TODO: Implement navigation to Add Customer view
-        }
-
-        private void ExecuteEditCustomer(Customer customer)
-        {
-            if (customer == null) return;
-            // TODO: Implement navigation to Edit Customer view
-        }
-
-        private void ExecuteViewBills(Customer customer)
-        {
-            if (customer == null) return;
-            // TODO: Implement navigation to Customer Bills view
-        }
-
-        private void ExecuteRefresh()
-        {
             LoadCustomers();
+        }
+
+        private async void ExecuteAddCustomer()
+        {
+            await _navigationService.NavigateToAsync("CustomerDialog", null);
+            await LoadCustomers(); // Refresh after navigation returns
+        }
+
+        private async void ExecuteEditCustomer(Customer customer)
+        {
+            if (customer == null) return;
+            await _navigationService.NavigateToAsync("CustomerDialog", customer);
+            await LoadCustomers(); // Refresh after navigation returns
+        }
+
+        private async void ExecuteViewBills(Customer customer)
+        {
+            if (customer == null) return;
+            await _navigationService.NavigateToAsync("CustomerBills", customer);
+        }
+
+        private async void ExecuteRefresh()
+        {
+            await LoadCustomers();
+        }
+
+        private async void ExecuteDeactivateCustomer(Customer customer)
+        {
+            if (customer == null) return;
+
+            var result = await _dialogService.ShowConfirmationAsync(
+                "Deactivate Customer",
+                $"Are you sure you want to deactivate {customer.Name}?");
+
+            if (result)
+            {
+                try
+                {
+                    await _customerService.DeactivateCustomerAsync(customer.Id);
+                    await LoadCustomers();
+                }
+                catch (Exception ex)
+                {
+                    await _dialogService.ShowErrorAsync("Error", ex.Message);
+                }
+            }
+        }
+
+        private async void ExecuteActivateCustomer(Customer customer)
+        {
+            if (customer == null) return;
+
+            var result = await _dialogService.ShowConfirmationAsync(
+                "Activate Customer",
+                $"Are you sure you want to activate {customer.Name}?");
+
+            if (result)
+            {
+                try
+                {
+                    await _customerService.ActivateCustomerAsync(customer.Id);
+                    await LoadCustomers();
+                }
+                catch (Exception ex)
+                {
+                    await _dialogService.ShowErrorAsync("Error", ex.Message);
+                }
+            }
+        }
+
+        private async void ExecuteDeleteCustomer(Customer customer)
+        {
+            if (customer == null) return;
+
+            var result = await _dialogService.ShowConfirmationAsync(
+                "Delete Customer",
+                $"Are you sure you want to delete {customer.Name}? This action cannot be undone.");
+
+            if (result)
+            {
+                try
+                {
+                    await _customerService.DeleteCustomerAsync(customer.Id);
+                    await LoadCustomers();
+                }
+                catch (InvalidOperationException ex)
+                {
+                    await _dialogService.ShowErrorAsync(
+                        "Cannot Delete",
+                        "This customer has existing bills or payments and cannot be deleted.");
+                }
+                catch (Exception ex)
+                {
+                    await _dialogService.ShowErrorAsync("Error", ex.Message);
+                }
+            }
+        }
+
+        private void ExecuteNextPage()
+        {
+            if (CanGoToNextPage)
+            {
+                CurrentPage++;
+            }
+        }
+
+        private void ExecutePreviousPage()
+        {
+            if (CanGoToPreviousPage)
+            {
+                CurrentPage--;
+            }
+        }
+
+        private bool CanExecuteNextPage()
+        {
+            return CanGoToNextPage;
+        }
+
+        private bool CanExecutePreviousPage()
+        {
+            return CanGoToPreviousPage;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -192,57 +354,6 @@ namespace DTCBillingSystem.UI.ViewModels
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
-
-    public class RelayCommand : ICommand
-    {
-        private readonly Action _execute;
-        private readonly Func<bool> _canExecute;
-
-        public RelayCommand(Action execute, Func<bool> canExecute = null)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-
-        public event EventHandler CanExecuteChanged
-        {
-            add => CommandManager.RequerySuggested += value;
-            remove => CommandManager.RequerySuggested -= value;
-        }
-
-        public bool CanExecute(object parameter) => _canExecute?.Invoke() ?? true;
-
-        public void Execute(object parameter) => _execute();
-    }
-
-    public class RelayCommand<T> : ICommand
-    {
-        private readonly Action<T> _execute;
-        private readonly Func<T, bool> _canExecute;
-
-        public RelayCommand(Action<T> execute, Func<T, bool> canExecute = null)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-
-        public event EventHandler CanExecuteChanged
-        {
-            add => CommandManager.RequerySuggested += value;
-            remove => CommandManager.RequerySuggested -= value;
-        }
-
-        public bool CanExecute(object parameter) => 
-            parameter is T typedParameter && (_canExecute?.Invoke(typedParameter) ?? true);
-
-        public void Execute(object parameter)
-        {
-            if (parameter is T typedParameter)
-            {
-                _execute(typedParameter);
-            }
         }
     }
 } 

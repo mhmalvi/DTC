@@ -1,31 +1,71 @@
 using System.Windows;
+using DTCBillingSystem.UI.Services;
 
 namespace DTCBillingSystem.UI.Views
 {
     public partial class MainWindow : Window
     {
-        public MainWindow()
+        private readonly INavigationService _navigationService;
+        private readonly IDialogService _dialogService;
+
+        public MainWindow(INavigationService navigationService, IDialogService dialogService)
         {
             InitializeComponent();
-            MenuListBox.SelectionChanged += MenuListBox_SelectionChanged;
+            _navigationService = navigationService;
+            _dialogService = dialogService;
         }
 
-        private void MenuListBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        public Frame MainFrame => this.MainFrame;
+
+        private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            if (DataContext is MainViewModel viewModel)
-            {
-                var selectedItem = MenuListBox.SelectedItem as System.Windows.Controls.ListBoxItem;
-                if (selectedItem != null)
-                {
-                    var menuText = (selectedItem.Content as System.Windows.Controls.StackPanel)
-                        ?.Children[1] as System.Windows.Controls.TextBlock;
-                    
-                    if (menuText != null)
-                    {
-                        viewModel.NavigateToView(menuText.Text);
-                    }
-                }
-            }
+            Application.Current.Shutdown();
+        }
+
+        private void ManageCustomersMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            _navigationService.NavigateToAsync("Customers");
+        }
+
+        private async void ImportCustomersMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            await _dialogService.ShowInfoAsync("Import Customers", "This feature is coming soon!");
+        }
+
+        private async void ExportCustomersMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            await _dialogService.ShowInfoAsync("Export Customers", "This feature is coming soon!");
+        }
+
+        private async void GenerateBillsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            await _dialogService.ShowInfoAsync("Generate Bills", "This feature is coming soon!");
+        }
+
+        private async void ProcessPaymentsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            await _dialogService.ShowInfoAsync("Process Payments", "This feature is coming soon!");
+        }
+
+        private async void ViewReportsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            await _dialogService.ShowInfoAsync("View Reports", "This feature is coming soon!");
+        }
+
+        private async void UserManagementMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            await _dialogService.ShowInfoAsync("User Management", "This feature is coming soon!");
+        }
+
+        private async void SystemSettingsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            await _dialogService.ShowInfoAsync("System Settings", "This feature is coming soon!");
+        }
+
+        private async void AboutMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            await _dialogService.ShowInfoAsync("About", 
+                "DTC Billing System\nVersion 1.0\n\n© 2024 Your Company");
         }
     }
 } 

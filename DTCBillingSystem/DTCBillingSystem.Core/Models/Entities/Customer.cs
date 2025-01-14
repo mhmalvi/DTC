@@ -1,35 +1,28 @@
-using System.ComponentModel.DataAnnotations;
+using System;
+using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Models.Entities
 {
     public class Customer : BaseEntity
     {
-        [Required]
-        [MaxLength(50)]
-        public string FirstName { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(50)]
-        public string LastName { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(200)]
+        public string AccountNumber { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
         public string Address { get; set; } = string.Empty;
-
-        [Required]
-        [MaxLength(20)]
+        public string ContactNumber { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public CustomerType Type { get; set; }
+        public string ZoneCode { get; set; } = string.Empty;
         public string MeterNumber { get; set; } = string.Empty;
-
-        [MaxLength(15)]
-        public string? PhoneNumber { get; set; }
-
-        [MaxLength(100)]
-        [EmailAddress]
-        public string? Email { get; set; }
-
-        public string FullName => $"{FirstName} {LastName}".Trim();
-
-        public virtual ICollection<MeterReading> MeterReadings { get; set; } = new List<MeterReading>();
-        public virtual ICollection<MonthlyBill> Bills { get; set; } = new List<MonthlyBill>();
+        public DateTime ConnectionDate { get; set; }
+        public bool IsActive { get; set; }
+        public string Notes { get; set; } = string.Empty;
+        public decimal SecurityDeposit { get; set; }
+        public decimal CurrentBalance { get; set; }
+        public DateTime LastBillingDate { get; set; }
+        public DateTime LastPaymentDate { get; set; }
+        public string LastModifiedBy { get; set; } = string.Empty;
+        public DateTime LastModifiedAt { get; set; }
+        public string CreatedBy { get; set; } = string.Empty;
+        public DateTime CreatedAt { get; set; }
     }
 } 
