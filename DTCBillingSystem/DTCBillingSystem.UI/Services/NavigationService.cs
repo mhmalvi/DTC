@@ -41,6 +41,18 @@ namespace DTCBillingSystem.UI.Services
             _mainFrame?.Navigate(view);
         }
 
+        public void NavigateTo<T>(object parameter) where T : class
+        {
+            var view = _viewLocator.GetView<T>();
+            _mainFrame?.Navigate(view, parameter);
+        }
+
+        public void NavigateTo(Type viewModelType, object parameter)
+        {
+            var view = _viewLocator.GetView(viewModelType);
+            _mainFrame?.Navigate(view, parameter);
+        }
+
         public async void NavigateToAsync(string viewName)
         {
             await Task.Run(() =>
@@ -65,7 +77,7 @@ namespace DTCBillingSystem.UI.Services
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                var mainWindow = _viewLocator.CreateMainWindow();
+                var mainWindow = _viewLocator.CreateMainWindow(this);
                 mainWindow.Show();
 
                 // Close other windows

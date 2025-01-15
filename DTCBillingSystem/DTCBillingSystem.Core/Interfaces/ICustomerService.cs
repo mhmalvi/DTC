@@ -30,5 +30,6 @@ namespace DTCBillingSystem.Core.Interfaces
         Task<IEnumerable<Customer>> GetCustomersByZoneAsync(string zoneCode);
         Task<IEnumerable<Customer>> GetActiveCustomersAsync();
         Task<Customer> AddCustomerAsync(Customer customer);
+        Task<IEnumerable<Customer>> GetAllCustomersAsync();
     }
 } 

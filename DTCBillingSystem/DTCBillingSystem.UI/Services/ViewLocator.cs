@@ -13,18 +13,16 @@ namespace DTCBillingSystem.UI.Services
         object GetView(Type viewModelType);
         object GetViewByName(string viewName);
         LoginWindow CreateLoginWindow();
-        MainWindow CreateMainWindow();
+        MainWindow CreateMainWindow(INavigationService navigationService);
     }
 
     public class ViewLocator : IViewLocator
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly INavigationService _navigationService;
 
-        public ViewLocator(IServiceProvider serviceProvider, INavigationService navigationService)
+        public ViewLocator(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            _navigationService = navigationService;
         }
 
         public object GetView<T>() where T : class
@@ -58,10 +56,10 @@ namespace DTCBillingSystem.UI.Services
             return new LoginWindow(viewModel);
         }
 
-        public MainWindow CreateMainWindow()
+        public MainWindow CreateMainWindow(INavigationService navigationService)
         {
             var viewModel = _serviceProvider.GetRequiredService<MainViewModel>();
-            return new MainWindow(_navigationService, viewModel);
+            return new MainWindow(navigationService, viewModel);
         }
 
         private object CreateViewForViewModel(object viewModel)

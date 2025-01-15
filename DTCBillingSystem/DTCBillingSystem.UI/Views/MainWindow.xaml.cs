@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using DTCBillingSystem.UI.Services;
+using DTCBillingSystem.UI.ViewModels;
 
 namespace DTCBillingSystem.UI.Views
 {
@@ -8,12 +9,15 @@ namespace DTCBillingSystem.UI.Views
     {
         private readonly INavigationService _navigationService;
         private readonly IDialogService _dialogService;
+        private readonly MainViewModel _viewModel;
 
-        public MainWindow(INavigationService navigationService, IDialogService dialogService)
+        public MainWindow(INavigationService navigationService, IDialogService dialogService, MainViewModel viewModel)
         {
             InitializeComponent();
             _navigationService = navigationService;
             _dialogService = dialogService;
+            _viewModel = viewModel;
+            DataContext = _viewModel;
         }
 
         private void ExitMenuItem_Click(object sender, RoutedEventArgs e)

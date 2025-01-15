@@ -37,6 +37,12 @@ namespace DTCBillingSystem.Core.Services
                 sortBy);
         }
 
+        public async Task<IEnumerable<Customer>> GetAllCustomersAsync()
+        {
+            // Get all customers by using GetCustomersAsync with max values
+            return await GetCustomersAsync(1, int.MaxValue);
+        }
+
         public async Task<int> GetTotalCustomersCountAsync(
             string? searchText = null,
             CustomerType? customerType = null,

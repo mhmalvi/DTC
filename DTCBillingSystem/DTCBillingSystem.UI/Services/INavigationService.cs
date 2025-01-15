@@ -18,6 +18,16 @@ namespace DTCBillingSystem.UI.Services
         void NavigateTo(Type viewModelType);
 
         /// <summary>
+        /// Navigate to a view associated with the specified view model type with parameter
+        /// </summary>
+        void NavigateTo<T>(object parameter) where T : class;
+
+        /// <summary>
+        /// Navigate to a view associated with the specified view model type with parameter
+        /// </summary>
+        void NavigateTo(Type viewModelType, object parameter);
+
+        /// <summary>
         /// Navigate to a view by its name asynchronously
         /// </summary>
         void NavigateToAsync(string viewName);
