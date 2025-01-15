@@ -17,11 +17,8 @@ public class UnitOfWork : IUnitOfWork
     public IUserRepository Users { get; }
     public IAuditLogRepository AuditLogs { get; }
     public IMeterReadingRepository MeterReadings { get; }
-    public INotificationRepository Notifications { get; }
-    public INotificationSettingsRepository NotificationSettings { get; }
     public IPrintJobRepository PrintJobs { get; }
     public IBackupInfoRepository BackupInfos { get; }
-    public IScheduledNotificationRepository ScheduledNotifications { get; }
     public IBackupScheduleRepository BackupSchedules { get; }
 
     public UnitOfWork(ApplicationDbContext context)
@@ -34,11 +31,8 @@ public class UnitOfWork : IUnitOfWork
         Users = new UserRepository(_context);
         AuditLogs = new AuditLogRepository(_context);
         MeterReadings = new MeterReadingRepository(_context);
-        Notifications = new NotificationMessageRepository(_context);
-        NotificationSettings = new NotificationSettingsRepository(_context);
         PrintJobs = new PrintJobRepository(_context);
         BackupInfos = new BackupInfoRepository(_context);
-        ScheduledNotifications = new ScheduledNotificationRepository(_context);
         BackupSchedules = new BackupScheduleRepository(_context);
     }
 

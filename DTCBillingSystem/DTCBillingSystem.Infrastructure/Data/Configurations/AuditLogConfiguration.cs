@@ -8,23 +8,20 @@ namespace DTCBillingSystem.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<AuditLog> builder)
         {
-            builder.HasKey(a => a.Id);
-            builder.Property(a => a.Action).IsRequired().HasMaxLength(50);
-            builder.Property(a => a.EntityName).IsRequired().HasMaxLength(50);
-            builder.Property(a => a.EntityId).IsRequired();
-            builder.Property(a => a.Changes).HasMaxLength(4000);
-            builder.Property(a => a.Timestamp).IsRequired();
-            builder.Property(a => a.UserId).IsRequired();
+            builder.ToTable("AuditLogs");
 
-            builder.HasOne(a => a.User)
+            builder.HasKey(x => x.Id);
+
+            builder.Property(x => x.EntityType).IsRequired().HasMaxLength(100);
+            builder.Property(x => x.EntityId).IsRequired().HasMaxLength(50);
+            builder.Property(x => x.Action).IsRequired().HasMaxLength(50);
+            builder.Property(x => x.UserId).IsRequired().HasMaxLength(50);
+
+            // Configure User relationship
+            builder.HasOne(x => x.User)
                 .WithMany()
-                .HasForeignKey(a => a.UserId)
+                .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasIndex(a => a.EntityName);
-            builder.HasIndex(a => a.EntityId);
-            builder.HasIndex(a => a.Timestamp);
-            builder.HasIndex(a => a.UserId);
         }
     }
 } 

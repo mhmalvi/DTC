@@ -8,16 +8,25 @@ namespace DTCBillingSystem.Infrastructure.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<PaymentRecord> builder)
         {
-            builder.HasKey(p => p.Id);
-            builder.Property(p => p.AmountPaid).IsRequired().HasPrecision(10, 2);
-            builder.Property(p => p.PaymentDate).IsRequired();
-            builder.Property(p => p.PaymentMethod).IsRequired().HasMaxLength(50);
-            builder.Property(p => p.LatePaymentCharges).HasPrecision(10, 2);
-            builder.Property(p => p.TransactionReference).HasMaxLength(50);
+            builder.ToTable("PaymentRecords");
 
-            builder.HasOne(p => p.MonthlyBill)
-                .WithMany(b => b.PaymentRecords)
-                .HasForeignKey(p => p.MonthlyBillId)
+            builder.HasKey(x => x.Id);
+
+            builder.Property(x => x.PaymentDate).IsRequired();
+            builder.Property(x => x.Amount).IsRequired().HasPrecision(18, 2);
+            builder.Property(x => x.PaymentMethod).IsRequired();
+            builder.Property(x => x.ReferenceNumber).HasMaxLength(50);
+            builder.Property(x => x.Notes).HasMaxLength(500);
+
+            // Configure relationships
+            builder.HasOne(x => x.MonthlyBill)
+                .WithMany(x => x.Payments)
+                .HasForeignKey(x => x.MonthlyBillId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasOne(x => x.Customer)
+                .WithMany()
+                .HasForeignKey(x => x.CustomerId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

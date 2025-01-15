@@ -8,6 +8,7 @@ using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models.Enums;
 using DTCBillingSystem.Core.Models.Entities;
 using DTCBillingSystem.Core.Models;
+using DTCBillingSystem.Infrastructure.Data;
 
 namespace DTCBillingSystem.Infrastructure.Repositories
 {
@@ -482,7 +483,7 @@ namespace DTCBillingSystem.Infrastructure.Repositories
         }
     }
 
-    public class BillingRateRepository : Repository<BillingRate>, IRepository<BillingRate>
+    public class BillingRateRepository : Repository<BillingRate>, IBillingRateRepository
     {
         public BillingRateRepository(DbContext context) : base(context) { }
 
@@ -504,173 +505,6 @@ namespace DTCBillingSystem.Infrastructure.Repositories
         }
     }
 
-    public class ScheduledNotificationRepository : Repository<Core.Models.Entities.ScheduledNotification>, IScheduledNotificationRepository
-    {
-        public ScheduledNotificationRepository(DbContext context) : base(context) { }
-
-        public override async Task<Core.Models.Entities.ScheduledNotification?> GetByIdAsync(int id)
-        {
-            var entity = await _dbSet.FindAsync(id);
-            return entity != null ? MapToModel(entity) : null;
-        }
-
-        public override async Task<IEnumerable<Core.Models.Entities.ScheduledNotification>> GetAllAsync()
-        {
-            var entities = await _dbSet.ToListAsync();
-            return entities.Select(MapToModel);
-        }
-
-        public override async Task<IEnumerable<Core.Models.Entities.ScheduledNotification>> FindAsync(Expression<Func<Core.Models.Entities.ScheduledNotification, bool>> predicate)
-        {
-            var entityPredicate = ConvertPredicate(predicate);
-            var entities = await _dbSet.Where(entityPredicate).ToListAsync();
-            return entities.Select(MapToModel);
-        }
-
-        public override async Task AddAsync(Core.Models.Entities.ScheduledNotification model)
-        {
-            var entity = MapToEntity(model);
-            await _dbSet.AddAsync(entity);
-        }
-
-        public override async Task AddRangeAsync(IEnumerable<Core.Models.Entities.ScheduledNotification> models)
-        {
-            var entities = models.Select(MapToEntity);
-            await _dbSet.AddRangeAsync(entities);
-        }
-
-        public override async Task UpdateAsync(Core.Models.Entities.ScheduledNotification model)
-        {
-            var entity = await _dbSet.FindAsync(model.Id);
-            if (entity != null)
-            {
-                UpdateEntity(entity, model);
-                _context.Entry(entity).State = EntityState.Modified;
-            }
-        }
-
-        public override async Task RemoveAsync(Core.Models.Entities.ScheduledNotification model)
-        {
-            var entity = await _dbSet.FindAsync(model.Id);
-            if (entity != null)
-            {
-                _dbSet.Remove(entity);
-            }
-            await Task.CompletedTask;
-        }
-
-        public override async Task RemoveRangeAsync(IEnumerable<Core.Models.Entities.ScheduledNotification> models)
-        {
-            var ids = models.Select(m => m.Id);
-            var entities = await _dbSet.Where(e => ids.Contains(e.Id)).ToListAsync();
-            _dbSet.RemoveRange(entities);
-            await Task.CompletedTask;
-        }
-
-        public override async Task<bool> AnyAsync(Expression<Func<Core.Models.Entities.ScheduledNotification, bool>> predicate)
-        {
-            var entityPredicate = ConvertPredicate(predicate);
-            return await _dbSet.AnyAsync(entityPredicate);
-        }
-
-        public override async Task<int> CountAsync(Expression<Func<Core.Models.Entities.ScheduledNotification, bool>>? predicate = null)
-        {
-            if (predicate == null)
-                return await _dbSet.CountAsync();
-            var entityPredicate = ConvertPredicate(predicate);
-            return await _dbSet.CountAsync(entityPredicate);
-        }
-
-        public async Task<IEnumerable<Core.Models.Entities.ScheduledNotification>> GetPendingNotificationsAsync()
-        {
-            var entities = await _dbSet
-                .Where(n => n.Status == "Pending")
-                .OrderBy(n => n.ScheduledTime)
-                .ToListAsync();
-            return entities.Select(MapToModel);
-        }
-
-        public async Task<IEnumerable<Core.Models.Entities.ScheduledNotification>> GetFailedNotificationsAsync()
-        {
-            var entities = await _dbSet
-                .Where(n => n.Status == "Failed")
-                .OrderByDescending(n => n.LastAttemptTime)
-                .ToListAsync();
-            return entities.Select(MapToModel);
-        }
-
-        public async Task<IEnumerable<Core.Models.Entities.ScheduledNotification>> GetNotificationsDueByAsync(DateTime dueTime)
-        {
-            var entities = await _dbSet
-                .Where(n => n.Status == "Pending" && n.ScheduledTime <= dueTime)
-                .OrderBy(n => n.ScheduledTime)
-                .ToListAsync();
-            return entities.Select(MapToModel);
-        }
-
-        public async Task<IEnumerable<Core.Models.Entities.ScheduledNotification>> GetNotificationsByStatusAsync(string status)
-        {
-            var entities = await _dbSet
-                .Where(n => n.Status == status)
-                .OrderByDescending(n => n.LastAttemptTime)
-                .ToListAsync();
-            return entities.Select(MapToModel);
-        }
-
-        public async Task<int> GetPendingNotificationsCountAsync()
-        {
-            return await _dbSet.CountAsync(n => n.Status == "Pending");
-        }
-
-        private static Core.Models.Entities.ScheduledNotification MapToModel(Core.Models.Entities.ScheduledNotification entity)
-        {
-            return new Core.Models.Entities.ScheduledNotification
-            {
-                Id = entity.Id,
-                Message = entity.Message,
-                ScheduledTime = entity.ScheduledTime,
-                Status = entity.Status,
-                LastAttemptTime = entity.LastAttemptTime,
-                RetryCount = entity.RetryCount,
-                CreatedAt = entity.CreatedAt,
-                UpdatedAt = entity.UpdatedAt
-            };
-        }
-
-        private static Core.Models.Entities.ScheduledNotification MapToEntity(Core.Models.Entities.ScheduledNotification model)
-        {
-            return new Core.Models.Entities.ScheduledNotification
-            {
-                Id = model.Id,
-                Message = model.Message,
-                ScheduledTime = model.ScheduledTime,
-                Status = model.Status,
-                LastAttemptTime = model.LastAttemptTime,
-                RetryCount = model.RetryCount,
-                CreatedAt = model.CreatedAt,
-                UpdatedAt = model.UpdatedAt
-            };
-        }
-
-        private static void UpdateEntity(Core.Models.Entities.ScheduledNotification entity, Core.Models.Entities.ScheduledNotification model)
-        {
-            entity.Message = model.Message;
-            entity.ScheduledTime = model.ScheduledTime;
-            entity.Status = model.Status;
-            entity.LastAttemptTime = model.LastAttemptTime;
-            entity.RetryCount = model.RetryCount;
-            entity.UpdatedAt = DateTime.UtcNow;
-        }
-
-        private static Expression<Func<Core.Models.Entities.ScheduledNotification, bool>> ConvertPredicate(Expression<Func<Core.Models.Entities.ScheduledNotification, bool>> predicate)
-        {
-            var parameter = Expression.Parameter(typeof(Core.Models.Entities.ScheduledNotification), "e");
-            var visitor = new PredicateConverter(predicate.Parameters[0], parameter);
-            var convertedBody = visitor.Visit(predicate.Body);
-            return Expression.Lambda<Func<Core.Models.Entities.ScheduledNotification, bool>>(convertedBody, parameter);
-        }
-    }
-
     public class MeterReadingRepository : Repository<MeterReading>, IMeterReadingRepository
     {
         public MeterReadingRepository(DbContext context) : base(context) { }
@@ -683,21 +517,21 @@ namespace DTCBillingSystem.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<IQueryable<MeterReading>> GetReadingsForCustomerAsync(int customerId)
+        public Task<IQueryable<MeterReading>> GetReadingsForCustomerAsync(int customerId)
         {
-            return _dbSet.Where(m => m.CustomerId == customerId);
+            return Task.FromResult(_dbSet.Where(m => m.CustomerId == customerId));
         }
 
-        public new async Task UpdateAsync(MeterReading reading)
+        public override async Task UpdateAsync(MeterReading reading)
         {
             _context.Entry(reading).State = EntityState.Modified;
-            await Task.CompletedTask;
+            await _context.SaveChangesAsync();
         }
 
-        public new async Task RemoveAsync(MeterReading reading)
+        public override async Task RemoveAsync(MeterReading reading)
         {
             _dbSet.Remove(reading);
-            await Task.CompletedTask;
+            await _context.SaveChangesAsync();
         }
 
         public async Task<IEnumerable<MeterReading>> GetReadingsForPeriodAsync(int customerId, DateTime startDate, DateTime endDate)
@@ -715,251 +549,6 @@ namespace DTCBillingSystem.Infrastructure.Repositories
             return await _dbSet.AnyAsync(m => 
                 m.CustomerId == customerId && 
                 m.ReadingDate.Date == date.Date);
-        }
-    }
-
-    public class NotificationHistoryRepository : Repository<NotificationHistory>, INotificationHistoryRepository
-    {
-        public NotificationHistoryRepository(DbContext context) : base(context) { }
-
-        public async Task<IEnumerable<NotificationHistory>> GetByCustomerIdAsync(int customerId)
-        {
-            return await _dbSet
-                .Where(n => n.CustomerId == customerId)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<NotificationHistory>> GetByDateRangeAsync(DateTime startDate, DateTime endDate)
-        {
-            return await _dbSet
-                .Where(n => n.CreatedAt >= startDate && n.CreatedAt <= endDate)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<NotificationHistory>> GetByStatusAsync(NotificationStatus status)
-        {
-            return await _dbSet
-                .Where(n => n.Status == status)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<NotificationHistory>> GetFailedNotificationsAsync()
-        {
-            return await _dbSet
-                .Where(n => n.Status == NotificationStatus.Failed)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<NotificationHistory>> GetPendingNotificationsAsync()
-        {
-            return await _dbSet
-                .Where(n => n.Status == NotificationStatus.Pending)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
-        }
-    }
-
-    public class NotificationSettingsRepository : Repository<NotificationSettings>, INotificationSettingsRepository
-    {
-        public NotificationSettingsRepository(DbContext context) : base(context) { }
-
-        public async Task<NotificationSettings?> GetByCustomerIdAsync(int customerId)
-        {
-            return await _dbSet
-                .FirstOrDefaultAsync(n => n.CustomerId == customerId);
-        }
-
-        public async Task<IEnumerable<NotificationSettings>> GetByPreferenceAsync(NotificationPreference preference)
-        {
-            return await _dbSet
-                .Where(n => n.Preference == preference)
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<NotificationSettings>> GetEnabledPushNotificationsAsync()
-        {
-            return await _dbSet
-                .Where(n => n.IsPushEnabled)
-                .ToListAsync();
-        }
-
-        public async Task<IEnumerable<NotificationSettings>> GetByDeviceTokenAsync(string deviceToken)
-        {
-            return await _dbSet
-                .Where(n => n.DeviceToken == deviceToken)
-                .ToListAsync();
-        }
-    }
-
-    public class NotificationMessageRepository : Repository<Core.Models.Entities.NotificationMessage>, INotificationRepository
-    {
-        public NotificationMessageRepository(DbContext context) : base(context) { }
-
-        public override async Task<Core.Models.Entities.NotificationMessage?> GetByIdAsync(int id)
-        {
-            var entity = await _dbSet.FindAsync(id);
-            return entity != null ? MapToModel(entity) : null;
-        }
-
-        public override async Task<IEnumerable<Core.Models.Entities.NotificationMessage>> GetAllAsync()
-        {
-            var entities = await _dbSet.ToListAsync();
-            return entities.Select(MapToModel);
-        }
-
-        public override async Task<IEnumerable<Core.Models.Entities.NotificationMessage>> FindAsync(Expression<Func<Core.Models.Entities.NotificationMessage, bool>> predicate)
-        {
-            var entityPredicate = ConvertPredicate(predicate);
-            var entities = await _dbSet.Where(entityPredicate).ToListAsync();
-            return entities.Select(MapToModel);
-        }
-
-        public override async Task AddAsync(Core.Models.Entities.NotificationMessage model)
-        {
-            var entity = MapToEntity(model);
-            await _dbSet.AddAsync(entity);
-        }
-
-        public override async Task AddRangeAsync(IEnumerable<Core.Models.Entities.NotificationMessage> models)
-        {
-            var entities = models.Select(MapToEntity);
-            await _dbSet.AddRangeAsync(entities);
-        }
-
-        public override async Task UpdateAsync(Core.Models.Entities.NotificationMessage model)
-        {
-            var entity = await _dbSet.FindAsync(model.Id);
-            if (entity != null)
-            {
-                UpdateEntity(entity, model);
-                _context.Entry(entity).State = EntityState.Modified;
-            }
-        }
-
-        public override async Task RemoveAsync(Core.Models.Entities.NotificationMessage model)
-        {
-            var entity = await _dbSet.FindAsync(model.Id);
-            if (entity != null)
-            {
-                _dbSet.Remove(entity);
-            }
-            await Task.CompletedTask;
-        }
-
-        public override async Task RemoveRangeAsync(IEnumerable<Core.Models.Entities.NotificationMessage> models)
-        {
-            var ids = models.Select(m => m.Id);
-            var entities = await _dbSet.Where(e => ids.Contains(e.Id)).ToListAsync();
-            _dbSet.RemoveRange(entities);
-            await Task.CompletedTask;
-        }
-
-        public override async Task<bool> AnyAsync(Expression<Func<Core.Models.Entities.NotificationMessage, bool>> predicate)
-        {
-            var entityPredicate = ConvertPredicate(predicate);
-            return await _dbSet.AnyAsync(entityPredicate);
-        }
-
-        public override async Task<int> CountAsync(Expression<Func<Core.Models.Entities.NotificationMessage, bool>>? predicate = null)
-        {
-            if (predicate == null)
-                return await _dbSet.CountAsync();
-            var entityPredicate = ConvertPredicate(predicate);
-            return await _dbSet.CountAsync(entityPredicate);
-        }
-
-        public async Task<IEnumerable<Core.Models.NotificationMessage>> GetPendingNotificationsAsync()
-        {
-            var entities = await _dbSet
-                .Where(n => n.Status == "Pending")
-                .OrderBy(n => n.CreatedAt)
-                .ToListAsync();
-            return entities.Select(MapToModel);
-        }
-
-        public async Task<IEnumerable<Core.Models.NotificationMessage>> GetFailedNotificationsAsync()
-        {
-            var entities = await _dbSet
-                .Where(n => n.Status == "Failed")
-                .OrderByDescending(n => n.UpdatedAt)
-                .ToListAsync();
-            return entities.Select(MapToModel);
-        }
-
-        public async Task<IEnumerable<Core.Models.NotificationMessage>> GetNotificationsByRecipientAsync(string recipient)
-        {
-            var entities = await _dbSet
-                .Where(n => n.RecipientEmail == recipient)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
-            return entities.Select(MapToModel);
-        }
-
-        private static Core.Models.NotificationMessage MapToModel(Core.Models.Entities.NotificationMessage entity)
-        {
-            return new Core.Models.NotificationMessage
-            {
-                Id = entity.Id,
-                Subject = entity.Subject,
-                Body = entity.Body,
-                RecipientEmail = entity.RecipientEmail,
-                Status = entity.Status,
-                Type = entity.Type,
-                IsHtml = entity.IsHtml,
-                CC = entity.CC,
-                BCC = entity.BCC,
-                CreatedAt = entity.CreatedAt,
-                UpdatedAt = entity.UpdatedAt,
-                SentAt = entity.SentAt,
-                ErrorMessage = entity.ErrorMessage
-            };
-        }
-
-        private static Core.Models.Entities.NotificationMessage MapToEntity(Core.Models.Entities.NotificationMessage model)
-        {
-            return new Core.Models.Entities.NotificationMessage
-            {
-                Id = model.Id,
-                Subject = model.Subject,
-                Body = model.Body,
-                RecipientEmail = model.RecipientEmail,
-                Status = model.Status,
-                Type = model.Type,
-                IsHtml = model.IsHtml,
-                CC = model.CC,
-                BCC = model.BCC,
-                CreatedAt = model.CreatedAt,
-                UpdatedAt = model.UpdatedAt,
-                SentAt = model.SentAt,
-                ErrorMessage = model.ErrorMessage
-            };
-        }
-
-        private static void UpdateEntity(Core.Models.Entities.NotificationMessage entity, Core.Models.Entities.NotificationMessage model)
-        {
-            entity.Subject = model.Subject;
-            entity.Body = model.Body;
-            entity.RecipientEmail = model.RecipientEmail;
-            entity.Status = model.Status;
-            entity.Type = model.Type;
-            entity.IsHtml = model.IsHtml;
-            entity.CC = model.CC;
-            entity.BCC = model.BCC;
-            entity.UpdatedAt = DateTime.UtcNow;
-            entity.SentAt = model.SentAt;
-            entity.ErrorMessage = model.ErrorMessage;
-        }
-
-        private static Expression<Func<Core.Models.Entities.NotificationMessage, bool>> ConvertPredicate(Expression<Func<Core.Models.Entities.NotificationMessage, bool>> predicate)
-        {
-            var parameter = Expression.Parameter(typeof(Core.Models.Entities.NotificationMessage), "e");
-            var visitor = new PredicateConverter(predicate.Parameters[0], parameter);
-            var convertedBody = visitor.Visit(predicate.Body);
-            return Expression.Lambda<Func<Core.Models.Entities.NotificationMessage, bool>>(convertedBody, parameter);
         }
     }
 

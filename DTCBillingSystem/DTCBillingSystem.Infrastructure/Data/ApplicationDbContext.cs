@@ -17,8 +17,6 @@ namespace DTCBillingSystem.Infrastructure.Data
         public DbSet<User> Users { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<MeterReading> MeterReadings { get; set; }
-        public DbSet<NotificationHistory> NotificationHistories { get; set; }
-        public DbSet<NotificationSettings> NotificationSettings { get; set; }
         public DbSet<PrintJob> PrintJobs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -1,0 +1,16 @@
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\obj\Debug\net8.0\DTCBillingSystem.Shared.GeneratedMSBuildEditorConfig.editorconfig
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\obj\Debug\net8.0\DTCBillingSystem.Shared.AssemblyInfoInputs.cache
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\obj\Debug\net8.0\DTCBillingSystem.Shared.AssemblyInfo.cs
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\obj\Debug\net8.0\DTCBillingSystem.Shared.csproj.CoreCompileInputs.cache
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\obj\Debug\net8.0\DTCBillingSystem.Shared.sourcelink.json
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\bin\Debug\net8.0\DTCBillingSystem.Shared.deps.json
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\bin\Debug\net8.0\DTCBillingSystem.Shared.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\bin\Debug\net8.0\DTCBillingSystem.Shared.pdb
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\bin\Debug\net8.0\DTCBillingSystem.Core.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\bin\Debug\net8.0\DTCBillingSystem.Core.pdb
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\obj\Debug\net8.0\DTCBillingSystem.Shared.csproj.AssemblyReference.cache
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\obj\Debug\net8.0\DTCBilli.3DF315E6.Up2Date
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\obj\Debug\net8.0\DTCBillingSystem.Shared.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\obj\Debug\net8.0\refint\DTCBillingSystem.Shared.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\obj\Debug\net8.0\DTCBillingSystem.Shared.pdb
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Shared\obj\Debug\net8.0\ref\DTCBillingSystem.Shared.dll

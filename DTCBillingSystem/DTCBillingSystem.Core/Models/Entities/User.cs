@@ -11,9 +11,11 @@ namespace DTCBillingSystem.Core.Models.Entities
         public string LastName { get; set; } = string.Empty;
         public byte[] PasswordHash { get; set; } = Array.Empty<byte>();
         public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
+        public string Salt { get; set; } = string.Empty;
         public UserRole Role { get; set; }
         public bool IsActive { get; set; } = true;
-        public DateTime? LastLoginDate { get; set; }
+        public DateTime? LastLoginAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
         public string? PhoneNumber { get; set; }
         public bool RequirePasswordChange { get; set; }
     }

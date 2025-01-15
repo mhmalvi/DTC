@@ -4,3 +4,13 @@ I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Infrastructure\o
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Release\net8.0\DTCBillingSystem.Infrastructure.AssemblyInfo.cs
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Release\net8.0\DTCBillingSystem.Infrastructure.csproj.CoreCompileInputs.cache
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Release\net8.0\DTCBillingSystem.Infrastructure.sourcelink.json
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Infrastructure\bin\Release\net8.0\DTCBillingSystem.Infrastructure.deps.json
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Infrastructure\bin\Release\net8.0\DTCBillingSystem.Infrastructure.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Infrastructure\bin\Release\net8.0\DTCBillingSystem.Infrastructure.pdb
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Infrastructure\bin\Release\net8.0\DTCBillingSystem.Core.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Infrastructure\bin\Release\net8.0\DTCBillingSystem.Core.pdb
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Release\net8.0\DTCBilli.E1AC6E50.Up2Date
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Release\net8.0\DTCBillingSystem.Infrastructure.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Release\net8.0\refint\DTCBillingSystem.Infrastructure.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Release\net8.0\DTCBillingSystem.Infrastructure.pdb
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Infrastructure\obj\Release\net8.0\ref\DTCBillingSystem.Infrastructure.dll

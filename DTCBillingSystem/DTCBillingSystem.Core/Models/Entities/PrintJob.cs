@@ -5,7 +5,7 @@ namespace DTCBillingSystem.Core.Models.Entities
 {
     public class PrintJob : BaseEntity
     {
-        public string JobNumber { get; set; } = string.Empty;
+        public string JobId { get; set; } = string.Empty;
         public int BillId { get; set; }
         public DateTime ScheduledDate { get; set; }
         public DateTime? CompletedDate { get; set; }

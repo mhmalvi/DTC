@@ -41,7 +41,7 @@ namespace DTCBillingSystem.Core.Services
                 PasswordSalt = entityUser.PasswordSalt,
                 Role = entityUser.Role,
                 IsActive = entityUser.IsActive,
-                LastLoginDate = entityUser.LastLoginDate,
+                LastLoginAt = entityUser.LastLoginAt,
                 PhoneNumber = entityUser.PhoneNumber ?? string.Empty,
                 RequirePasswordChange = entityUser.RequirePasswordChange,
                 CreatedAt = entityUser.CreatedAt,
@@ -64,7 +64,7 @@ namespace DTCBillingSystem.Core.Services
                 PasswordSalt = user.PasswordSalt,
                 Role = user.Role,
                 IsActive = user.IsActive,
-                LastLoginDate = user.LastLoginDate,
+                LastLoginAt = user.LastLoginAt,
                 PhoneNumber = user.PhoneNumber,
                 RequirePasswordChange = user.RequirePasswordChange,
                 CreatedAt = user.CreatedAt,
@@ -93,7 +93,7 @@ namespace DTCBillingSystem.Core.Services
                 return new AuthenticationResponse { Success = false, Message = "Invalid username or password" };
             }
 
-            entityUser.LastLoginDate = DateTime.UtcNow;
+            entityUser.LastLoginAt = DateTime.UtcNow;
             await _unitOfWork.SaveChangesAsync();
 
             var user = ConvertToUser(entityUser);

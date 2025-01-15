@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DTCBillingSystem.UI.Views"
         xmlns:vm="clr-namespace:DTCBillingSystem.UI.ViewModels"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
         Title="Customers" Height="600" Width="1000">
     
@@ -35,7 +36,9 @@
             </Grid.ColumnDefinitions>
 
             <TextBox Grid.Column="0" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                     PlaceholderText="Search customers..." Margin="0,0,10,0"/>
+                     materialDesign:HintAssist.Hint="Search customers..."
+                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                     Margin="0,0,10,0"/>
 
             <ComboBox Grid.Column="1" ItemsSource="{Binding Source={StaticResource CustomerTypes}}"
                       SelectedItem="{Binding SelectedCustomerType}"

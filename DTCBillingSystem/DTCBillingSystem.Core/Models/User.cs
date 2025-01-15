@@ -14,7 +14,7 @@ namespace DTCBillingSystem.Core.Models
         public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
         public UserRole Role { get; set; }
         public bool IsActive { get; set; } = true;
-        public DateTime? LastLoginDate { get; set; }
+        public DateTime? LastLoginAt { get; set; }
         public string? PhoneNumber { get; set; }
         public bool RequirePasswordChange { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -37,7 +37,7 @@ namespace DTCBillingSystem.Core.Models
                 PasswordSalt = PasswordSalt,
                 Role = Role,
                 IsActive = IsActive,
-                LastLoginDate = LastLoginDate,
+                LastLoginAt = LastLoginAt,
                 PhoneNumber = PhoneNumber,
                 RequirePasswordChange = RequirePasswordChange,
                 CreatedAt = CreatedAt,

@@ -1,4 +1,4 @@
-&lt;UserControl x:Class="DTCBillingSystem.UI.Views.CustomerBillsView"
+<UserControl x:Class="DTCBillingSystem.UI.Views.CustomerBillsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -6,97 +6,97 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d">
     
-    &lt;Grid Margin="16">
-        &lt;Grid.RowDefinitions>
-            &lt;RowDefinition Height="Auto"/>
-            &lt;RowDefinition Height="Auto"/>
-            &lt;RowDefinition Height="*"/>
-        &lt;/Grid.RowDefinitions>
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        &lt;!-- Customer Info Header -->
-        &lt;materialDesign:Card Grid.Row="0" Margin="0,0,0,16" Padding="16">
-            &lt;Grid>
-                &lt;Grid.ColumnDefinitions>
-                    &lt;ColumnDefinition Width="*"/>
-                    &lt;ColumnDefinition Width="Auto"/>
-                &lt;/Grid.ColumnDefinitions>
+        <!-- Customer Info Header -->
+        <materialDesign:Card Grid.Row="0" Margin="0,0,0,16" Padding="16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
                 
-                &lt;StackPanel Grid.Column="0">
-                    &lt;TextBlock Text="{Binding Customer.Name}"
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="{Binding Customer.Name}"
                                Style="{StaticResource MaterialDesignHeadline5TextBlock}"/>
-                    &lt;StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                        &lt;TextBlock Text="Shop No: " Style="{StaticResource MaterialDesignBody1TextBlock}"/>
-                        &lt;TextBlock Text="{Binding Customer.ShopNo}" Style="{StaticResource MaterialDesignBody1TextBlock}" FontWeight="Medium"/>
-                        &lt;TextBlock Text=" | Floor: " Style="{StaticResource MaterialDesignBody1TextBlock}" Margin="16,0,0,0"/>
-                        &lt;TextBlock Text="{Binding Customer.Floor}" Style="{StaticResource MaterialDesignBody1TextBlock}" FontWeight="Medium"/>
-                    &lt;/StackPanel>
-                &lt;/StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <TextBlock Text="Shop No: " Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                        <TextBlock Text="{Binding Customer.ShopNo}" Style="{StaticResource MaterialDesignBody1TextBlock}" FontWeight="Medium"/>
+                        <TextBlock Text=" | Floor: " Style="{StaticResource MaterialDesignBody1TextBlock}" Margin="16,0,0,0"/>
+                        <TextBlock Text="{Binding Customer.Floor}" Style="{StaticResource MaterialDesignBody1TextBlock}" FontWeight="Medium"/>
+                    </StackPanel>
+                </StackPanel>
 
-                &lt;StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
-                    &lt;Button Command="{Binding GenerateBillCommand}"
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                    <Button Command="{Binding GenerateBillCommand}"
                             Style="{StaticResource MaterialDesignRaisedButton}"
                             ToolTip="Generate new bill">
-                        &lt;StackPanel Orientation="Horizontal">
-                            &lt;materialDesign:PackIcon Kind="FileDocumentPlus" Margin="0,0,8,0"/>
-                            &lt;TextBlock Text="Generate Bill"/>
-                        &lt;/StackPanel>
-                    &lt;/Button>
-                    &lt;Button Command="{Binding BackCommand}"
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="FileDocumentPlus" Margin="0,0,8,0"/>
+                            <TextBlock Text="Generate Bill"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Command="{Binding BackCommand}"
                             Style="{StaticResource MaterialDesignOutlinedButton}"
                             Margin="8,0,0,0"
                             ToolTip="Back to customers">
-                        &lt;StackPanel Orientation="Horizontal">
-                            &lt;materialDesign:PackIcon Kind="ArrowLeft" Margin="0,0,8,0"/>
-                            &lt;TextBlock Text="Back"/>
-                        &lt;/StackPanel>
-                    &lt;/Button>
-                &lt;/StackPanel>
-            &lt;/Grid>
-        &lt;/materialDesign:Card>
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="ArrowLeft" Margin="0,0,8,0"/>
+                            <TextBlock Text="Back"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </materialDesign:Card>
 
-        &lt;!-- Filters -->
-        &lt;materialDesign:Card Grid.Row="1" Margin="0,0,0,16" Padding="16">
-            &lt;Grid>
-                &lt;Grid.ColumnDefinitions>
-                    &lt;ColumnDefinition Width="Auto"/>
-                    &lt;ColumnDefinition Width="200"/>
-                    &lt;ColumnDefinition Width="Auto"/>
-                    &lt;ColumnDefinition Width="200"/>
-                    &lt;ColumnDefinition Width="*"/>
-                &lt;/Grid.ColumnDefinitions>
+        <!-- Filters -->
+        <materialDesign:Card Grid.Row="1" Margin="0,0,0,16" Padding="16">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-                &lt;TextBlock Grid.Column="0" 
+                <TextBlock Grid.Column="0" 
                            Text="From: "
                            Style="{StaticResource MaterialDesignBody1TextBlock}"
                            VerticalAlignment="Center"
                            Margin="0,0,8,0"/>
                 
-                &lt;DatePicker Grid.Column="1"
+                <DatePicker Grid.Column="1"
                             SelectedDate="{Binding FromDate}"
                             Style="{StaticResource MaterialDesignOutlinedDatePicker}"/>
 
-                &lt;TextBlock Grid.Column="2" 
+                <TextBlock Grid.Column="2" 
                            Text="To: "
                            Style="{StaticResource MaterialDesignBody1TextBlock}"
                            VerticalAlignment="Center"
                            Margin="16,0,8,0"/>
                 
-                &lt;DatePicker Grid.Column="3"
+                <DatePicker Grid.Column="3"
                             SelectedDate="{Binding ToDate}"
                             Style="{StaticResource MaterialDesignOutlinedDatePicker}"/>
 
-                &lt;ComboBox Grid.Column="4"
+                <ComboBox Grid.Column="4"
                           ItemsSource="{Binding BillStatuses}"
                           SelectedItem="{Binding SelectedStatus}"
                           Style="{StaticResource MaterialDesignOutlinedComboBox}"
                           materialDesign:HintAssist.Hint="Status"
                           Margin="16,0,0,0"/>
-            &lt;/Grid>
-        &lt;/materialDesign:Card>
+            </Grid>
+        </materialDesign:Card>
 
-        &lt;!-- Bills DataGrid -->
-        &lt;materialDesign:Card Grid.Row="2">
-            &lt;DataGrid ItemsSource="{Binding Bills}"
+        <!-- Bills DataGrid -->
+        <materialDesign:Card Grid.Row="2">
+            <DataGrid ItemsSource="{Binding Bills}"
                       SelectedItem="{Binding SelectedBill}"
                       AutoGenerateColumns="False"
                       CanUserAddRows="False"
@@ -104,56 +104,56 @@
                       IsReadOnly="True"
                       materialDesign:DataGridAssist.CellPadding="13"
                       materialDesign:DataGridAssist.ColumnHeaderPadding="8">
-                &lt;DataGrid.Columns>
-                    &lt;DataGridTextColumn Header="Bill Month" 
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Bill Month" 
                                         Binding="{Binding BillingMonth, StringFormat='{}{0:MMM yyyy}'}"
                                         Width="120"/>
-                    &lt;DataGridTextColumn Header="Due Date" 
+                    <DataGridTextColumn Header="Due Date" 
                                         Binding="{Binding DueDate, StringFormat='{}{0:dd/MM/yyyy}'}"
                                         Width="120"/>
-                    &lt;DataGridTextColumn Header="Electricity" 
+                    <DataGridTextColumn Header="Electricity" 
                                         Binding="{Binding ElectricityAmount, StringFormat='N2'}"
                                         Width="120"/>
-                    &lt;DataGridTextColumn Header="AC" 
+                    <DataGridTextColumn Header="AC" 
                                         Binding="{Binding ACAmount, StringFormat='N2'}"
                                         Width="120"/>
-                    &lt;DataGridTextColumn Header="Other Charges" 
+                    <DataGridTextColumn Header="Other Charges" 
                                         Binding="{Binding OtherCharges, StringFormat='N2'}"
                                         Width="120"/>
-                    &lt;DataGridTextColumn Header="Total" 
+                    <DataGridTextColumn Header="Total" 
                                         Binding="{Binding TotalAmount, StringFormat='N2'}"
                                         Width="120"/>
-                    &lt;DataGridTextColumn Header="Status" 
+                    <DataGridTextColumn Header="Status" 
                                         Binding="{Binding Status}"
                                         Width="120"/>
-                    &lt;DataGridTemplateColumn Width="*">
-                        &lt;DataGridTemplateColumn.CellTemplate>
-                            &lt;DataTemplate>
-                                &lt;StackPanel Orientation="Horizontal">
-                                    &lt;Button Command="{Binding DataContext.ViewBillCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                    <DataGridTemplateColumn Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Command="{Binding DataContext.ViewBillCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             CommandParameter="{Binding}"
                                             Style="{StaticResource MaterialDesignIconButton}"
                                             ToolTip="View bill details">
-                                        &lt;materialDesign:PackIcon Kind="FileDocument"/>
-                                    &lt;/Button>
-                                    &lt;Button Command="{Binding DataContext.PrintBillCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        <materialDesign:PackIcon Kind="FileDocument"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.PrintBillCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             CommandParameter="{Binding}"
                                             Style="{StaticResource MaterialDesignIconButton}"
                                             ToolTip="Print bill">
-                                        &lt;materialDesign:PackIcon Kind="Printer"/>
-                                    &lt;/Button>
-                                    &lt;Button Command="{Binding DataContext.RecordPaymentCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        <materialDesign:PackIcon Kind="Printer"/>
+                                    </Button>
+                                    <Button Command="{Binding DataContext.RecordPaymentCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
                                             CommandParameter="{Binding}"
                                             Style="{StaticResource MaterialDesignIconButton}"
                                             ToolTip="Record payment">
-                                        &lt;materialDesign:PackIcon Kind="CashRegister"/>
-                                    &lt;/Button>
-                                &lt;/StackPanel>
-                            &lt;/DataTemplate>
-                        &lt;/DataGridTemplateColumn.CellTemplate>
-                    &lt;/DataGridTemplateColumn>
-                &lt;/DataGrid.Columns>
-            &lt;/DataGrid>
-        &lt;/materialDesign:Card>
-    &lt;/Grid>
-&lt;/UserControl> 
+                                        <materialDesign:PackIcon Kind="CashRegister"/>
+                                    </Button>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </materialDesign:Card>
+    </Grid>
+</UserControl> 

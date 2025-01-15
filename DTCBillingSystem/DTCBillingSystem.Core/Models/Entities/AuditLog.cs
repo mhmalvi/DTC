@@ -16,5 +16,8 @@ namespace DTCBillingSystem.Core.Models.Entities
         public string? UserAgent { get; set; }
         public DateTime Timestamp { get; set; }
         public string UserId { get; set; } = string.Empty;
+
+        // Navigation property
+        public virtual User? User { get; set; }
     }
 } 

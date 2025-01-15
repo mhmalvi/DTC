@@ -1,0 +1,9 @@
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\obj\Debug\net8.0-windows\DTCBillingSystem.UI.csproj.AssemblyReference.cache
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\obj\Debug\net8.0-windows\Views\BillGenerationDialog.baml
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\obj\Debug\net8.0-windows\MainWindow.g.cs
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\obj\Debug\net8.0-windows\Views\BillGenerationDialog.g.cs
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\obj\Debug\net8.0-windows\Views\MainWindow.g.cs
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\obj\Debug\net8.0-windows\App.g.cs
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\obj\Debug\net8.0-windows\DTCBillingSystem.UI_MarkupCompile.cache
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\obj\Debug\net8.0-windows\DTCBillingSystem.UI_MarkupCompile.lref

@@ -13,7 +13,7 @@ namespace DTCBillingSystem.Infrastructure.Data.Configurations
             builder.Property(u => u.PasswordHash).IsRequired();
             builder.Property(u => u.Email).IsRequired().HasMaxLength(100);
             builder.Property(u => u.Role).IsRequired().HasMaxLength(20);
-            builder.Property(u => u.LastLoginDate);
+            builder.Property(u => u.LastLoginAt);
             builder.Property(u => u.IsActive).IsRequired();
             builder.Property(u => u.CreatedAt).IsRequired();
             builder.Property(u => u.LastModifiedAt).IsRequired();
