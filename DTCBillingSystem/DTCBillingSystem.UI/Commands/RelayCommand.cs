@@ -14,15 +14,22 @@ namespace DTCBillingSystem.UI.Commands
             _canExecute = canExecute;
         }
 
-        public event EventHandler? CanExecuteChanged
+        public event EventHandler? CanExecuteChanged;
+
+        public bool CanExecute(object? parameter)
         {
-            add => CommandManager.RequerySuggested += value;
-            remove => CommandManager.RequerySuggested -= value;
+            return _canExecute?.Invoke() ?? true;
         }
 
-        public bool CanExecute(object? parameter) => _canExecute?.Invoke() ?? true;
+        public void Execute(object? parameter)
+        {
+            _execute();
+        }
 
-        public void Execute(object? parameter) => _execute();
+        public void RaiseCanExecuteChanged()
+        {
+            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     public class RelayCommand<T> : ICommand
@@ -36,14 +43,21 @@ namespace DTCBillingSystem.UI.Commands
             _canExecute = canExecute;
         }
 
-        public event EventHandler? CanExecuteChanged
+        public event EventHandler? CanExecuteChanged;
+
+        public bool CanExecute(object? parameter)
         {
-            add => CommandManager.RequerySuggested += value;
-            remove => CommandManager.RequerySuggested -= value;
+            return _canExecute?.Invoke((T?)parameter) ?? true;
         }
 
-        public bool CanExecute(object? parameter) => _canExecute?.Invoke((T?)parameter) ?? true;
+        public void Execute(object? parameter)
+        {
+            _execute((T?)parameter);
+        }
 
-        public void Execute(object? parameter) => _execute((T?)parameter);
+        public void RaiseCanExecuteChanged()
+        {
+            CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 } 

@@ -12,6 +12,7 @@ namespace DTCBillingSystem.Core.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IAuditService _auditService;
+        private const int SYSTEM_USER_ID = 1;
 
         public CustomerService(IUnitOfWork unitOfWork, IAuditService auditService)
         {
@@ -67,8 +68,9 @@ namespace DTCBillingSystem.Core.Services
             await _auditService.LogAsync(
                 "Customer",
                 customer.Id.ToString(),
-                customer.CreatedBy,
-                AuditAction.Create);
+                int.TryParse(customer.CreatedBy, out int userId) ? userId : SYSTEM_USER_ID,
+                AuditAction.Create.ToString(),
+                "Customer created");
 
             return customer;
         }
@@ -78,26 +80,18 @@ namespace DTCBillingSystem.Core.Services
             if (customer == null)
                 throw new ArgumentNullException(nameof(customer));
 
-            var existingCustomer = await _unitOfWork.Customers.GetByIdAsync(customer.Id);
-            if (existingCustomer == null)
-                throw new InvalidOperationException("Customer not found");
-
-            if (existingCustomer.AccountNumber != customer.AccountNumber &&
-                !await IsAccountNumberUniqueAsync(customer.AccountNumber, customer.Id))
-                throw new InvalidOperationException("Account number already exists");
-
             customer.LastModifiedAt = DateTime.UtcNow;
-            customer.CreatedAt = existingCustomer.CreatedAt;
-            customer.CreatedBy = existingCustomer.CreatedBy;
 
             await _unitOfWork.Customers.UpdateAsync(customer);
             await _unitOfWork.SaveChangesAsync();
 
+            int userId = int.TryParse(customer.LastModifiedBy, out int id) ? id : SYSTEM_USER_ID;
+
             await _auditService.LogAsync(
                 "Customer",
                 customer.Id.ToString(),
-                customer.LastModifiedBy,
-                AuditAction.Update);
+                userId,
+                AuditAction.Update.ToString());
 
             return customer;
         }
@@ -121,8 +115,8 @@ namespace DTCBillingSystem.Core.Services
             await _auditService.LogAsync(
                 "Customer",
                 id.ToString(),
-                "System",
-                AuditAction.Delete);
+                SYSTEM_USER_ID,
+                AuditAction.Delete.ToString());
 
             return true;
         }
@@ -138,11 +132,13 @@ namespace DTCBillingSystem.Core.Services
 
             await _unitOfWork.SaveChangesAsync();
 
+            int userId = int.TryParse(customer.LastModifiedBy, out int parsedId) ? parsedId : SYSTEM_USER_ID;
+
             await _auditService.LogAsync(
                 "Customer",
                 id.ToString(),
-                customer.LastModifiedBy,
-                AuditAction.Update,
+                userId,
+                AuditAction.Update.ToString(),
                 "Customer deactivated");
 
             return true;
@@ -159,11 +155,13 @@ namespace DTCBillingSystem.Core.Services
 
             await _unitOfWork.SaveChangesAsync();
 
+            int userId = int.TryParse(customer.LastModifiedBy, out int parsedId) ? parsedId : SYSTEM_USER_ID;
+
             await _auditService.LogAsync(
                 "Customer",
                 id.ToString(),
-                customer.LastModifiedBy,
-                AuditAction.Update,
+                userId,
+                AuditAction.Update.ToString(),
                 "Customer activated");
 
             return true;
@@ -177,6 +175,35 @@ namespace DTCBillingSystem.Core.Services
         public async Task<IEnumerable<Customer>> GetCustomersByZoneAsync(string zoneCode)
         {
             return await _unitOfWork.Customers.GetCustomersByZoneAsync(zoneCode);
+        }
+
+        public async Task<IEnumerable<Customer>> GetActiveCustomersAsync()
+        {
+            return await _unitOfWork.Customers.FindAsync(c => c.IsActive);
+        }
+
+        public async Task<Customer> AddCustomerAsync(Customer customer)
+        {
+            if (customer == null)
+                throw new ArgumentNullException(nameof(customer));
+
+            if (!await IsAccountNumberUniqueAsync(customer.AccountNumber))
+                throw new InvalidOperationException("Account number must be unique");
+
+            customer.CreatedAt = DateTime.UtcNow;
+            customer.IsActive = true;
+
+            await _unitOfWork.Customers.AddAsync(customer);
+            await _unitOfWork.SaveChangesAsync();
+
+            await _auditService.LogAsync(
+                "Customer",
+                customer.Id.ToString(),
+                int.TryParse(customer.CreatedBy, out int userId) ? userId : SYSTEM_USER_ID,
+                AuditAction.Create.ToString(),
+                "Customer created");
+
+            return customer;
         }
     }
 } 

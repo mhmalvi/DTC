@@ -49,5 +49,10 @@ namespace DTCBillingSystem.Core.Interfaces
         /// Import data from JSON format
         /// </summary>
         Task<bool> ImportFromJsonAsync(string jsonData);
+
+        /// <summary>
+        /// Get backup history
+        /// </summary>
+        Task<IEnumerable<BackupInfo>> GetBackupHistoryAsync();
     }
 } 

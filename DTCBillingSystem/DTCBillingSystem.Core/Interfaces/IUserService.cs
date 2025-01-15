@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using DTCBillingSystem.Core.Models.Authentication;
+using DTCBillingSystem.Core.Models.Entities;
 using DTCBillingSystem.Core.Models.Enums;
-using UserModel = DTCBillingSystem.Core.Models.User;
 
 namespace DTCBillingSystem.Core.Interfaces
 {
@@ -28,12 +28,12 @@ namespace DTCBillingSystem.Core.Interfaces
         /// <summary>
         /// Get user by ID
         /// </summary>
-        Task<UserModel?> GetUserByIdAsync(int userId);
+        Task<User?> GetUserByIdAsync(int userId);
 
         /// <summary>
         /// Get user by username
         /// </summary>
-        Task<UserModel?> GetUserByUsernameAsync(string username);
+        Task<User?> GetUserByUsernameAsync(string username);
 
         /// <summary>
         /// Reset user's password

@@ -235,6 +235,12 @@ namespace DTCBillingSystem.Core.Services
             }
         }
 
+        public async Task<IEnumerable<BackupInfoModel>> GetBackupHistoryAsync()
+        {
+            var backups = await _unitOfWork.BackupInfos.GetAllAsync();
+            return backups.OrderByDescending(b => b.CreatedAt).Select(ConvertToBackupInfo);
+        }
+
         private async Task UpdateBackupStatusAsync(int backupId, BackupStatus status, string userId)
         {
             var backup = await _unitOfWork.BackupInfos.GetByIdAsync(backupId)

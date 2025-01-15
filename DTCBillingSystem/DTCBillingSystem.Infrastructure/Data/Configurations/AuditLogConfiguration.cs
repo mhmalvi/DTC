@@ -15,7 +15,7 @@ namespace DTCBillingSystem.Infrastructure.Data.Configurations
             builder.Property(x => x.EntityType).IsRequired().HasMaxLength(100);
             builder.Property(x => x.EntityId).IsRequired().HasMaxLength(50);
             builder.Property(x => x.Action).IsRequired().HasMaxLength(50);
-            builder.Property(x => x.UserId).IsRequired().HasMaxLength(50);
+            builder.Property(x => x.UserId).IsRequired();
 
             // Configure User relationship
             builder.HasOne(x => x.User)

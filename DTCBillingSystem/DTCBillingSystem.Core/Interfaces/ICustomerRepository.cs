@@ -24,5 +24,7 @@ namespace DTCBillingSystem.Core.Interfaces
         Task<bool> IsAccountNumberUniqueAsync(string accountNumber, int? excludeCustomerId = null);
         Task<IEnumerable<Customer>> GetCustomersByZoneAsync(string zoneCode);
         Task DeleteAsync(int id);
+        Task<bool> IsShopNoUniqueAsync(string shopNo, int? excludeCustomerId = null);
+        Task<IEnumerable<Customer>> SearchCustomersAsync(string searchText);
     }
 } 

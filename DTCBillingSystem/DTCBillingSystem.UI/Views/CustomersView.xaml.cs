@@ -1,13 +1,14 @@
 using System.Windows.Controls;
+using DTCBillingSystem.UI.ViewModels;
 
 namespace DTCBillingSystem.UI.Views
 {
     public partial class CustomersView : UserControl
     {
-        public CustomersView()
+        public CustomersView(CustomersViewModel viewModel)
         {
             InitializeComponent();
-            DataContext = new ViewModels.CustomersViewModel();
+            DataContext = viewModel;
         }
     }
 } 

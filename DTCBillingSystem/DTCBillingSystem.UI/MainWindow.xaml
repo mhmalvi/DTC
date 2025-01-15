@@ -6,23 +6,13 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:local="clr-namespace:DTCBillingSystem.UI"
         mc:Ignorable="d"
-        Title="DTC Billing System" Height="768" Width="1366"
+        Title="DTC Billing System" Height="720" Width="1280"
+        WindowStartupLocation="CenterScreen"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}"
         TextElement.FontWeight="Medium"
         TextElement.FontSize="14"
         FontFamily="{materialDesign:MaterialDesignFont}">
-
-    <Window.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Blue.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Accent/MaterialDesignColor.Indigo.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </Window.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -31,181 +21,71 @@
         </Grid.ColumnDefinitions>
 
         <!-- Left Navigation Panel -->
-        <materialDesign:Card Grid.Column="0" Background="{DynamicResource MaterialDesignPaper}" Margin="16">
-            <StackPanel>
-                <Image Source="/Assets/dtc-logo.png" Height="80" Margin="16"/>
-                <ListBox x:Name="NavigationList" Margin="8">
-                    <ListBoxItem>
+        <materialDesign:Card Grid.Column="0" Background="{DynamicResource PrimaryHueDarkBrush}" Padding="8">
+            <DockPanel>
+                <!-- Header -->
+                <StackPanel DockPanel.Dock="Top" Margin="16">
+                    <TextBlock Text="DTC Billing System" 
+                             Style="{StaticResource MaterialDesignHeadline6TextBlock}"
+                             Foreground="{DynamicResource PrimaryHueLightBrush}"/>
+                    <TextBlock Text="{Binding CurrentUserName}" 
+                             Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                             Foreground="{DynamicResource PrimaryHueLightBrush}"
+                             Margin="0,8,0,0"/>
+                </StackPanel>
+
+                <!-- Navigation Menu -->
+                <StackPanel>
+                    <Button Style="{StaticResource MaterialDesignFlatButton}"
+                            Command="{Binding NavigateToCommand}"
+                            CommandParameter="Dashboard"
+                            HorizontalContentAlignment="Left"
+                            Margin="8,4">
                         <StackPanel Orientation="Horizontal">
                             <materialDesign:PackIcon Kind="ViewDashboard" Margin="0,0,8,0"/>
                             <TextBlock Text="Dashboard"/>
                         </StackPanel>
-                    </ListBoxItem>
-                    <ListBoxItem>
+                    </Button>
+
+                    <Button Style="{StaticResource MaterialDesignFlatButton}"
+                            Command="{Binding NavigateToCommand}"
+                            CommandParameter="Customers"
+                            HorizontalContentAlignment="Left"
+                            Margin="8,4">
                         <StackPanel Orientation="Horizontal">
                             <materialDesign:PackIcon Kind="AccountMultiple" Margin="0,0,8,0"/>
                             <TextBlock Text="Customers"/>
                         </StackPanel>
-                    </ListBoxItem>
-                    <ListBoxItem>
+                    </Button>
+
+                    <Button Style="{StaticResource MaterialDesignFlatButton}"
+                            Command="{Binding NavigateToCommand}"
+                            CommandParameter="BillGeneration"
+                            HorizontalContentAlignment="Left"
+                            Margin="8,4">
                         <StackPanel Orientation="Horizontal">
                             <materialDesign:PackIcon Kind="FileDocument" Margin="0,0,8,0"/>
-                            <TextBlock Text="Bills"/>
+                            <TextBlock Text="Generate Bills"/>
                         </StackPanel>
-                    </ListBoxItem>
-                    <ListBoxItem>
+                    </Button>
+
+                    <Button Style="{StaticResource MaterialDesignFlatButton}"
+                            Command="{Binding LogoutCommand}"
+                            HorizontalContentAlignment="Left"
+                            Margin="8,4">
                         <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="CashRegister" Margin="0,0,8,0"/>
-                            <TextBlock Text="Payments"/>
+                            <materialDesign:PackIcon Kind="Logout" Margin="0,0,8,0"/>
+                            <TextBlock Text="Logout"/>
                         </StackPanel>
-                    </ListBoxItem>
-                    <ListBoxItem>
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Counter" Margin="0,0,8,0"/>
-                            <TextBlock Text="Meter Readings"/>
-                        </StackPanel>
-                    </ListBoxItem>
-                    <ListBoxItem>
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="ChartLine" Margin="0,0,8,0"/>
-                            <TextBlock Text="Reports"/>
-                        </StackPanel>
-                    </ListBoxItem>
-                    <ListBoxItem>
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Cog" Margin="0,0,8,0"/>
-                            <TextBlock Text="Settings"/>
-                        </StackPanel>
-                    </ListBoxItem>
-                </ListBox>
-            </StackPanel>
+                    </Button>
+                </StackPanel>
+            </DockPanel>
         </materialDesign:Card>
 
         <!-- Main Content Area -->
-        <Grid Grid.Column="1" Margin="16">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-
-            <!-- Top Bar -->
-            <Grid Grid.Row="0" Margin="0,0,0,16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <!-- Search Box -->
-                <materialDesign:Card Grid.Column="0" Margin="0,0,16,0">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <materialDesign:PackIcon Kind="Magnify" Margin="8" VerticalAlignment="Center"/>
-                        <TextBox Grid.Column="1" 
-                                 materialDesign:HintAssist.Hint="Search customers, bills, or payments..."
-                                 Style="{StaticResource MaterialDesignTextBox}"
-                                 Margin="8"/>
-                    </Grid>
-                </materialDesign:Card>
-
-                <!-- User Profile -->
-                <materialDesign:PopupBox Grid.Column="1" PlacementMode="BottomAndAlignRightEdges">
-                    <StackPanel>
-                        <Button Content="Profile"/>
-                        <Button Content="Settings"/>
-                        <Separator/>
-                        <Button Content="Logout"/>
-                    </StackPanel>
-                </materialDesign:PopupBox>
-            </Grid>
-
-            <!-- Dashboard Content -->
-            <materialDesign:Card Grid.Row="1">
-                <Grid Margin="16">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- Dashboard Title -->
-                    <TextBlock Grid.Row="0" 
-                               Text="Dashboard" 
-                               Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                               Margin="0,0,0,16"/>
-
-                    <!-- Quick Stats Cards -->
-                    <WrapPanel Grid.Row="1" Margin="0,0,0,16">
-                        <!-- Total Customers Card -->
-                        <materialDesign:Card Width="200" Margin="0,0,16,16" Padding="16">
-                            <StackPanel>
-                                <TextBlock Text="Total Customers" 
-                                           Style="{StaticResource MaterialDesignBodyLarge}"/>
-                                <TextBlock Text="1,234" 
-                                           Style="{StaticResource MaterialDesignHeadline4TextBlock}"/>
-                            </StackPanel>
-                        </materialDesign:Card>
-
-                        <!-- Monthly Revenue Card -->
-                        <materialDesign:Card Width="200" Margin="0,0,16,16" Padding="16">
-                            <StackPanel>
-                                <TextBlock Text="Monthly Revenue" 
-                                           Style="{StaticResource MaterialDesignBodyLarge}"/>
-                                <TextBlock Text="₹ 45,678" 
-                                           Style="{StaticResource MaterialDesignHeadline4TextBlock}"/>
-                            </StackPanel>
-                        </materialDesign:Card>
-
-                        <!-- Pending Bills Card -->
-                        <materialDesign:Card Width="200" Margin="0,0,16,16" Padding="16">
-                            <StackPanel>
-                                <TextBlock Text="Pending Bills" 
-                                           Style="{StaticResource MaterialDesignBodyLarge}"/>
-                                <TextBlock Text="89" 
-                                           Style="{StaticResource MaterialDesignHeadline4TextBlock}"/>
-                            </StackPanel>
-                        </materialDesign:Card>
-
-                        <!-- Today's Collections Card -->
-                        <materialDesign:Card Width="200" Margin="0,0,16,16" Padding="16">
-                            <StackPanel>
-                                <TextBlock Text="Today's Collections" 
-                                           Style="{StaticResource MaterialDesignBodyLarge}"/>
-                                <TextBlock Text="₹ 12,345" 
-                                           Style="{StaticResource MaterialDesignHeadline4TextBlock}"/>
-                            </StackPanel>
-                        </materialDesign:Card>
-                    </WrapPanel>
-
-                    <!-- Recent Activities -->
-                    <materialDesign:Card Grid.Row="2" Margin="0">
-                        <Grid Margin="16">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-
-                            <TextBlock Grid.Row="0" 
-                                       Text="Recent Activities" 
-                                       Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                                       Margin="0,0,0,16"/>
-
-                            <DataGrid Grid.Row="1" 
-                                      AutoGenerateColumns="False"
-                                      IsReadOnly="True">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Date" Width="150"/>
-                                    <DataGridTextColumn Header="Customer" Width="200"/>
-                                    <DataGridTextColumn Header="Activity" Width="*"/>
-                                    <DataGridTextColumn Header="Amount" Width="150"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                        </Grid>
-                    </materialDesign:Card>
-                </Grid>
-            </materialDesign:Card>
-        </Grid>
+        <Frame x:Name="MainFrame" 
+               Grid.Column="1" 
+               NavigationUIVisibility="Hidden"
+               Margin="16"/>
     </Grid>
 </Window>

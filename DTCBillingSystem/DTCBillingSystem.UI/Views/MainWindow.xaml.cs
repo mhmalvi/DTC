@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using DTCBillingSystem.UI.Services;
 
 namespace DTCBillingSystem.UI.Views
@@ -14,8 +15,6 @@ namespace DTCBillingSystem.UI.Views
             _navigationService = navigationService;
             _dialogService = dialogService;
         }
-
-        public Frame MainFrame => this.MainFrame;
 
         private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
         {

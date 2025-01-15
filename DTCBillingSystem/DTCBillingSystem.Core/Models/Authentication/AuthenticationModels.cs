@@ -1,4 +1,5 @@
 using DTCBillingSystem.Core.Models.Enums;
+using DTCBillingSystem.Core.Models.Entities;
 
 namespace DTCBillingSystem.Core.Models.Authentication
 {
@@ -10,6 +11,7 @@ namespace DTCBillingSystem.Core.Models.Authentication
         public string? Username { get; set; }
         public UserRole? Role { get; set; }
         public bool RequirePasswordChange { get; set; }
+        public User? User { get; set; }
     }
 
     public class RegistrationResult

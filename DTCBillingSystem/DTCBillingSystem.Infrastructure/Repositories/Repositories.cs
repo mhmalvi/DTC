@@ -213,6 +213,27 @@ namespace DTCBillingSystem.Infrastructure.Repositories
                 _context.Entry(customer).State = EntityState.Modified;
             }
         }
+
+        public async Task<bool> IsShopNoUniqueAsync(string shopNo, int? excludeCustomerId = null)
+        {
+            var query = _dbSet.AsQueryable();
+            if (excludeCustomerId.HasValue)
+            {
+                query = query.Where(c => c.Id != excludeCustomerId.Value);
+            }
+            return !await query.AnyAsync(c => c.ShopNo == shopNo);
+        }
+
+        public async Task<IEnumerable<Customer>> SearchCustomersAsync(string searchTerm)
+        {
+            return await _dbSet
+                .Where(c => c.Name.Contains(searchTerm) || 
+                           c.MeterNumber.Contains(searchTerm) ||
+                           c.PhoneNumber.Contains(searchTerm) ||
+                           c.ShopNo.Contains(searchTerm))
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+        }
     }
 
     public class MonthlyBillRepository : Repository<MonthlyBill>, IMonthlyBillRepository
@@ -222,8 +243,8 @@ namespace DTCBillingSystem.Infrastructure.Repositories
         public async Task<IEnumerable<MonthlyBill>> GetBillsByDateRangeAsync(DateTime startDate, DateTime endDate)
         {
             return await _dbSet
-                .Where(b => b.BillDate >= startDate && b.BillDate <= endDate)
-                .OrderByDescending(b => b.BillDate)
+                .Where(b => b.BillingMonth >= startDate && b.BillingMonth <= endDate)
+                .OrderByDescending(b => b.BillingMonth)
                 .ToListAsync();
         }
 
@@ -231,9 +252,9 @@ namespace DTCBillingSystem.Infrastructure.Repositories
         {
             return await _dbSet
                 .Where(b => b.CustomerId == customerId && 
-                           b.BillDate >= startDate && 
-                           b.BillDate <= endDate)
-                .OrderByDescending(b => b.BillDate)
+                           b.BillingMonth >= startDate && 
+                           b.BillingMonth <= endDate)
+                .OrderByDescending(b => b.BillingMonth)
                 .ToListAsync();
         }
 
@@ -248,8 +269,8 @@ namespace DTCBillingSystem.Infrastructure.Repositories
         public async Task<IEnumerable<MonthlyBill>> GetCustomerBillsBeforeDateAsync(int customerId, DateTime date)
         {
             return await _dbSet
-                .Where(b => b.CustomerId == customerId && b.BillDate <= date)
-                .OrderByDescending(b => b.BillDate)
+                .Where(b => b.CustomerId == customerId && b.BillingMonth <= date)
+                .OrderByDescending(b => b.BillingMonth)
                 .ToListAsync();
         }
 
@@ -257,7 +278,7 @@ namespace DTCBillingSystem.Infrastructure.Repositories
         {
             return await _dbSet
                 .Where(b => b.CustomerId == customerId)
-                .OrderByDescending(b => b.BillDate)
+                .OrderByDescending(b => b.BillingMonth)
                 .FirstOrDefaultAsync();
         }
 
@@ -270,7 +291,7 @@ namespace DTCBillingSystem.Infrastructure.Repositories
         {
             return await _dbSet
                 .Where(b => b.CustomerId == customerId)
-                .OrderByDescending(b => b.BillDate)
+                .OrderByDescending(b => b.BillingMonth)
                 .ToListAsync();
         }
 
@@ -278,7 +299,7 @@ namespace DTCBillingSystem.Infrastructure.Repositories
         {
             return await _dbSet
                 .Where(b => b.CustomerId == customerId)
-                .OrderByDescending(b => b.BillDate)
+                .OrderByDescending(b => b.BillingMonth)
                 .FirstOrDefaultAsync();
         }
 
@@ -300,6 +321,47 @@ namespace DTCBillingSystem.Infrastructure.Repositories
             return await _dbSet
                 .Where(b => b.CustomerId == customerId && b.Status == BillStatus.Unpaid)
                 .SumAsync(b => b.TotalAmount);
+        }
+
+        public async Task<IEnumerable<MonthlyBill>> GetCustomerBillsAsync(int customerId)
+        {
+            return await _dbSet
+                .Where(b => b.CustomerId == customerId)
+                .OrderByDescending(b => b.BillingMonth)
+                .ToListAsync();
+        }
+
+        public async Task<MonthlyBill?> GetCustomerLatestBillAsync(int customerId)
+        {
+            return await _dbSet
+                .Where(b => b.CustomerId == customerId)
+                .OrderByDescending(b => b.BillingMonth)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> ExistsForMonthAsync(int customerId, DateTime billingMonth)
+        {
+            return await _dbSet.AnyAsync(b => 
+                b.CustomerId == customerId && 
+                b.BillingMonth.Year == billingMonth.Year && 
+                b.BillingMonth.Month == billingMonth.Month);
+        }
+
+        public async Task<IEnumerable<MonthlyBill>> GetByCustomerIdAsync(int customerId)
+        {
+            return await _dbSet
+                .Where(b => b.CustomerId == customerId)
+                .OrderByDescending(b => b.BillingMonth)
+                .ToListAsync();
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            var bill = await _dbSet.FindAsync(id);
+            if (bill != null)
+            {
+                _dbSet.Remove(bill);
+            }
         }
     }
 
@@ -661,6 +723,7 @@ namespace DTCBillingSystem.Infrastructure.Repositories
             return entities.Select(MapToModel);
         }
 
+
         public async Task<IEnumerable<Core.Models.Entities.BackupInfo>> GetLatestBackupsAsync(int count)
         {
             var entities = await _dbSet
@@ -821,7 +884,7 @@ namespace DTCBillingSystem.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<AuditLog>> GetByUserAsync(string userId)
+        public async Task<IEnumerable<AuditLog>> GetByUserAsync(int userId)
         {
             return await _dbSet
                 .Where(a => a.UserId == userId)

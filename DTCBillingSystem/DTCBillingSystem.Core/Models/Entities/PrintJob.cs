@@ -7,6 +7,9 @@ namespace DTCBillingSystem.Core.Models.Entities
     {
         public string JobId { get; set; } = string.Empty;
         public int BillId { get; set; }
+        public string DocumentType { get; set; } = string.Empty;
+        public string DocumentId { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
         public DateTime ScheduledDate { get; set; }
         public DateTime? CompletedDate { get; set; }
         public PrintJobStatus Status { get; set; }

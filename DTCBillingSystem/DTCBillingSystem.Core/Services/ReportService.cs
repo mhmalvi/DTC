@@ -21,7 +21,7 @@ namespace DTCBillingSystem.Core.Services
         public async Task<BillingSummary> GetBillingSummaryAsync(DateTime startDate, DateTime endDate)
         {
             var bills = await _unitOfWork.MonthlyBills
-                .FindAsync(b => b.BillDate >= startDate && b.BillDate <= endDate);
+                .FindAsync(b => b.BillingMonth >= startDate && b.BillingMonth <= endDate);
 
             var payments = await _unitOfWork.PaymentRecords
                 .FindAsync(p => p.CreatedAt >= startDate && p.CreatedAt <= endDate);
@@ -68,7 +68,7 @@ namespace DTCBillingSystem.Core.Services
                 ?? throw new InvalidOperationException($"Customer with ID {customerId} not found.");
 
             var bills = await _unitOfWork.MonthlyBills
-                .FindAsync(b => b.CustomerId == customerId && b.BillDate >= startDate && b.BillDate <= endDate);
+                .FindAsync(b => b.CustomerId == customerId && b.BillingMonth >= startDate && b.BillingMonth <= endDate);
 
             var payments = await _unitOfWork.PaymentRecords
                 .FindAsync(p => p.MonthlyBill.CustomerId == customerId && p.CreatedAt >= startDate && p.CreatedAt <= endDate);
@@ -94,7 +94,7 @@ namespace DTCBillingSystem.Core.Services
         private async Task<decimal> GetOpeningBalanceAsync(int customerId, DateTime startDate)
         {
             var previousBills = await _unitOfWork.MonthlyBills
-                .FindAsync(b => b.CustomerId == customerId && b.BillDate < startDate);
+                .FindAsync(b => b.CustomerId == customerId && b.BillingMonth < startDate);
 
             var previousPayments = await _unitOfWork.PaymentRecords
                 .FindAsync(p => p.MonthlyBill.CustomerId == customerId && p.CreatedAt < startDate);
@@ -105,7 +105,7 @@ namespace DTCBillingSystem.Core.Services
         private async Task<decimal> GetClosingBalanceAsync(int customerId, DateTime endDate)
         {
             var allBills = await _unitOfWork.MonthlyBills
-                .FindAsync(b => b.CustomerId == customerId && b.BillDate <= endDate);
+                .FindAsync(b => b.CustomerId == customerId && b.BillingMonth <= endDate);
 
             var allPayments = await _unitOfWork.PaymentRecords
                 .FindAsync(p => p.MonthlyBill.CustomerId == customerId && p.CreatedAt <= endDate);
@@ -118,7 +118,7 @@ namespace DTCBillingSystem.Core.Services
             var transactions = new List<StatementTransaction>();
 
             var bills = await _unitOfWork.MonthlyBills
-                .FindAsync(b => b.CustomerId == customerId && b.BillDate >= startDate && b.BillDate <= endDate);
+                .FindAsync(b => b.CustomerId == customerId && b.BillingMonth >= startDate && b.BillingMonth <= endDate);
 
             var payments = await _unitOfWork.PaymentRecords
                 .FindAsync(p => p.MonthlyBill.CustomerId == customerId && p.CreatedAt >= startDate && p.CreatedAt <= endDate);
@@ -127,7 +127,7 @@ namespace DTCBillingSystem.Core.Services
             {
                 transactions.Add(new StatementTransaction
                 {
-                    Date = bill.BillDate,
+                    Date = bill.BillingMonth,
                     Description = $"Bill #{bill.BillNumber}",
                     ReferenceNumber = bill.BillNumber,
                     TransactionType = StatementTransactionType.Bill,
@@ -172,7 +172,7 @@ namespace DTCBillingSystem.Core.Services
                 .Select(b => new OverdueBill
                 {
                     BillNumber = b.BillNumber,
-                    BillDate = b.BillDate,
+                    BillDate = b.BillingMonth,
                     DueDate = b.DueDate,
                     Amount = b.TotalAmount,
                     DaysOverdue = (int)(asOfDate - b.DueDate).TotalDays

@@ -1,60 +1,58 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Services;
+using DTCBillingSystem.Infrastructure.Services;
+using DTCBillingSystem.Infrastructure.Data;
+using DTCBillingSystem.Infrastructure.Repositories;
 using DTCBillingSystem.UI.Services;
-using DTCBillingSystem.UI.ViewModels;
 using DTCBillingSystem.UI.Views;
+using DTCBillingSystem.UI.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace DTCBillingSystem.UI
 {
     public partial class App : Application
     {
-        private ServiceProvider _serviceProvider;
-
-        public App()
-        {
-            ServiceCollection services = new ServiceCollection();
-            ConfigureServices(services);
-            _serviceProvider = services.BuildServiceProvider();
-        }
-
-        private void ConfigureServices(ServiceCollection services)
-        {
-            // Core Services
-            services.AddScoped<ICustomerService, CustomerService>();
-            services.AddScoped<IAuditService, AuditService>();
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-            // UI Services
-            services.AddSingleton<IDialogService, DialogService>();
-            services.AddSingleton<INavigationService>(sp => 
-                new NavigationService(((MainWindow)Current.MainWindow).MainFrame));
-
-            // ViewModels
-            services.AddTransient<CustomersViewModel>();
-            services.AddTransient<CustomerDialogViewModel>();
-            services.AddTransient<CustomerBillsViewModel>();
-
-            // Views
-            services.AddTransient<MainWindow>();
-            services.AddTransient<CustomersView>();
-            services.AddTransient<CustomerDialog>();
-            services.AddTransient<CustomerBillsView>();
-        }
+        private IServiceProvider? _serviceProvider;
 
         protected override void OnStartup(StartupEventArgs e)
         {
-            base.OnStartup(e);
+            var services = new ServiceCollection();
 
-            var mainWindow = _serviceProvider.GetService<MainWindow>();
-            mainWindow?.Show();
-        }
+            // Register DbContext
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlite("Data Source=dtcbilling.db"));
 
-        protected override void OnExit(ExitEventArgs e)
-        {
-            base.OnExit(e);
-            _serviceProvider?.Dispose();
+            // Register services
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IPasswordHasher, PasswordHasher>();
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddSingleton<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAuditService, AuditService>();
+            services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<INavigationService, NavigationService>();
+            services.AddScoped<IViewLocator, ViewLocator>();
+
+            // Register ViewModels
+            services.AddTransient<LoginViewModel>();
+            services.AddTransient<MainViewModel>();
+
+            _serviceProvider = services.BuildServiceProvider();
+
+            // Initialize database
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                dbContext.Database.Migrate();
+            }
+
+            // Show login window
+            var viewLocator = _serviceProvider.GetRequiredService<IViewLocator>();
+            var loginWindow = viewLocator.CreateLoginWindow();
+            loginWindow.Show();
         }
     }
 }

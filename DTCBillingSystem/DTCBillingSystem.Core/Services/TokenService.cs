@@ -1,57 +1,78 @@
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Collections.Generic;
-using DTCBillingSystem.Core.Interfaces;
 using Microsoft.IdentityModel.Tokens;
-using UserModel = DTCBillingSystem.Core.Models.User;
+using DTCBillingSystem.Core.Interfaces;
+using DTCBillingSystem.Core.Models.Entities;
 
 namespace DTCBillingSystem.Core.Services
 {
     public class TokenService : ITokenService
     {
-        private readonly string _secretKey = "your-256-bit-secret"; // TODO: Move to configuration
-        private readonly string _issuer = "DTCBillingSystem";
-        private readonly string _audience = "DTCBillingSystemUsers";
-        private readonly int _expirationMinutes = 60;
+        private readonly string _secretKey;
+        private readonly string _issuer;
+        private readonly string _audience;
+        private readonly int _expirationMinutes;
         private readonly HashSet<string> _revokedTokens = new();
 
-        public string GenerateToken(UserModel user)
+        public TokenService(string secretKey, string issuer = "DTC", string audience = "DTC", int expirationMinutes = 60)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+            _secretKey = secretKey;
+            _issuer = issuer;
+            _audience = audience;
+            _expirationMinutes = expirationMinutes;
+        }
+
+        public string GenerateToken(User user)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_secretKey);
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
-                new Claim(ClaimTypes.Role, user.Role.ToString()),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
-            var token = new JwtSecurityToken(
-                issuer: _issuer,
-                audience: _audience,
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(_expirationMinutes),
-                signingCredentials: credentials
-            );
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(claims),
+                Expires = DateTime.UtcNow.AddMinutes(_expirationMinutes),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Issuer = _issuer,
+                Audience = _audience
+            };
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
         }
 
         public bool ValidateToken(string token)
         {
-            if (_revokedTokens.Contains(token))
+            if (string.IsNullOrEmpty(token) || _revokedTokens.Contains(token))
                 return false;
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            var validationParameters = GetValidationParameters();
+            var key = Encoding.ASCII.GetBytes(_secretKey);
 
             try
             {
-                tokenHandler.ValidateToken(token, validationParameters, out _);
+                tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = _issuer,
+                    ValidateAudience = true,
+                    ValidAudience = _audience,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                }, out _);
+
                 return !IsTokenExpired(token);
             }
             catch
@@ -62,11 +83,10 @@ namespace DTCBillingSystem.Core.Services
 
         public bool IsTokenExpired(string token)
         {
-            if (!token.Contains(".") || _revokedTokens.Contains(token))
+            if (string.IsNullOrEmpty(token) || _revokedTokens.Contains(token))
                 return true;
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            
             try
             {
                 var jwtToken = tokenHandler.ReadJwtToken(token);
@@ -88,17 +108,28 @@ namespace DTCBillingSystem.Core.Services
 
         public int? GetUserIdFromToken(string token)
         {
-            if (_revokedTokens.Contains(token))
+            if (string.IsNullOrEmpty(token) || _revokedTokens.Contains(token))
                 return null;
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            var validationParameters = GetValidationParameters();
+            var key = Encoding.ASCII.GetBytes(_secretKey);
 
             try
             {
-                var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
-                var subClaim = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
-                return subClaim != null ? int.Parse(subClaim) : null;
+                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = _issuer,
+                    ValidateAudience = true,
+                    ValidAudience = _audience,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                }, out _);
+
+                var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                return userIdClaim != null ? int.Parse(userIdClaim) : null;
             }
             catch
             {
@@ -108,36 +139,32 @@ namespace DTCBillingSystem.Core.Services
 
         public string? GetUserRoleFromToken(string token)
         {
-            if (_revokedTokens.Contains(token))
+            if (string.IsNullOrEmpty(token) || _revokedTokens.Contains(token))
                 return null;
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            var validationParameters = GetValidationParameters();
+            var key = Encoding.ASCII.GetBytes(_secretKey);
 
             try
             {
-                var principal = tokenHandler.ValidateToken(token, validationParameters, out _);
+                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuer = true,
+                    ValidIssuer = _issuer,
+                    ValidateAudience = true,
+                    ValidAudience = _audience,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                }, out _);
+
                 return principal.FindFirst(ClaimTypes.Role)?.Value;
             }
             catch
             {
                 return null;
             }
-        }
-
-        private TokenValidationParameters GetValidationParameters()
-        {
-            return new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey)),
-                ValidateIssuer = true,
-                ValidIssuer = _issuer,
-                ValidateAudience = true,
-                ValidAudience = _audience,
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero
-            };
         }
     }
 } 

@@ -1,78 +1,67 @@
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DTCBillingSystem.Core.Interfaces;
-using DTCBillingSystem.Core.Models;
+using DTCBillingSystem.Core.Models.Entities;
+using DTCBillingSystem.Core.Models.Enums;
 using DTCBillingSystem.UI.Commands;
+using DTCBillingSystem.UI.Services;
 
 namespace DTCBillingSystem.UI.ViewModels
 {
     public class CustomerDialogViewModel : ViewModelBase
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly ICustomerService _customerService;
+        private readonly IDialogService _dialogService;
+        private readonly INavigationService _navigationService;
         private readonly IAuditService _auditService;
-        private readonly Action _closeDialog;
+
         private Customer _customer;
+        private string _dialogTitle = string.Empty;
+        private string _shopNoError = string.Empty;
+        private string _nameError = string.Empty;
+        private string _floorError = string.Empty;
+        private string _emailError = string.Empty;
         private bool _isEditMode;
-        private string _dialogTitle;
-        private ObservableCollection<string> _floors;
-        private string _shopNoError;
-        private string _nameError;
-        private string _floorError;
-        private string _emailError;
-        private bool _hasErrors;
 
         public CustomerDialogViewModel(
-            IUnitOfWork unitOfWork,
+            ICustomerService customerService,
+            IDialogService dialogService,
+            INavigationService navigationService,
             IAuditService auditService,
-            Customer customer = null,
-            Action closeDialog = null)
+            Customer? existingCustomer = null)
         {
-            _unitOfWork = unitOfWork;
-            _auditService = auditService;
-            _closeDialog = closeDialog;
-            _floors = new ObservableCollection<string>();
+            _customerService = customerService ?? throw new ArgumentNullException(nameof(customerService));
+            _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
+            _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+            _auditService = auditService ?? throw new ArgumentNullException(nameof(auditService));
 
-            IsEditMode = customer != null;
-            DialogTitle = IsEditMode ? "Edit Customer" : "Add Customer";
-            Customer = customer ?? new Customer { IsActive = true };
+            _customer = existingCustomer ?? new Customer
+            {
+                IsActive = true,
+                CustomerType = CustomerType.Regular
+            };
 
-            SaveCommand = new RelayCommand(_ => ExecuteSaveAsync(), _ => !HasErrors && CanSave());
-            CancelCommand = new RelayCommand(_ => ExecuteCancel());
+            _isEditMode = existingCustomer != null;
+            _dialogTitle = _isEditMode ? "Edit Customer" : "New Customer";
 
-            LoadFloorsAsync();
-            ValidateAll();
+            SaveCommand = new RelayCommand<object>(_ => { ExecuteSaveAsync(); }, _ => CanExecuteSave());
+            CancelCommand = new RelayCommand<object>(_ => ExecuteCancel());
+
+            CustomerTypes = Enum.GetValues<CustomerType>();
         }
 
         public Customer Customer
         {
             get => _customer;
-            set
-            {
-                if (SetProperty(ref _customer, value))
-                {
-                    ValidateAll();
-                }
-            }
-        }
-
-        public bool IsEditMode
-        {
-            get => _isEditMode;
-            set => SetProperty(ref _isEditMode, value);
+            set => SetProperty(ref _customer, value);
         }
 
         public string DialogTitle
         {
             get => _dialogTitle;
             set => SetProperty(ref _dialogTitle, value);
-        }
-
-        public ObservableCollection<string> Floors
-        {
-            get => _floors;
-            set => SetProperty(ref _floors, value);
         }
 
         public string ShopNoError
@@ -99,110 +88,56 @@ namespace DTCBillingSystem.UI.ViewModels
             set => SetProperty(ref _emailError, value);
         }
 
-        public bool HasErrors
+        public bool IsEditMode
         {
-            get => _hasErrors;
-            set => SetProperty(ref _hasErrors, value);
+            get => _isEditMode;
+            set => SetProperty(ref _isEditMode, value);
         }
+
+        public IEnumerable<CustomerType> CustomerTypes { get; }
 
         public ICommand SaveCommand { get; }
         public ICommand CancelCommand { get; }
 
-        private async void LoadFloorsAsync()
+        private bool ValidateCustomer()
         {
-            try
-            {
-                // TODO: Get unique floors from customers
-                Floors.Clear();
-                Floors.Add("Ground Floor");
-                Floors.Add("1st Floor");
-                Floors.Add("2nd Floor");
-                Floors.Add("3rd Floor");
-            }
-            catch (Exception ex)
-            {
-                // TODO: Show error notification
-            }
-        }
+            var isValid = true;
 
-        private void ValidateAll()
-        {
-            ValidateShopNo();
-            ValidateName();
-            ValidateFloor();
-            ValidateEmail();
-            UpdateHasErrors();
-        }
+            // Reset errors
+            ShopNoError = string.Empty;
+            NameError = string.Empty;
+            FloorError = string.Empty;
+            EmailError = string.Empty;
 
-        private void ValidateShopNo()
-        {
+            // Validate Shop No
             if (string.IsNullOrWhiteSpace(Customer.ShopNo))
             {
                 ShopNoError = "Shop No is required";
+                isValid = false;
             }
-            else if (Customer.ShopNo.Length > 20)
-            {
-                ShopNoError = "Shop No cannot exceed 20 characters";
-            }
-            else
-            {
-                ShopNoError = null;
-            }
-            UpdateHasErrors();
-        }
 
-        private void ValidateName()
-        {
+            // Validate Name
             if (string.IsNullOrWhiteSpace(Customer.Name))
             {
-                NameError = "Customer Name is required";
+                NameError = "Name is required";
+                isValid = false;
             }
-            else if (Customer.Name.Length > 100)
-            {
-                NameError = "Name cannot exceed 100 characters";
-            }
-            else
-            {
-                NameError = null;
-            }
-            UpdateHasErrors();
-        }
 
-        private void ValidateFloor()
-        {
+            // Validate Floor
             if (string.IsNullOrWhiteSpace(Customer.Floor))
             {
                 FloorError = "Floor is required";
+                isValid = false;
             }
-            else
-            {
-                FloorError = null;
-            }
-            UpdateHasErrors();
-        }
 
-        private void ValidateEmail()
-        {
-            if (!string.IsNullOrWhiteSpace(Customer.Email))
+            // Validate Email (if provided)
+            if (!string.IsNullOrWhiteSpace(Customer.Email) && !IsValidEmail(Customer.Email))
             {
-                if (!IsValidEmail(Customer.Email))
-                {
-                    EmailError = "Invalid email format";
-                }
-                else if (Customer.Email.Length > 100)
-                {
-                    EmailError = "Email cannot exceed 100 characters";
-                }
-                else
-                {
-                    EmailError = null;
-                }
+                EmailError = "Invalid email format";
+                isValid = false;
             }
-            else
-            {
-                EmailError = null;
-            }
-            UpdateHasErrors();
+
+            return isValid;
         }
 
         private bool IsValidEmail(string email)
@@ -218,77 +153,56 @@ namespace DTCBillingSystem.UI.ViewModels
             }
         }
 
-        private void UpdateHasErrors()
+        private async void ExecuteSaveAsync()
         {
-            HasErrors = !string.IsNullOrEmpty(ShopNoError) ||
-                       !string.IsNullOrEmpty(NameError) ||
-                       !string.IsNullOrEmpty(FloorError) ||
-                       !string.IsNullOrEmpty(EmailError);
+            if (!ValidateCustomer())
+                return;
+
+            try
+            {
+                if (IsEditMode)
+                {
+                    await _customerService.UpdateCustomerAsync(Customer);
+                    await _auditService.LogActionAsync(
+                        "Customer",
+                        Customer.Id,
+                        "Updated",
+                        $"Updated customer {Customer.ShopNo}");
+                }
+                else
+                {
+                    await _customerService.AddCustomerAsync(Customer);
+                    await _auditService.LogActionAsync(
+                        "Customer",
+                        Customer.Id,
+                        "Created",
+                        $"Created new customer {Customer.ShopNo}");
+                }
+
+                await _dialogService.ShowInformationAsync(
+                    "Success",
+                    $"Customer {(IsEditMode ? "updated" : "created")} successfully.");
+
+                _navigationService.NavigateBack();
+            }
+            catch (Exception ex)
+            {
+                await _dialogService.ShowErrorAsync(
+                    "Error",
+                    $"Failed to {(IsEditMode ? "update" : "create")} customer: {ex.Message}");
+            }
         }
 
-        private bool CanSave()
+        private bool CanExecuteSave()
         {
             return !string.IsNullOrWhiteSpace(Customer.ShopNo) &&
                    !string.IsNullOrWhiteSpace(Customer.Name) &&
                    !string.IsNullOrWhiteSpace(Customer.Floor);
         }
 
-        private async void ExecuteSaveAsync()
-        {
-            try
-            {
-                ValidateAll();
-                if (HasErrors)
-                {
-                    return;
-                }
-
-                // Validate shop number uniqueness
-                if (!IsEditMode || Customer.ShopNo != Customer.ShopNo)
-                {
-                    var isUnique = await _unitOfWork.Customers.IsShopNoUniqueAsync(
-                        Customer.ShopNo,
-                        IsEditMode ? Customer.Id : null);
-
-                    if (!isUnique)
-                    {
-                        ShopNoError = "This Shop No is already in use";
-                        UpdateHasErrors();
-                        return;
-                    }
-                }
-
-                if (IsEditMode)
-                {
-                    await _unitOfWork.Customers.UpdateAsync(Customer);
-                    await _auditService.LogActionAsync(
-                        "Customer",
-                        Customer.Id,
-                        AuditAction.Updated,
-                        $"Customer {Customer.ShopNo} updated");
-                }
-                else
-                {
-                    await _unitOfWork.Customers.AddAsync(Customer);
-                    await _auditService.LogActionAsync(
-                        "Customer",
-                        Customer.Id,
-                        AuditAction.Created,
-                        $"Customer {Customer.ShopNo} created");
-                }
-
-                await _unitOfWork.SaveChangesAsync();
-                _closeDialog?.Invoke();
-            }
-            catch (Exception ex)
-            {
-                // TODO: Show error notification
-            }
-        }
-
         private void ExecuteCancel()
         {
-            _closeDialog?.Invoke();
+            _navigationService.NavigateBack();
         }
     }
 } 

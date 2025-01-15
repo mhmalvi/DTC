@@ -1,61 +1,88 @@
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Navigation;
+using System.Threading.Tasks;
 
 namespace DTCBillingSystem.UI.Services
 {
     public class NavigationService : INavigationService
     {
-        private readonly Frame _frame;
-        private readonly Dictionary<string, Type> _pageTypes;
+        private readonly IViewLocator _viewLocator;
+        private Frame? _mainFrame;
+        private Window? _mainWindow;
 
-        public NavigationService(Frame frame)
+        public NavigationService(IViewLocator viewLocator)
         {
-            _frame = frame ?? throw new ArgumentNullException(nameof(frame));
-            _pageTypes = new Dictionary<string, Type>();
-
-            // Register pages
-            RegisterPage("Customers", typeof(Views.CustomersView));
-            RegisterPage("CustomerDialog", typeof(Views.CustomerDialog));
-            RegisterPage("CustomerBills", typeof(Views.CustomerBillsView));
+            _viewLocator = viewLocator;
         }
 
-        public void RegisterPage(string key, Type pageType)
+        public bool CanNavigateBack => _mainFrame?.CanGoBack ?? false;
+
+        public void Initialize(Frame mainFrame, Window mainWindow)
         {
-            if (string.IsNullOrWhiteSpace(key))
-                throw new ArgumentException("Key cannot be null or empty", nameof(key));
-
-            if (pageType == null)
-                throw new ArgumentNullException(nameof(pageType));
-
-            _pageTypes[key] = pageType;
+            _mainFrame = mainFrame;
+            _mainWindow = mainWindow;
         }
 
-        public Task NavigateToAsync(string viewName, object parameter = null)
+        public void SetFrame(Frame frame)
         {
-            if (!_pageTypes.TryGetValue(viewName, out Type pageType))
-                throw new ArgumentException($"Page {viewName} is not registered");
+            _mainFrame = frame;
+        }
 
-            return _frame.Dispatcher.InvokeAsync(() =>
+        public void NavigateTo<T>() where T : class
+        {
+            var view = _viewLocator.GetView<T>();
+            _mainFrame?.Navigate(view);
+        }
+
+        public void NavigateTo(Type viewModelType)
+        {
+            var view = _viewLocator.GetView(viewModelType);
+            _mainFrame?.Navigate(view);
+        }
+
+        public async void NavigateToAsync(string viewName)
+        {
+            await Task.Run(() =>
             {
-                return _frame.Navigate(pageType, parameter);
-            }).Task;
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    var view = _viewLocator.GetViewByName(viewName);
+                    _mainFrame?.Navigate(view);
+                });
+            });
         }
 
-        public Task GoBackAsync()
+        public void NavigateBack()
         {
-            if (!CanGoBack)
-                return Task.CompletedTask;
-
-            return _frame.Dispatcher.InvokeAsync(() =>
+            if (CanNavigateBack)
             {
-                _frame.GoBack();
-                return true;
-            }).Task;
+                _mainFrame?.GoBack();
+            }
         }
 
-        public bool CanGoBack => _frame.CanGoBack;
+        public void NavigateToMain()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                var mainWindow = _viewLocator.CreateMainWindow();
+                mainWindow.Show();
+
+                // Close other windows
+                foreach (Window window in Application.Current.Windows)
+                {
+                    if (window != mainWindow)
+                    {
+                        window.Close();
+                    }
+                }
+            });
+        }
+
+        public Task NavigateToMainWindow()
+        {
+            NavigateToMain();
+            return Task.CompletedTask;
+        }
     }
 } 

@@ -58,5 +58,23 @@ namespace DTCBillingSystem.Core.Services
             await _unitOfWork.PrintJobs.RemoveAsync(printJob);
             await _unitOfWork.SaveChangesAsync();
         }
+
+        public async Task PrintBillAsync(MonthlyBill bill)
+        {
+            var customer = await _unitOfWork.Customers.GetByIdAsync(bill.CustomerId)
+                ?? throw new InvalidOperationException($"Customer with ID {bill.CustomerId} not found.");
+
+            var printJob = new PrintJob
+            {
+                DocumentType = "Bill",
+                DocumentId = bill.Id.ToString(),
+                Title = $"Bill - {customer.ShopNo} - {bill.BillingMonth:MMM yyyy}",
+                Status = PrintJobStatus.Pending,
+                CreatedAt = DateTime.UtcNow,
+                CreatedBy = "system" // TODO: Get current user ID
+            };
+
+            await CreatePrintJobAsync(printJob, 0); // TODO: Pass current user ID
+        }
     }
 }

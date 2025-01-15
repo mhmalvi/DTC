@@ -1,5 +1,5 @@
 using System;
-using UserModel = DTCBillingSystem.Core.Models.User;
+using DTCBillingSystem.Core.Models.Entities;
 
 namespace DTCBillingSystem.Core.Interfaces
 {
@@ -11,7 +11,7 @@ namespace DTCBillingSystem.Core.Interfaces
         /// <summary>
         /// Generate a JWT token for a user
         /// </summary>
-        string GenerateToken(UserModel user);
+        string GenerateToken(User user);
 
         /// <summary>
         /// Validate a JWT token

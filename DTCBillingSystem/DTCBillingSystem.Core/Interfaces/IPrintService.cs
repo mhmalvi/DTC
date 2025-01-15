@@ -8,5 +8,6 @@ namespace DTCBillingSystem.Core.Interfaces
         Task<PrintJob> CreatePrintJobAsync(PrintJob printJob, int userId);
         Task<PrintJob> UpdatePrintJobStatusAsync(int jobId, string status, int userId);
         Task DeletePrintJobAsync(int jobId, int userId);
+        Task PrintBillAsync(MonthlyBill bill);
     }
 } 

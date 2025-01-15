@@ -18,5 +18,7 @@ namespace DTCBillingSystem.Core.Models.Entities
         public DateTime? UpdatedAt { get; set; }
         public string? PhoneNumber { get; set; }
         public bool RequirePasswordChange { get; set; }
+
+        public string FullName => $"{FirstName} {LastName}".Trim();
     }
 } 

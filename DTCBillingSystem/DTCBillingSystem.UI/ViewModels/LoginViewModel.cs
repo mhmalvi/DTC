@@ -1,105 +1,88 @@
 using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using System.Threading.Tasks;
 using DTCBillingSystem.Core.Interfaces;
-using DTCBillingSystem.Core.Models;
+using DTCBillingSystem.UI.Commands;
+using DTCBillingSystem.UI.Services;
 
 namespace DTCBillingSystem.UI.ViewModels
 {
     public class LoginViewModel : ViewModelBase
     {
-        private readonly IUserService _userService;
+        private readonly IAuthenticationService _authService;
+        private readonly INavigationService _navigationService;
         private readonly IAuditService _auditService;
-        private string _username;
-        private string _errorMessage;
-        private bool _isLoading;
+        private string _username = string.Empty;
+        private string _errorMessage = string.Empty;
 
-        public LoginViewModel(IUserService userService, IAuditService auditService)
+        public LoginViewModel(
+            IAuthenticationService authService,
+            INavigationService navigationService,
+            IAuditService auditService)
         {
-            _userService = userService;
+            _authService = authService;
+            _navigationService = navigationService;
             _auditService = auditService;
-            LoginCommand = new RelayCommand(ExecuteLoginAsync, CanExecuteLogin);
+
+            LoginCommand = new AsyncRelayCommand<PasswordBox>(LoginAsync);
+            ExitCommand = new RelayCommand(Exit);
         }
 
         public string Username
         {
             get => _username;
-            set => SetProperty(ref _username, value);
+            set
+            {
+                _username = value;
+                OnPropertyChanged();
+            }
         }
 
         public string ErrorMessage
         {
             get => _errorMessage;
-            set => SetProperty(ref _errorMessage, value);
-        }
-
-        public bool IsLoading
-        {
-            get => _isLoading;
-            set => SetProperty(ref _isLoading, value);
+            set
+            {
+                _errorMessage = value;
+                OnPropertyChanged();
+            }
         }
 
         public ICommand LoginCommand { get; }
+        public ICommand ExitCommand { get; }
 
-        private bool CanExecuteLogin()
+        private async Task LoginAsync(PasswordBox? passwordBox)
         {
-            return !string.IsNullOrWhiteSpace(Username) && !IsLoading;
-        }
+            if (passwordBox == null) return;
 
-        private async void ExecuteLoginAsync(object parameter)
-        {
             try
             {
-                IsLoading = true;
                 ErrorMessage = string.Empty;
+                var success = await _authService.LoginAsync(Username, passwordBox.Password);
 
-                var passwordBox = parameter as System.Windows.Controls.PasswordBox;
-                if (passwordBox == null)
+                if (success)
                 {
-                    ErrorMessage = "Invalid password input";
-                    return;
-                }
-
-                var user = await _userService.AuthenticateAsync(Username, passwordBox.Password);
-                if (user != null)
-                {
-                    await _auditService.LogActionAsync(
-                        "User",
-                        user.Id,
-                        AuditAction.LoginAttempt,
-                        user.Id,
-                        "Successful login");
-
-                    // TODO: Store user session and navigate to main window
-                    var mainWindow = new MainWindow();
-                    mainWindow.Show();
-                    Application.Current.MainWindow.Close();
+                    await _auditService.LogActionAsync("Authentication", null, "Login", $"User '{Username}' logged in successfully");
+                    await _navigationService.NavigateToMainWindow();
                 }
                 else
                 {
                     ErrorMessage = "Invalid username or password";
-                    await _auditService.LogActionAsync(
-                        "User",
-                        0,
-                        AuditAction.LoginAttempt,
-                        0,
-                        $"Failed login attempt for username: {Username}");
+                    await _auditService.LogActionAsync("Authentication", null, "Login", $"Failed login attempt for user '{Username}'");
                 }
             }
             catch (Exception ex)
             {
-                ErrorMessage = "An error occurred during login. Please try again.";
-                await _auditService.LogActionAsync(
-                    "User",
-                    0,
-                    AuditAction.LoginAttempt,
-                    0,
-                    $"Login error: {ex.Message}");
+                ErrorMessage = "An error occurred during login";
+                await _auditService.LogActionAsync("Authentication", null, "Login", $"Login error for user '{Username}': {ex.Message}");
             }
-            finally
-            {
-                IsLoading = false;
-            }
+        }
+
+        private void Exit()
+        {
+            Application.Current.Shutdown();
         }
     }
 } 

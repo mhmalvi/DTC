@@ -7,10 +7,7 @@ namespace DTCBillingSystem.Core.Models.Enums
     {
         Administrator,
         Manager,
-        Cashier,
-        MeterReader,
-        Support,
-        Auditor,
-        Guest
+        Operator,
+        Viewer
     }
 } 

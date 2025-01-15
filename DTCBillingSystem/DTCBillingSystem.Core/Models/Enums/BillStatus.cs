@@ -6,11 +6,12 @@ namespace DTCBillingSystem.Core.Models.Enums
     public enum BillStatus
     {
         Draft = 0,
-        Unpaid = 1,
-        Paid = 2,
-        PartiallyPaid = 3,
-        Overdue = 4,
-        Cancelled = 5,
-        Disputed = 6
+        Pending = 1,
+        Unpaid = 2,
+        Paid = 3,
+        PartiallyPaid = 4,
+        Overdue = 5,
+        Cancelled = 6,
+        Disputed = 7
     }
 } 

@@ -1,198 +1,103 @@
 using System;
-using System.Threading.Tasks;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Input;
 using DTCBillingSystem.Core.Interfaces;
-using DTCBillingSystem.Core.Models;
+using DTCBillingSystem.Core.Models.Entities;
 using DTCBillingSystem.UI.Commands;
 
 namespace DTCBillingSystem.UI.ViewModels
 {
     public class BillGenerationViewModel : ViewModelBase
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IAuditService _auditService;
-        private readonly Customer _customer;
-        private readonly Action<MonthlyBill> _onBillGenerated;
-        private readonly Action _closeDialog;
-
-        private DateTime _billingMonth;
-        private decimal _previousReading;
-        private decimal _presentReading;
-        private decimal _acPreviousReading;
-        private decimal _acPresentReading;
-        private decimal _blowerFanCharge;
-        private decimal _generatorCharge;
-        private decimal _serviceCharge;
-        private DateTime _dueDate;
-        private string _notes;
-        private string _errorMessage;
+        private readonly IBillingService _billingService;
+        private readonly ICustomerService _customerService;
+        private ObservableCollection<Customer> _customers;
+        private string _searchText = string.Empty;
+        private DateTime _selectedDate = DateTime.Now;
 
         public BillGenerationViewModel(
-            IUnitOfWork unitOfWork,
-            IAuditService auditService,
-            Customer customer,
-            Action<MonthlyBill> onBillGenerated,
-            Action closeDialog)
+            IBillingService billingService,
+            ICustomerService customerService)
         {
-            _unitOfWork = unitOfWork;
-            _auditService = auditService;
-            _customer = customer;
-            _onBillGenerated = onBillGenerated;
-            _closeDialog = closeDialog;
+            _billingService = billingService;
+            _customerService = customerService;
+            _customers = new ObservableCollection<Customer>();
 
-            // Initialize dates
-            BillingMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-            DueDate = DateTime.Now.AddDays(30);
-
-            // Initialize commands
-            SaveCommand = new RelayCommand(_ => ExecuteSaveAsync(), _ => CanSave());
-            CancelCommand = new RelayCommand(_ => ExecuteCancel());
-
-            // Load previous readings
-            LoadPreviousReadingsAsync();
+            GenerateBillsCommand = new RelayCommand<object>(ExecuteGenerateBills);
+            SearchCommand = new RelayCommand<object>(ExecuteSearch);
         }
 
-        public DateTime BillingMonth
+        public ObservableCollection<Customer> Customers
         {
-            get => _billingMonth;
-            set => SetProperty(ref _billingMonth, value);
+            get => _customers;
+            set => SetProperty(ref _customers, value);
         }
 
-        public decimal PreviousReading
+        public string SearchText
         {
-            get => _previousReading;
-            set => SetProperty(ref _previousReading, value);
+            get => _searchText;
+            set => SetProperty(ref _searchText, value);
         }
 
-        public decimal PresentReading
+        public DateTime SelectedDate
         {
-            get => _presentReading;
-            set => SetProperty(ref _presentReading, value);
+            get => _selectedDate;
+            set => SetProperty(ref _selectedDate, value);
         }
 
-        public decimal ACPreviousReading
-        {
-            get => _acPreviousReading;
-            set => SetProperty(ref _acPreviousReading, value);
-        }
+        public ICommand GenerateBillsCommand { get; }
+        public ICommand SearchCommand { get; }
 
-        public decimal ACPresentReading
-        {
-            get => _acPresentReading;
-            set => SetProperty(ref _acPresentReading, value);
-        }
-
-        public decimal BlowerFanCharge
-        {
-            get => _blowerFanCharge;
-            set => SetProperty(ref _blowerFanCharge, value);
-        }
-
-        public decimal GeneratorCharge
-        {
-            get => _generatorCharge;
-            set => SetProperty(ref _generatorCharge, value);
-        }
-
-        public decimal ServiceCharge
-        {
-            get => _serviceCharge;
-            set => SetProperty(ref _serviceCharge, value);
-        }
-
-        public DateTime DueDate
-        {
-            get => _dueDate;
-            set => SetProperty(ref _dueDate, value);
-        }
-
-        public string Notes
-        {
-            get => _notes;
-            set => SetProperty(ref _notes, value);
-        }
-
-        public string ErrorMessage
-        {
-            get => _errorMessage;
-            set => SetProperty(ref _errorMessage, value);
-        }
-
-        public ICommand SaveCommand { get; }
-        public ICommand CancelCommand { get; }
-
-        private async void LoadPreviousReadingsAsync()
+        private async void ExecuteSearch(object? parameter)
         {
             try
             {
-                var lastBill = await _unitOfWork.MonthlyBills.GetCustomerLatestBillAsync(_customer.Id);
-                if (lastBill != null)
+                var customers = await _customerService.GetCustomersAsync(1, 100);
+                var filteredCustomers = customers.Where(c => 
+                    string.IsNullOrEmpty(SearchText) ||
+                    c.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    c.AccountNumber.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+                
+                Customers = new ObservableCollection<Customer>(filteredCustomers);
+            }
+            catch (Exception)
+            {
+                // Handle error
+            }
+        }
+
+        private async void ExecuteGenerateBills(object? parameter)
+        {
+            try
+            {
+                if (!Customers.Any())
                 {
-                    PreviousReading = lastBill.PresentReading;
-                    ACPreviousReading = lastBill.ACPresentReading;
+                    // Show error message - no customers selected
+                    return;
                 }
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage = "Failed to load previous readings.";
-            }
-        }
 
-        private bool CanSave()
-        {
-            if (BillingMonth == DateTime.MinValue || DueDate == DateTime.MinValue)
-                return false;
-
-            if (PresentReading < PreviousReading)
-                return false;
-
-            if (ACPresentReading < ACPreviousReading)
-                return false;
-
-            return true;
-        }
-
-        private async void ExecuteSaveAsync()
-        {
-            try
-            {
-                var bill = new MonthlyBill
+                foreach (var customer in Customers)
                 {
-                    CustomerId = _customer.Id,
-                    BillingMonth = BillingMonth,
-                    PreviousReading = PreviousReading,
-                    PresentReading = PresentReading,
-                    ACPreviousReading = ACPreviousReading,
-                    ACPresentReading = ACPresentReading,
-                    BlowerFanCharge = BlowerFanCharge,
-                    GeneratorCharge = GeneratorCharge,
-                    ServiceCharge = ServiceCharge,
-                    DueDate = DueDate,
-                    Notes = Notes,
-                    Status = BillStatus.Pending
-                };
+                    var bill = new MonthlyBill
+                    {
+                        CustomerId = customer.Id,
+                        BillingMonth = SelectedDate,
+                        CreatedBy = "System",
+                        CreatedAt = DateTime.UtcNow,
+                        LastModifiedBy = "System",
+                        LastModifiedAt = DateTime.UtcNow
+                    };
 
-                await _unitOfWork.MonthlyBills.AddAsync(bill);
-                await _unitOfWork.SaveChangesAsync();
+                    await _billingService.GenerateBillAsync(bill);
+                }
 
-                await _auditService.LogActionAsync(
-                    "Bill",
-                    bill.Id,
-                    AuditAction.Created,
-                    $"Bill generated for customer {_customer.ShopNo} for {BillingMonth:MMM yyyy}");
-
-                _onBillGenerated?.Invoke(bill);
-                _closeDialog?.Invoke();
+                // Show success message
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                ErrorMessage = "Failed to generate bill. Please try again.";
+                // Handle error
             }
-        }
-
-        private void ExecuteCancel()
-        {
-            _closeDialog?.Invoke();
         }
     }
 } 
