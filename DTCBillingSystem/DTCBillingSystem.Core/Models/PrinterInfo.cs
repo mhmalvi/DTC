@@ -1,16 +1,17 @@
+using System.Collections.Generic;
+
 namespace DTCBillingSystem.Core.Models
 {
     public class PrinterInfo
     {
-        public string Name { get; set; }
+        public required string Name { get; set; }
+        public required string Model { get; set; }
+        public required string Status { get; set; }
+        public required string Location { get; set; }
+        public required string Description { get; set; }
         public bool IsDefault { get; set; }
-        public string Status { get; set; }
-        public string Location { get; set; }
-        public string Description { get; set; }
-        public bool SupportsColor { get; set; }
-        public bool SupportsDuplex { get; set; }
-        public string[] SupportedPaperSizes { get; set; }
-        public string[] SupportedOrientations { get; set; }
-        public int MaxCopies { get; set; }
+        public bool IsOnline { get; set; }
+        public List<string> SupportedPaperSizes { get; set; } = new();
+        public List<string> SupportedOrientations { get; set; } = new();
     }
 } 

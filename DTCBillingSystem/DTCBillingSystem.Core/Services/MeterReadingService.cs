@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using System.Linq;
-using DTCBillingSystem.Shared.Models.Entities;
-using DTCBillingSystem.Shared.Interfaces;
+using DTCBillingSystem.Core.Models.Entities;
+using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Extensions;
 
 namespace DTCBillingSystem.Core.Services
@@ -23,9 +23,10 @@ namespace DTCBillingSystem.Core.Services
 
             var latestReading = await _unitOfWork.MeterReadings.GetLatestReadingForCustomerAsync(reading.CustomerId);
 
-            reading.PreviousReading = latestReading?.CurrentReading ?? 0;
-            reading.Consumption = reading.CurrentReading - reading.PreviousReading;
+            reading.PreviousReading = latestReading?.Reading ?? 0;
+            reading.Consumption = reading.Reading - reading.PreviousReading;
             reading.CreatedBy = userId.ToString();
+            reading.CreatedAt = DateTime.UtcNow;
 
             await _unitOfWork.MeterReadings.AddAsync(reading);
             await _unitOfWork.SaveChangesAsync();
@@ -38,13 +39,13 @@ namespace DTCBillingSystem.Core.Services
             var existingReading = await _unitOfWork.MeterReadings.GetByIdAsync(readingId)
                 ?? throw new ArgumentException($"Reading with ID {readingId} not found.");
 
-            existingReading.CurrentReading = reading.CurrentReading;
+            existingReading.Reading = reading.Reading;
             existingReading.ReadingDate = reading.ReadingDate;
             existingReading.Notes = reading.Notes;
             existingReading.LastModifiedBy = userId.ToString();
             existingReading.LastModifiedAt = DateTime.UtcNow;
 
-            _unitOfWork.MeterReadings.Update(existingReading);
+            await _unitOfWork.MeterReadings.UpdateAsync(existingReading);
             await _unitOfWork.SaveChangesAsync();
 
             return existingReading;
@@ -77,7 +78,7 @@ namespace DTCBillingSystem.Core.Services
             var reading = await _unitOfWork.MeterReadings.GetByIdAsync(readingId)
                 ?? throw new ArgumentException($"Reading with ID {readingId} not found.");
 
-            _unitOfWork.MeterReadings.Remove(reading);
+            await _unitOfWork.MeterReadings.RemoveAsync(reading);
             await _unitOfWork.SaveChangesAsync();
         }
     }

@@ -28,7 +28,7 @@ namespace DTCBillingSystem.Core.Services
                 throw new ArgumentException("Customer not found", nameof(customerId));
             }
 
-            var latestReading = await _unitOfWork.MeterReadings.GetLatestReadingAsync(customerId);
+            var latestReading = await _unitOfWork.MeterReadings.GetLatestReadingForCustomerAsync(customerId);
             if (latestReading == null)
             {
                 throw new InvalidOperationException("No meter reading found for customer");

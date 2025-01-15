@@ -12,5 +12,9 @@ namespace DTCBillingSystem.Core.Interfaces
         Task<IEnumerable<PaymentRecord>> GetPaymentsByDateAsync(DateTime date);
         Task<IEnumerable<PaymentRecord>> GetCustomerPaymentsBeforeDateAsync(int customerId, DateTime date);
         Task<IEnumerable<PaymentRecord>> GetPaymentsByBillIdAsync(int billId);
+        Task<IEnumerable<PaymentRecord>> GetPaymentsByCustomerIdAsync(int customerId);
+        Task<bool> HasPaymentsForCustomerAsync(int customerId);
+        Task<PaymentRecord?> GetLatestPaymentForCustomerAsync(int customerId);
+        Task<decimal> GetTotalPaymentsForBillAsync(int billId);
     }
 } 

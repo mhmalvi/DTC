@@ -20,9 +20,5 @@ namespace DTCBillingSystem.Core.Models.Entities
         public decimal CurrentBalance { get; set; }
         public DateTime LastBillingDate { get; set; }
         public DateTime LastPaymentDate { get; set; }
-        public string LastModifiedBy { get; set; } = string.Empty;
-        public DateTime LastModifiedAt { get; set; }
-        public string CreatedBy { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
     }
 } 

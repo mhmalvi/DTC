@@ -13,5 +13,10 @@ namespace DTCBillingSystem.Core.Interfaces
         Task<IEnumerable<MonthlyBill>> GetCustomerBillsBeforeDateAsync(int customerId, DateTime date);
         Task<MonthlyBill?> GetLatestBillAsync(int customerId);
         Task<int> CountAsync();
+        Task<IEnumerable<MonthlyBill>> GetBillsByCustomerIdAsync(int customerId);
+        Task<MonthlyBill?> GetLatestBillForCustomerAsync(int customerId);
+        Task<bool> HasBillsForCustomerAsync(int customerId);
+        Task<IEnumerable<MonthlyBill>> GetUnpaidBillsForCustomerAsync(int customerId);
+        Task<decimal> GetTotalUnpaidAmountForCustomerAsync(int customerId);
     }
 } 

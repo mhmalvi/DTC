@@ -1,7 +1,8 @@
 using System;
 using System.Threading.Tasks;
-using DTCBillingSystem.Shared.Models.Entities;
-using DTCBillingSystem.Shared.Interfaces;
+using DTCBillingSystem.Core.Models.Entities;
+using DTCBillingSystem.Core.Interfaces;
+using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Services
 {
@@ -18,7 +19,7 @@ namespace DTCBillingSystem.Core.Services
         {
             printJob.CreatedBy = userId.ToString();
             printJob.CreatedAt = DateTime.UtcNow;
-            printJob.Status = "Pending";
+            printJob.Status = PrintJobStatus.Pending;
 
             await _unitOfWork.PrintJobs.AddAsync(printJob);
             await _unitOfWork.SaveChangesAsync();
@@ -28,17 +29,22 @@ namespace DTCBillingSystem.Core.Services
 
         public async Task<PrintJob> UpdatePrintJobStatusAsync(int jobId, string status, int userId)
         {
-            var printJob = await _unitOfWork.PrintJobs.GetByIdAsync(jobId);
-            if (printJob == null)
+            var printJob = await _unitOfWork.PrintJobs.GetByIdAsync(jobId)
+                ?? throw new InvalidOperationException($"Print job with ID {jobId} not found.");
+
+            if (Enum.TryParse<PrintJobStatus>(status, true, out var printJobStatus))
             {
-                throw new InvalidOperationException($"Print job with ID {jobId} not found.");
+                printJob.Status = printJobStatus;
+            }
+            else
+            {
+                throw new ArgumentException($"Invalid print job status: {status}");
             }
 
-            printJob.Status = status;
             printJob.LastModifiedBy = userId.ToString();
             printJob.LastModifiedAt = DateTime.UtcNow;
 
-            _unitOfWork.PrintJobs.Update(printJob);
+            await _unitOfWork.PrintJobs.UpdateAsync(printJob);
             await _unitOfWork.SaveChangesAsync();
 
             return printJob;
@@ -46,13 +52,10 @@ namespace DTCBillingSystem.Core.Services
 
         public async Task DeletePrintJobAsync(int jobId, int userId)
         {
-            var printJob = await _unitOfWork.PrintJobs.GetByIdAsync(jobId);
-            if (printJob == null)
-            {
-                throw new InvalidOperationException($"Print job with ID {jobId} not found.");
-            }
+            var printJob = await _unitOfWork.PrintJobs.GetByIdAsync(jobId)
+                ?? throw new InvalidOperationException($"Print job with ID {jobId} not found.");
 
-            _unitOfWork.PrintJobs.Remove(printJob);
+            await _unitOfWork.PrintJobs.RemoveAsync(printJob);
             await _unitOfWork.SaveChangesAsync();
         }
     }

@@ -1,4 +1,7 @@
-using DTCBillingSystem.Core.Models;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using DTCBillingSystem.Core.Models.Entities;
+using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Interfaces
 {

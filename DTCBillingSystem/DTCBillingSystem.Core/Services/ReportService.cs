@@ -79,7 +79,7 @@ namespace DTCBillingSystem.Core.Services
             var statement = new CustomerStatement
             {
                 CustomerId = customerId,
-                CustomerName = $"{customer.FirstName} {customer.LastName}",
+                CustomerName = customer.Name,
                 StartDate = startDate,
                 EndDate = endDate,
                 OpeningBalance = await GetOpeningBalanceAsync(customerId, startDate),
@@ -130,7 +130,7 @@ namespace DTCBillingSystem.Core.Services
                     Date = bill.BillDate,
                     Description = $"Bill #{bill.BillNumber}",
                     ReferenceNumber = bill.BillNumber,
-                    TransactionType = "BILL",
+                    TransactionType = StatementTransactionType.Bill,
                     Amount = bill.TotalAmount,
                     Balance = 0 // Will be calculated later
                 });
@@ -143,7 +143,7 @@ namespace DTCBillingSystem.Core.Services
                     Date = payment.CreatedAt,
                     Description = $"Payment - {payment.PaymentMethod}",
                     ReferenceNumber = payment.TransactionId,
-                    TransactionType = "PAYMENT",
+                    TransactionType = StatementTransactionType.Payment,
                     Amount = -payment.Amount,
                     Balance = 0 // Will be calculated later
                 });

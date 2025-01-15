@@ -34,7 +34,7 @@ namespace DTCBillingSystem.Core.Interfaces
         /// <summary>
         /// Send system alert to administrators
         /// </summary>
-        Task SendSystemAlertAsync(string message, Models.Enums.NotificationType alertType);
+        Task SendSystemAlertAsync(string message, NotificationType type);
 
         /// <summary>
         /// Send bulk notifications
@@ -49,12 +49,12 @@ namespace DTCBillingSystem.Core.Interfaces
         /// <summary>
         /// Get notification settings for a user
         /// </summary>
-        Task<NotificationSettings> GetUserNotificationSettingsAsync(int userId);
+        Task<UserNotificationPreferences> GetUserNotificationSettingsAsync(int userId);
 
         /// <summary>
         /// Update notification settings for a user
         /// </summary>
-        Task UpdateUserNotificationSettingsAsync(int userId, NotificationSettings settings);
+        Task UpdateUserNotificationSettingsAsync(int userId, UserNotificationPreferences settings);
 
         /// <summary>
         /// Schedule a notification for future delivery

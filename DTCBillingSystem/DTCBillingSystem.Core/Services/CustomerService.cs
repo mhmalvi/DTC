@@ -22,10 +22,10 @@ namespace DTCBillingSystem.Core.Services
         public async Task<IEnumerable<Customer>> GetCustomersAsync(
             int pageNumber,
             int pageSize,
-            string searchText = null,
+            string? searchText = null,
             CustomerType? customerType = null,
             bool? isActive = null,
-            string sortBy = null)
+            string? sortBy = null)
         {
             return await _unitOfWork.Customers.GetCustomersAsync(
                 pageNumber,
@@ -37,14 +37,14 @@ namespace DTCBillingSystem.Core.Services
         }
 
         public async Task<int> GetTotalCustomersCountAsync(
-            string searchText = null,
+            string? searchText = null,
             CustomerType? customerType = null,
             bool? isActive = null)
         {
             return await _unitOfWork.Customers.GetTotalCountAsync(searchText, customerType, isActive);
         }
 
-        public async Task<Customer> GetCustomerByIdAsync(int id)
+        public async Task<Customer?> GetCustomerByIdAsync(int id)
         {
             return await _unitOfWork.Customers.GetByIdAsync(id);
         }

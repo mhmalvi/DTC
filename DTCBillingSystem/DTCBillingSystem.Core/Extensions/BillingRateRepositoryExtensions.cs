@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using System.Linq;
-using DTCBillingSystem.Shared.Models.Entities;
-using DTCBillingSystem.Shared.Interfaces;
-using DTCBillingSystem.Shared.Models.Enums;
+using DTCBillingSystem.Core.Models.Entities;
+using DTCBillingSystem.Core.Interfaces;
+using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Extensions
 {

@@ -4,7 +4,8 @@ using System.Collections.Generic;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models.Authentication;
 using DTCBillingSystem.Core.Models.Enums;
-using DTCBillingSystem.Core.Models.Entities;
+using UserModel = DTCBillingSystem.Core.Models.User;
+using UserEntity = DTCBillingSystem.Core.Models.Entities.User;
 
 namespace DTCBillingSystem.Core.Services
 {
@@ -27,9 +28,9 @@ namespace DTCBillingSystem.Core.Services
             _auditService = auditService;
         }
 
-        private DTCBillingSystem.Core.Models.User ConvertToUser(User entityUser)
+        private UserModel ConvertToUser(UserEntity entityUser)
         {
-            return new DTCBillingSystem.Core.Models.User
+            return new UserModel
             {
                 Id = entityUser.Id,
                 Username = entityUser.Username,
@@ -50,9 +51,9 @@ namespace DTCBillingSystem.Core.Services
             };
         }
 
-        private User ConvertToEntityUser(DTCBillingSystem.Core.Models.User user)
+        private UserEntity ConvertToEntityUser(UserModel user)
         {
-            return new User
+            return new UserEntity
             {
                 Id = user.Id,
                 Username = user.Username,
@@ -124,7 +125,7 @@ namespace DTCBillingSystem.Core.Services
             }
 
             var (hash, salt) = _passwordHasher.HashPassword(password);
-            var user = new User
+            var user = new UserEntity
             {
                 Username = username,
                 Email = email,
@@ -171,13 +172,13 @@ namespace DTCBillingSystem.Core.Services
             return new PasswordChangeResponse { Success = true, Message = "Password changed successfully" };
         }
 
-        public async Task<DTCBillingSystem.Core.Models.User?> GetUserByIdAsync(int userId)
+        public async Task<UserModel?> GetUserByIdAsync(int userId)
         {
             var entityUser = await _unitOfWork.Users.GetByIdAsync(userId);
             return entityUser != null ? ConvertToUser(entityUser) : null;
         }
 
-        public async Task<DTCBillingSystem.Core.Models.User?> GetUserByUsernameAsync(string username)
+        public async Task<UserModel?> GetUserByUsernameAsync(string username)
         {
             var entityUser = await _unitOfWork.Users.GetByUsernameAsync(username);
             return entityUser != null ? ConvertToUser(entityUser) : null;
@@ -207,36 +208,6 @@ namespace DTCBillingSystem.Core.Services
                 Message = "Password has been reset",
                 NewPassword = tempPassword
             };
-        }
-
-        public async Task<bool> DeactivateUserAsync(int userId, string deactivatedBy)
-        {
-            var entityUser = await _unitOfWork.Users.GetByIdAsync(userId);
-            if (entityUser == null) return false;
-
-            entityUser.IsActive = false;
-            entityUser.LastModifiedAt = DateTime.UtcNow;
-            entityUser.LastModifiedBy = deactivatedBy;
-
-            await _unitOfWork.SaveChangesAsync();
-            await _auditService.LogAsync("User", entityUser.Id.ToString(), deactivatedBy, AuditAction.Update, "User deactivated");
-
-            return true;
-        }
-
-        public async Task<bool> ActivateUserAsync(int userId, string activatedBy)
-        {
-            var entityUser = await _unitOfWork.Users.GetByIdAsync(userId);
-            if (entityUser == null) return false;
-
-            entityUser.IsActive = true;
-            entityUser.LastModifiedAt = DateTime.UtcNow;
-            entityUser.LastModifiedBy = activatedBy;
-
-            await _unitOfWork.SaveChangesAsync();
-            await _auditService.LogAsync("User", entityUser.Id.ToString(), activatedBy, AuditAction.Update, "User activated");
-
-            return true;
         }
 
         private string GenerateTemporaryPassword()

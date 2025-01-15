@@ -13,6 +13,10 @@ namespace DTCBillingSystem.Core.Interfaces
         IMonthlyBillRepository MonthlyBills { get; }
         IPaymentRecordRepository PaymentRecords { get; }
         IAuditLogRepository AuditLogs { get; }
+        IBackupInfoRepository BackupInfos { get; }
+        INotificationSettingsRepository NotificationSettings { get; }
+        IScheduledNotificationRepository ScheduledNotifications { get; }
+        IBackupScheduleRepository BackupSchedules { get; }
         
         Task<int> SaveChangesAsync();
         Task BeginTransactionAsync();

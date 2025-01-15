@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using DTCBillingSystem.Core.Models.Entities;
 
@@ -7,8 +6,9 @@ namespace DTCBillingSystem.Core.Interfaces
 {
     public interface IMeterReadingRepository : IRepository<MeterReading>
     {
-        Task<MeterReading?> GetLatestReadingAsync(int customerId);
-        Task<IEnumerable<MeterReading>> GetReadingsForPeriodAsync(int customerId, DateTime startDate, DateTime endDate);
-        Task<bool> HasReadingForDateAsync(int customerId, DateTime date);
+        Task<MeterReading?> GetLatestReadingForCustomerAsync(int customerId);
+        Task<IQueryable<MeterReading>> GetReadingsForCustomerAsync(int customerId);
+        new Task UpdateAsync(MeterReading reading);
+        new Task RemoveAsync(MeterReading reading);
     }
 } 

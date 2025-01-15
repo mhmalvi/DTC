@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net.Mail;
+using System.Linq;
 using Microsoft.Extensions.Configuration;
-using DTCBillingSystem.Shared.Interfaces;
+using DTCBillingSystem.Core.Interfaces;
+using DTCBillingSystem.Core.Models;
 
 namespace DTCBillingSystem.Core.Services
 {
@@ -15,7 +18,7 @@ namespace DTCBillingSystem.Core.Services
             _configuration = configuration;
         }
 
-        public async Task SendEmailAsync(string to, string subject, string body)
+        public async Task SendEmailAsync(NotificationMessage message)
         {
             var smtpServer = _configuration["Email:SmtpServer"];
             var smtpPort = int.Parse(_configuration["Email:SmtpPort"] ?? "587");
@@ -28,16 +31,51 @@ namespace DTCBillingSystem.Core.Services
             client.Credentials = new System.Net.NetworkCredential(smtpUsername, smtpPassword);
             client.EnableSsl = true;
 
-            var message = new MailMessage
+            var mailMessage = new MailMessage
             {
                 From = new MailAddress(fromAddress ?? "noreply@dtcbilling.com"),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true
+                Subject = message.Subject,
+                Body = message.Body,
+                IsBodyHtml = message.IsHtml
             };
-            message.To.Add(to);
+            
+            mailMessage.To.Add(message.To);
 
-            await client.SendMailAsync(message);
+            // Add CC recipients
+            if (message.CC?.Any() == true)
+            {
+                foreach (var cc in message.CC)
+                {
+                    mailMessage.CC.Add(cc);
+                }
+            }
+
+            // Add BCC recipients
+            if (message.BCC?.Any() == true)
+            {
+                foreach (var bcc in message.BCC)
+                {
+                    mailMessage.Bcc.Add(bcc);
+                }
+            }
+
+            // Add attachments
+            if (message.Attachments?.Any() == true)
+            {
+                foreach (var attachmentPath in message.Attachments)
+                {
+                    mailMessage.Attachments.Add(new Attachment(attachmentPath));
+                }
+            }
+
+            await client.SendMailAsync(mailMessage);
+        }
+
+        public async Task SendBulkEmailAsync(IEnumerable<NotificationMessage> messages)
+        {
+            // Process messages in parallel for better performance
+            var tasks = messages.Select(message => SendEmailAsync(message));
+            await Task.WhenAll(tasks);
         }
     }
 } 

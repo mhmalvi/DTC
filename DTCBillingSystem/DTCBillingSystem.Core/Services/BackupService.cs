@@ -3,9 +3,15 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Linq;
 using Microsoft.Extensions.Configuration;
 using DTCBillingSystem.Core.Models;
 using DTCBillingSystem.Core.Models.Enums;
+using DTCBillingSystem.Core.Interfaces;
+using BackupInfoModel = DTCBillingSystem.Core.Models.BackupInfo;
+using BackupInfoEntity = DTCBillingSystem.Core.Models.Entities.BackupInfo;
+using BackupScheduleModel = DTCBillingSystem.Core.Models.BackupSchedule;
+using BackupScheduleEntity = DTCBillingSystem.Core.Models.Entities.BackupSchedule;
 
 namespace DTCBillingSystem.Core.Services
 {
@@ -22,9 +28,101 @@ namespace DTCBillingSystem.Core.Services
             _configuration = configuration;
         }
 
-        public async Task<BackupInfo> CreateFullBackupAsync(string backupPath)
+        private BackupInfoModel ConvertToBackupInfo(BackupInfoEntity entityBackup)
         {
-            var backup = new BackupInfo
+            return new BackupInfoModel
+            {
+                Id = entityBackup.Id,
+                Name = entityBackup.Name,
+                Type = entityBackup.Type,
+                FilePath = entityBackup.FilePath,
+                Status = entityBackup.Status,
+                StartTime = entityBackup.StartTime,
+                EndTime = entityBackup.EndTime,
+                IsCompressed = entityBackup.IsCompressed,
+                IncludesTransactionLogs = entityBackup.IncludesTransactionLogs,
+                ErrorMessage = entityBackup.ErrorMessage,
+                FileSize = entityBackup.FileSize,
+                DatabaseVersion = entityBackup.DatabaseVersion,
+                IsVerified = entityBackup.IsVerified,
+                CreatedAt = entityBackup.CreatedAt,
+                CreatedBy = entityBackup.CreatedBy,
+                LastModifiedAt = entityBackup.LastModifiedAt,
+                LastModifiedBy = entityBackup.LastModifiedBy
+            };
+        }
+
+        private BackupInfoEntity ConvertToEntityBackup(BackupInfoModel backup)
+        {
+            return new BackupInfoEntity
+            {
+                Id = backup.Id,
+                Name = backup.Name,
+                Type = backup.Type,
+                FilePath = backup.FilePath,
+                Status = backup.Status,
+                StartTime = backup.StartTime,
+                EndTime = backup.EndTime,
+                IsCompressed = backup.IsCompressed,
+                IncludesTransactionLogs = backup.IncludesTransactionLogs,
+                ErrorMessage = backup.ErrorMessage,
+                FileSize = backup.FileSize,
+                DatabaseVersion = backup.DatabaseVersion,
+                IsVerified = backup.IsVerified,
+                CreatedAt = backup.CreatedAt,
+                CreatedBy = backup.CreatedBy,
+                LastModifiedAt = backup.LastModifiedAt,
+                LastModifiedBy = backup.LastModifiedBy
+            };
+        }
+
+        private BackupScheduleModel ConvertToBackupSchedule(BackupScheduleEntity entitySchedule)
+        {
+            return new BackupScheduleModel
+            {
+                Id = entitySchedule.Id,
+                Name = entitySchedule.Name,
+                Type = entitySchedule.Type,
+                CronExpression = entitySchedule.CronExpression,
+                IsEnabled = entitySchedule.IsEnabled,
+                LastRunTime = entitySchedule.LastRunTime,
+                NextRunTime = entitySchedule.NextRunTime,
+                BackupPath = entitySchedule.BackupPath,
+                RetainTransactionLogs = entitySchedule.RetainTransactionLogs,
+                RetentionDays = entitySchedule.RetentionDays,
+                UseCompression = entitySchedule.UseCompression,
+                CreatedAt = entitySchedule.CreatedAt,
+                CreatedBy = entitySchedule.CreatedBy,
+                LastModifiedAt = entitySchedule.LastModifiedAt,
+                LastModifiedBy = entitySchedule.LastModifiedBy
+            };
+        }
+
+        private BackupScheduleEntity ConvertToEntitySchedule(BackupScheduleModel schedule)
+        {
+            return new BackupScheduleEntity
+            {
+                Id = schedule.Id,
+                Name = schedule.Name,
+                Type = schedule.Type,
+                CronExpression = schedule.CronExpression,
+                IsEnabled = schedule.IsEnabled,
+                LastRunTime = schedule.LastRunTime,
+                NextRunTime = schedule.NextRunTime,
+                BackupPath = schedule.BackupPath,
+                RetainTransactionLogs = schedule.RetainTransactionLogs,
+                RetentionDays = schedule.RetentionDays,
+                UseCompression = schedule.UseCompression,
+                CreatedAt = schedule.CreatedAt,
+                CreatedBy = schedule.CreatedBy,
+                LastModifiedAt = schedule.LastModifiedAt,
+                LastModifiedBy = schedule.LastModifiedBy
+            };
+        }
+
+        public async Task<BackupInfoModel> CreateFullBackupAsync(string backupPath)
+        {
+            var backup = new BackupInfoModel
             {
                 Name = $"FullBackup_{DateTime.UtcNow:yyyyMMddHHmmss}",
                 Type = BackupType.Full.ToString(),
@@ -32,18 +130,21 @@ namespace DTCBillingSystem.Core.Services
                 Status = BackupStatus.Pending,
                 StartTime = DateTime.UtcNow,
                 IsCompressed = true,
-                IncludesTransactionLogs = true
+                IncludesTransactionLogs = true,
+                CreatedAt = DateTime.UtcNow,
+                LastModifiedAt = DateTime.UtcNow
             };
 
-            await _unitOfWork.BackupInfos.AddAsync(backup);
+            var entityBackup = ConvertToEntityBackup(backup);
+            await _unitOfWork.BackupInfos.AddAsync(entityBackup);
             await _unitOfWork.SaveChangesAsync();
 
-            return backup;
+            return ConvertToBackupInfo(entityBackup);
         }
 
-        public async Task<BackupInfo> CreateDifferentialBackupAsync(string backupPath)
+        public async Task<BackupInfoModel> CreateDifferentialBackupAsync(string backupPath)
         {
-            var backup = new BackupInfo
+            var backup = new BackupInfoModel
             {
                 Name = $"DiffBackup_{DateTime.UtcNow:yyyyMMddHHmmss}",
                 Type = BackupType.Differential.ToString(),
@@ -51,13 +152,16 @@ namespace DTCBillingSystem.Core.Services
                 Status = BackupStatus.Pending,
                 StartTime = DateTime.UtcNow,
                 IsCompressed = true,
-                IncludesTransactionLogs = false
+                IncludesTransactionLogs = false,
+                CreatedAt = DateTime.UtcNow,
+                LastModifiedAt = DateTime.UtcNow
             };
 
-            await _unitOfWork.BackupInfos.AddAsync(backup);
+            var entityBackup = ConvertToEntityBackup(backup);
+            await _unitOfWork.BackupInfos.AddAsync(entityBackup);
             await _unitOfWork.SaveChangesAsync();
 
-            return backup;
+            return ConvertToBackupInfo(entityBackup);
         }
 
         public async Task<bool> RestoreFromBackupAsync(string backupPath)
@@ -66,13 +170,18 @@ namespace DTCBillingSystem.Core.Services
                 throw new FileNotFoundException("Backup file not found", backupPath);
 
             // Implementation for database restore
-            // This would typically involve SQL commands or your database provider's restore functionality
+            await Task.Run(() => {
+                // Add your database restore logic here
+                // For example: await _databaseProvider.RestoreAsync(backupPath);
+            });
+            
             return true;
         }
 
-        public async Task<IEnumerable<BackupInfo>> GetBackupListAsync()
+        public async Task<IEnumerable<BackupInfoModel>> GetBackupListAsync()
         {
-            return await _unitOfWork.BackupInfos.GetAllAsync();
+            var backups = await _unitOfWork.BackupInfos.GetAllAsync();
+            return backups.Select(ConvertToBackupInfo);
         }
 
         public async Task<bool> VerifyBackupAsync(string backupPath)
@@ -81,13 +190,18 @@ namespace DTCBillingSystem.Core.Services
                 throw new FileNotFoundException("Backup file not found", backupPath);
 
             // Implementation for backup verification
-            // This would typically involve checking file integrity and backup contents
+            await Task.Run(() => {
+                // Add your backup verification logic here
+                // For example: await _backupVerifier.VerifyAsync(backupPath);
+            });
+            
             return true;
         }
 
-        public async Task ScheduleAutomatedBackupAsync(BackupSchedule schedule)
+        public async Task ScheduleAutomatedBackupAsync(BackupScheduleModel schedule)
         {
-            await _unitOfWork.BackupSchedules.AddAsync(schedule);
+            var entitySchedule = ConvertToEntitySchedule(schedule);
+            await _unitOfWork.BackupSchedules.AddAsync(entitySchedule);
             await _unitOfWork.SaveChangesAsync();
         }
 
@@ -96,8 +210,8 @@ namespace DTCBillingSystem.Core.Services
             var data = new
             {
                 Customers = await _unitOfWork.Customers.GetAllAsync(),
-                Bills = await _unitOfWork.Bills.GetAllAsync(),
-                Payments = await _unitOfWork.Payments.GetAllAsync()
+                MonthlyBills = await _unitOfWork.MonthlyBills.GetAllAsync(),
+                PaymentRecords = await _unitOfWork.PaymentRecords.GetAllAsync()
             };
 
             return JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
@@ -108,7 +222,11 @@ namespace DTCBillingSystem.Core.Services
             try
             {
                 // Implementation for importing data from JSON
-                // This would typically involve deserializing and saving to database
+                await Task.Run(() => {
+                    // Add your JSON import logic here
+                    // For example: await _importService.ImportDataAsync(jsonData);
+                });
+                
                 return true;
             }
             catch (Exception)

@@ -1,18 +1,18 @@
-using DTCBillingSystem.Core.Models.Enums;
+using System;
 
 namespace DTCBillingSystem.Core.Models.Entities
 {
     public class NotificationSettings : BaseEntity
     {
-        public int CustomerId { get; set; }
-        public bool PushEnabled { get; set; }
-        public string? EmailAddress { get; set; }
-        public string? PhoneNumber { get; set; }
-        public string? DeviceToken { get; set; }
-        public NotificationPreference BillingNotifications { get; set; }
-        public NotificationPreference PaymentNotifications { get; set; }
-        public NotificationPreference ServiceNotifications { get; set; }
-
-        public virtual Customer Customer { get; set; } = null!;
+        public int RecipientId { get; set; }
+        public bool EmailEnabled { get; set; } = true;
+        public bool SmsEnabled { get; set; }
+        public bool InAppEnabled { get; set; } = true;
+        public string EmailAddress { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
+        public string EnabledNotifications { get; set; } = string.Empty;
+        public bool QuietHoursEnabled { get; set; }
+        public TimeSpan QuietHoursStart { get; set; }
+        public TimeSpan QuietHoursEnd { get; set; }
     }
 } 

@@ -10,17 +10,17 @@ namespace DTCBillingSystem.Core.Interfaces
         Task<IEnumerable<Customer>> GetCustomersAsync(
             int pageNumber,
             int pageSize,
-            string searchText = null,
+            string? searchText = null,
             CustomerType? customerType = null,
             bool? isActive = null,
-            string sortBy = null);
+            string? sortBy = null);
 
         Task<int> GetTotalCustomersCountAsync(
-            string searchText = null,
+            string? searchText = null,
             CustomerType? customerType = null,
             bool? isActive = null);
 
-        Task<Customer> GetCustomerByIdAsync(int id);
+        Task<Customer?> GetCustomerByIdAsync(int id);
         Task<Customer> CreateCustomerAsync(Customer customer);
         Task<Customer> UpdateCustomerAsync(Customer customer);
         Task<bool> DeleteCustomerAsync(int id);

@@ -9,6 +9,7 @@ namespace DTCBillingSystem.Core.Models.Authentication
         public string? Token { get; set; }
         public string? Username { get; set; }
         public UserRole? Role { get; set; }
+        public bool RequirePasswordChange { get; set; }
     }
 
     public class RegistrationResult

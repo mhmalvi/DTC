@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DTCBillingSystem.Core")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+334529dd7b1e51380f659adad511838a31ac3469")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b06238ece0c1edbfbf90ac9e52e9dba450f73416")]
 [assembly: System.Reflection.AssemblyProductAttribute("DTCBillingSystem.Core")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DTCBillingSystem.Core")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -2,9 +2,10 @@ using System;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Collections.Generic;
 using DTCBillingSystem.Core.Interfaces;
-using DTCBillingSystem.Core.Models;
 using Microsoft.IdentityModel.Tokens;
+using UserModel = DTCBillingSystem.Core.Models.User;
 
 namespace DTCBillingSystem.Core.Services
 {
@@ -14,8 +15,9 @@ namespace DTCBillingSystem.Core.Services
         private readonly string _issuer = "DTCBillingSystem";
         private readonly string _audience = "DTCBillingSystemUsers";
         private readonly int _expirationMinutes = 60;
+        private readonly HashSet<string> _revokedTokens = new();
 
-        public string GenerateToken(User user)
+        public string GenerateToken(UserModel user)
         {
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -41,13 +43,16 @@ namespace DTCBillingSystem.Core.Services
 
         public bool ValidateToken(string token)
         {
+            if (_revokedTokens.Contains(token))
+                return false;
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var validationParameters = GetValidationParameters();
 
             try
             {
                 tokenHandler.ValidateToken(token, validationParameters, out _);
-                return true;
+                return !IsTokenExpired(token);
             }
             catch
             {
@@ -55,8 +60,37 @@ namespace DTCBillingSystem.Core.Services
             }
         }
 
+        public bool IsTokenExpired(string token)
+        {
+            if (!token.Contains(".") || _revokedTokens.Contains(token))
+                return true;
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            
+            try
+            {
+                var jwtToken = tokenHandler.ReadJwtToken(token);
+                return jwtToken.ValidTo < DateTime.UtcNow;
+            }
+            catch
+            {
+                return true;
+            }
+        }
+
+        public void RevokeToken(string token)
+        {
+            if (!string.IsNullOrEmpty(token) && !_revokedTokens.Contains(token))
+            {
+                _revokedTokens.Add(token);
+            }
+        }
+
         public int? GetUserIdFromToken(string token)
         {
+            if (_revokedTokens.Contains(token))
+                return null;
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var validationParameters = GetValidationParameters();
 
@@ -74,6 +108,9 @@ namespace DTCBillingSystem.Core.Services
 
         public string? GetUserRoleFromToken(string token)
         {
+            if (_revokedTokens.Contains(token))
+                return null;
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var validationParameters = GetValidationParameters();
 

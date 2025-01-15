@@ -1,0 +1,13 @@
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Debug\net8.0\DTCBillingSystem.Core.csproj.AssemblyReference.cache
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Debug\net8.0\DTCBillingSystem.Core.GeneratedMSBuildEditorConfig.editorconfig
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Debug\net8.0\DTCBillingSystem.Core.AssemblyInfoInputs.cache
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Debug\net8.0\DTCBillingSystem.Core.AssemblyInfo.cs
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Debug\net8.0\DTCBillingSystem.Core.csproj.CoreCompileInputs.cache
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Debug\net8.0\DTCBillingSystem.Core.sourcelink.json
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\bin\Debug\net8.0\DTCBillingSystem.Core.deps.json
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\bin\Debug\net8.0\DTCBillingSystem.Core.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\bin\Debug\net8.0\DTCBillingSystem.Core.pdb
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Debug\net8.0\DTCBillingSystem.Core.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Debug\net8.0\refint\DTCBillingSystem.Core.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Debug\net8.0\DTCBillingSystem.Core.pdb
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.Core\obj\Debug\net8.0\ref\DTCBillingSystem.Core.dll

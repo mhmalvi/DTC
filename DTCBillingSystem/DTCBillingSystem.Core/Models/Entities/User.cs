@@ -12,34 +12,9 @@ namespace DTCBillingSystem.Core.Models.Entities
         public byte[] PasswordHash { get; set; } = Array.Empty<byte>();
         public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
         public UserRole Role { get; set; }
-        public bool IsActive { get; set; }
+        public bool IsActive { get; set; } = true;
         public DateTime? LastLoginDate { get; set; }
         public string? PhoneNumber { get; set; }
         public bool RequirePasswordChange { get; set; }
-
-        public string FullName => $"{FirstName} {LastName}".Trim();
-
-        public User Clone()
-        {
-            return new User
-            {
-                Id = Id,
-                Username = Username,
-                Email = Email,
-                FirstName = FirstName,
-                LastName = LastName,
-                PasswordHash = (byte[])PasswordHash.Clone(),
-                PasswordSalt = (byte[])PasswordSalt.Clone(),
-                Role = Role,
-                IsActive = IsActive,
-                LastLoginDate = LastLoginDate,
-                PhoneNumber = PhoneNumber,
-                RequirePasswordChange = RequirePasswordChange,
-                CreatedAt = CreatedAt,
-                CreatedBy = CreatedBy,
-                LastModifiedAt = LastModifiedAt,
-                LastModifiedBy = LastModifiedBy
-            };
-        }
     }
 } 

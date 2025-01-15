@@ -7,7 +7,10 @@ namespace DTCBillingSystem.Core.Models.Enums
     {
         Administrator,
         Manager,
-        Staff,
-        ReadOnly
+        Cashier,
+        MeterReader,
+        Support,
+        Auditor,
+        Guest
     }
 } 
