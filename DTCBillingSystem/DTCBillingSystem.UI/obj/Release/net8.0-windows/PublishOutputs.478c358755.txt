@@ -1,7 +1,6 @@
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\DTCBillingSystem.UI.exe
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\appsettings.json
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\DTCBillingSystem.UI.dll
-I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\DTCBillingSystem.UI.deps.json
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\DTCBillingSystem.UI.runtimeconfig.json
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\DTCBillingSystem.UI.pdb
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\Azure.Core.dll
@@ -50,9 +49,13 @@ I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\n
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\SQLitePCLRaw.batteries_v2.dll
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\SQLitePCLRaw.core.dll
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\SQLitePCLRaw.provider.e_sqlite3.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\System.Diagnostics.DiagnosticSource.dll
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\System.IdentityModel.Tokens.Jwt.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\System.IO.Pipelines.dll
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\System.Memory.Data.dll
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\System.Runtime.Caching.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\System.Text.Encodings.Web.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\System.Text.Json.dll
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\runtimes\unix\lib\net6.0\Microsoft.Data.SqlClient.dll
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\runtimes\win\lib\net6.0\Microsoft.Data.SqlClient.dll
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\runtimes\win-arm\native\Microsoft.Data.SqlClient.SNI.dll
@@ -66,6 +69,7 @@ I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\n
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\runtimes\linux-mips64\native\libe_sqlite3.so
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\runtimes\linux-musl-arm\native\libe_sqlite3.so
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\runtimes\linux-musl-arm64\native\libe_sqlite3.so
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\runtimes\linux-musl-s390x\native\libe_sqlite3.so
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\runtimes\linux-musl-x64\native\libe_sqlite3.so
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\runtimes\linux-ppc64le\native\libe_sqlite3.so
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\runtimes\linux-s390x\native\libe_sqlite3.so
@@ -80,9 +84,11 @@ I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\n
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\runtimes\win-x64\native\e_sqlite3.dll
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\runtimes\win-x86\native\e_sqlite3.dll
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\runtimes\win\lib\net6.0\System.Runtime.Caching.dll
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\DTCBillingSystem.Core.dll
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\DTCBillingSystem.Infrastructure.dll
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\DTCBillingSystem.Shared.dll
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\DTCBillingSystem.Core.pdb
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\DTCBillingSystem.Infrastructure.pdb
 I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\DTCBillingSystem.Shared.pdb
+I:\Aethon - Projects\-dtf\DTC\DTCBillingSystem\DTCBillingSystem.UI\bin\Release\net8.0-windows\publish\DTCBillingSystem.UI.deps.json

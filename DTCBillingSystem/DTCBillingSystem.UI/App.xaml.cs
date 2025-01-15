@@ -1,15 +1,15 @@
 ﻿using System;
+using System.IO;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using DTCBillingSystem.Core.Interfaces;
-using DTCBillingSystem.Core.Services;
-using DTCBillingSystem.Infrastructure.Services;
 using DTCBillingSystem.Infrastructure.Data;
 using DTCBillingSystem.Infrastructure.Repositories;
+using DTCBillingSystem.Infrastructure.Services;
 using DTCBillingSystem.UI.Services;
-using DTCBillingSystem.UI.Views;
 using DTCBillingSystem.UI.ViewModels;
-using Microsoft.EntityFrameworkCore;
+using DTCBillingSystem.UI.Views;
 
 namespace DTCBillingSystem.UI
 {
@@ -21,98 +21,99 @@ namespace DTCBillingSystem.UI
         {
             try
             {
+                base.OnStartup(e);
+
                 var services = new ServiceCollection();
-
-                // Register DbContext
-                services.AddDbContext<ApplicationDbContext>(options =>
-                    options.UseSqlite("Data Source=dtcbilling.db"));
-
-                // Register DbContext as base type
-                services.AddScoped<DbContext>(provider => 
-                    provider.GetRequiredService<ApplicationDbContext>());
-
-                // Configure TokenService
-                services.AddScoped<ITokenService>(provider => new TokenService(
-                    secretKey: "your-256-bit-secret-key-here-make-it-long-and-secure-12345",
-                    issuer: "DTCBillingSystem",
-                    audience: "DTCBillingSystem.UI",
-                    expirationMinutes: 60
-                ));
-
-                // Register repositories
-                services.AddScoped<ICustomerRepository, CustomerRepository>();
-                services.AddScoped<IMonthlyBillRepository, MonthlyBillRepository>();
-                services.AddScoped<IPaymentRecordRepository, PaymentRecordRepository>();
-                services.AddScoped<IMeterReadingRepository, MeterReadingRepository>();
-                services.AddScoped<IBackupInfoRepository, BackupInfoRepository>();
-                services.AddScoped<IBackupScheduleRepository, BackupScheduleRepository>();
-                services.AddScoped<IUserRepository, UserRepository>();
-                services.AddScoped<IAuditLogRepository, AuditLogRepository>();
-                services.AddScoped<IBillingRateRepository, BillingRateRepository>();
-                services.AddScoped<IPrintJobRepository, PrintJobRepository>();
-
-                // Register UnitOfWork
-                services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-                // Register core services
-                services.AddScoped<IPasswordHasher, PasswordHasher>();
-                services.AddSingleton<ICurrentUserService, CurrentUserService>();
-                services.AddScoped<IUserService, UserService>();
-                services.AddScoped<IAuditService, AuditService>();
-                services.AddScoped<IAuthenticationService, AuthenticationService>();
-                services.AddScoped<ICustomerService, CustomerService>();
-                services.AddScoped<IBillingService, BillingService>();
-                services.AddScoped<IPaymentService, PaymentService>();
-                services.AddScoped<IMeterReadingService, MeterReadingService>();
-                services.AddScoped<IPrintService, PrintService>();
-                services.AddScoped<IBackupService, BackupService>();
-
-                // Register UI services
-                services.AddScoped<INavigationService, NavigationService>();
-                services.AddScoped<IViewLocator, ViewLocator>();
-                services.AddScoped<IDialogService, DialogService>();
-                services.AddScoped<IWindowFactory, WindowFactory>();
-
-                // Register ViewModels
-                services.AddTransient<LoginViewModel>();
-                services.AddTransient<MainViewModel>();
-                services.AddTransient<CustomersViewModel>();
-                services.AddTransient<CustomerDialogViewModel>();
-                services.AddTransient<CustomerBillsViewModel>();
-
+                ConfigureServices(services);
                 _serviceProvider = services.BuildServiceProvider();
 
                 // Initialize database
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                    dbContext.Database.Migrate();
+                    dbContext.Database.EnsureCreated();
                 }
 
-                // Show login window first
+                // Create and show the login window
                 var viewLocator = _serviceProvider.GetRequiredService<IViewLocator>();
                 var loginWindow = viewLocator.CreateLoginWindow();
-                loginWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
-                loginWindow.Show();
+                
+                if (loginWindow == null)
+                {
+                    MessageBox.Show("Failed to create login window.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Shutdown(-1);
+                    return;
+                }
 
-                base.OnStartup(e);
+                MainWindow = loginWindow;
+                MainWindow.Show();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Application failed to start: {ex.Message}\n\nDetails: {ex.StackTrace}", 
-                    "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                Current.Shutdown();
+                MessageBox.Show($"Application failed to start: {ex.Message}\n\nDetails: {ex}", 
+                              "Critical Error", 
+                              MessageBoxButton.OK, 
+                              MessageBoxImage.Error);
+                Shutdown(-1);
             }
+        }
+
+        private void ConfigureServices(IServiceCollection services)
+        {
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var dbPath = Path.Combine(baseDir, "dtcbilling.db");
+
+            services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlite($"Data Source={dbPath}"));
+
+            // Register repositories
+            services.AddScoped<ICustomerRepository, CustomerRepository>();
+            services.AddScoped<IMonthlyBillRepository, MonthlyBillRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IPaymentRecordRepository, PaymentRecordRepository>();
+            services.AddScoped<IMeterReadingRepository, MeterReadingRepository>();
+            services.AddScoped<IBackupInfoRepository, BackupInfoRepository>();
+            services.AddScoped<IBackupScheduleRepository, BackupScheduleRepository>();
+            services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+            services.AddScoped<IBillingRateRepository, BillingRateRepository>();
+            services.AddScoped<IPrintJobRepository, PrintJobRepository>();
+
+            // Register services
+            services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<INavigationService, NavigationService>();
+            services.AddScoped<IAuditService, AuditService>();
+            services.AddScoped<IBillingService, BillingService>();
+            services.AddScoped<IViewLocator, ViewLocator>();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ICustomerService, CustomerService>();
+            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IMeterReadingService, MeterReadingService>();
+            services.AddScoped<IPrintService, PrintService>();
+            services.AddScoped<IBackupService, BackupService>();
+
+            // Register view models
+            services.AddTransient<LoginViewModel>();
+            services.AddTransient<MainViewModel>();
+            services.AddTransient<CustomersViewModel>();
+            services.AddTransient<CustomerDialogViewModel>();
+            services.AddTransient<CustomerBillsViewModel>();
+            services.AddTransient<BillGenerationViewModel>();
+            services.AddTransient<DashboardViewModel>();
+            services.AddTransient<ReportViewModel>();
+            services.AddTransient<SettingsViewModel>();
+            services.AddTransient<PaymentViewModel>();
+            services.AddTransient<BillViewModel>();
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
+            base.OnExit(e);
+            
             if (_serviceProvider is IDisposable disposable)
             {
                 disposable.Dispose();
             }
-
-            base.OnExit(e);
         }
     }
 }
