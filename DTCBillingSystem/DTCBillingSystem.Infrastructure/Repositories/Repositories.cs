@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models.Enums;
 using DTCBillingSystem.Core.Models.Entities;
+using DTCBillingSystem.Core.Models;
 
 namespace DTCBillingSystem.Infrastructure.Repositories
 {
@@ -871,7 +872,7 @@ namespace DTCBillingSystem.Infrastructure.Repositories
             return await _dbSet.CountAsync(entityPredicate);
         }
 
-        public async Task<IEnumerable<Core.Models.Entities.NotificationMessage>> GetPendingNotificationsAsync()
+        public async Task<IEnumerable<Core.Models.NotificationMessage>> GetPendingNotificationsAsync()
         {
             var entities = await _dbSet
                 .Where(n => n.Status == "Pending")
@@ -880,7 +881,7 @@ namespace DTCBillingSystem.Infrastructure.Repositories
             return entities.Select(MapToModel);
         }
 
-        public async Task<IEnumerable<Core.Models.Entities.NotificationMessage>> GetFailedNotificationsAsync()
+        public async Task<IEnumerable<Core.Models.NotificationMessage>> GetFailedNotificationsAsync()
         {
             var entities = await _dbSet
                 .Where(n => n.Status == "Failed")
@@ -889,7 +890,7 @@ namespace DTCBillingSystem.Infrastructure.Repositories
             return entities.Select(MapToModel);
         }
 
-        public async Task<IEnumerable<Core.Models.Entities.NotificationMessage>> GetNotificationsByRecipientAsync(string recipient)
+        public async Task<IEnumerable<Core.Models.NotificationMessage>> GetNotificationsByRecipientAsync(string recipient)
         {
             var entities = await _dbSet
                 .Where(n => n.RecipientEmail == recipient)
@@ -898,9 +899,9 @@ namespace DTCBillingSystem.Infrastructure.Repositories
             return entities.Select(MapToModel);
         }
 
-        private static Core.Models.Entities.NotificationMessage MapToModel(Core.Models.Entities.NotificationMessage entity)
+        private static Core.Models.NotificationMessage MapToModel(Core.Models.Entities.NotificationMessage entity)
         {
-            return new Core.Models.Entities.NotificationMessage
+            return new Core.Models.NotificationMessage
             {
                 Id = entity.Id,
                 Subject = entity.Subject,
