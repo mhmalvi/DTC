@@ -376,76 +376,32 @@ namespace DTCBillingSystem.Infrastructure.Repositories
         }
     }
 
-    public class UserRepository : Repository<User>, IUserRepository
+    public class UserRepository : Repository<Core.Models.Entities.User>, IUserRepository
     {
         public UserRepository(DbContext context) : base(context) { }
 
-        public override async Task<User?> GetByIdAsync(int id)
+        public override async Task<Core.Models.Entities.User?> GetByIdAsync(int id)
         {
-            return await _dbSet.FindAsync(id);
+            var entity = await _dbSet.FindAsync(id);
+            return entity != null ? MapToModel(entity) : null;
         }
 
-        public override async Task<IEnumerable<User>> GetAllAsync()
+        public override async Task<IEnumerable<Core.Models.Entities.User>> GetAllAsync()
         {
-            var query = _dbSet.AsQueryable();
-            return await query.ToListAsync();
+            var entities = await _dbSet.ToListAsync();
+            return entities.Select(MapToModel);
         }
 
-        public override async Task<IEnumerable<User>> FindAsync(Expression<Func<User, bool>> predicate)
+        public async Task<Core.Models.Entities.User?> GetByUsernameAsync(string username)
         {
-            return await _dbSet.Where(predicate).ToListAsync();
+            var entity = await _dbSet.FirstOrDefaultAsync(u => u.Username == username);
+            return entity != null ? MapToModel(entity) : null;
         }
 
-        public override async Task AddAsync(User entity)
+        public async Task<Core.Models.Entities.User?> GetByEmailAsync(string email)
         {
-            await _dbSet.AddAsync(entity);
-        }
-
-        public override async Task AddRangeAsync(IEnumerable<User> entities)
-        {
-            await _dbSet.AddRangeAsync(entities);
-        }
-
-        public override async Task UpdateAsync(User entity)
-        {
-            _context.Entry(entity).State = EntityState.Modified;
-            await Task.CompletedTask;
-        }
-
-        public override async Task RemoveAsync(User entity)
-        {
-            _dbSet.Remove(entity);
-            await Task.CompletedTask;
-        }
-
-        public override async Task RemoveRangeAsync(IEnumerable<User> entities)
-        {
-            _dbSet.RemoveRange(entities);
-            await Task.CompletedTask;
-        }
-
-        public override async Task<bool> AnyAsync(Expression<Func<User, bool>> predicate)
-        {
-            return await _dbSet.AnyAsync(predicate);
-        }
-
-        public override async Task<int> CountAsync(Expression<Func<User, bool>>? predicate = null)
-        {
-            if (predicate == null)
-                return await _dbSet.CountAsync();
-            return await _dbSet.CountAsync(predicate);
-        }
-
-        public async Task<User?> GetByUsernameAsync(string username)
-        {
-            return await _dbSet
-                .FirstOrDefaultAsync(u => u.Username == username);
-        }
-
-        public async Task<User?> GetByEmailAsync(string email)
-        {
-            return await _dbSet
-                .FirstOrDefaultAsync(u => u.Email == email);
+            var entity = await _dbSet.FirstOrDefaultAsync(u => u.Email == email);
+            return entity != null ? MapToModel(entity) : null;
         }
 
         public async Task<bool> IsUsernameUniqueAsync(string username)
@@ -456,6 +412,72 @@ namespace DTCBillingSystem.Infrastructure.Repositories
         public async Task<bool> IsEmailUniqueAsync(string email)
         {
             return !await _dbSet.AnyAsync(u => u.Email == email);
+        }
+
+        public override async Task<IEnumerable<Core.Models.Entities.User>> FindAsync(Expression<Func<Core.Models.Entities.User, bool>> predicate)
+        {
+            var entities = await _dbSet.Where(predicate).ToListAsync();
+            return entities.Select(MapToModel);
+        }
+
+        public override async Task AddAsync(Core.Models.Entities.User entity)
+        {
+            await _dbSet.AddAsync(entity);
+        }
+
+        public override async Task AddRangeAsync(IEnumerable<Core.Models.Entities.User> entities)
+        {
+            await _dbSet.AddRangeAsync(entities);
+        }
+
+        public override async Task UpdateAsync(Core.Models.Entities.User entity)
+        {
+            var existingEntity = await _dbSet.FindAsync(entity.Id);
+            if (existingEntity != null)
+            {
+                _context.Entry(existingEntity).CurrentValues.SetValues(entity);
+            }
+        }
+
+        public override async Task RemoveAsync(Core.Models.Entities.User entity)
+        {
+            _dbSet.Remove(entity);
+            await Task.CompletedTask;
+        }
+
+        public override async Task RemoveRangeAsync(IEnumerable<Core.Models.Entities.User> entities)
+        {
+            _dbSet.RemoveRange(entities);
+            await Task.CompletedTask;
+        }
+
+        public override async Task<bool> AnyAsync(Expression<Func<Core.Models.Entities.User, bool>> predicate)
+        {
+            return await _dbSet.AnyAsync(predicate);
+        }
+
+        public override async Task<int> CountAsync(Expression<Func<Core.Models.Entities.User, bool>>? predicate = null)
+        {
+            if (predicate == null)
+                return await _dbSet.CountAsync();
+            return await _dbSet.CountAsync(predicate);
+        }
+
+        private static Core.Models.Entities.User MapToModel(Core.Models.Entities.User entity)
+        {
+            return new Core.Models.Entities.User
+            {
+                Id = entity.Id,
+                Username = entity.Username,
+                Email = entity.Email,
+                PasswordHash = entity.PasswordHash,
+                Salt = entity.Salt,
+                Role = entity.Role,
+                IsActive = entity.IsActive,
+                LastLoginAt = entity.LastLoginAt,
+                CreatedAt = entity.CreatedAt,
+                UpdatedAt = entity.UpdatedAt
+            };
         }
     }
 
@@ -481,45 +503,170 @@ namespace DTCBillingSystem.Infrastructure.Repositories
         }
     }
 
-    public class ScheduledNotificationRepository : Repository<ScheduledNotification>, IScheduledNotificationRepository
+    public class ScheduledNotificationRepository : Repository<Core.Models.Entities.ScheduledNotification>, IScheduledNotificationRepository
     {
         public ScheduledNotificationRepository(DbContext context) : base(context) { }
 
-        public async Task<IEnumerable<ScheduledNotification>> GetPendingNotificationsAsync()
+        public override async Task<Core.Models.Entities.ScheduledNotification?> GetByIdAsync(int id)
         {
-            return await _dbSet
-                .Where(n => n.Status == NotificationStatus.Pending)
+            var entity = await _dbSet.FindAsync(id);
+            return entity != null ? MapToModel(entity) : null;
+        }
+
+        public override async Task<IEnumerable<Core.Models.Entities.ScheduledNotification>> GetAllAsync()
+        {
+            var entities = await _dbSet.ToListAsync();
+            return entities.Select(MapToModel);
+        }
+
+        public override async Task<IEnumerable<Core.Models.Entities.ScheduledNotification>> FindAsync(Expression<Func<Core.Models.Entities.ScheduledNotification, bool>> predicate)
+        {
+            var entityPredicate = ConvertPredicate(predicate);
+            var entities = await _dbSet.Where(entityPredicate).ToListAsync();
+            return entities.Select(MapToModel);
+        }
+
+        public override async Task AddAsync(Core.Models.Entities.ScheduledNotification model)
+        {
+            var entity = MapToEntity(model);
+            await _dbSet.AddAsync(entity);
+        }
+
+        public override async Task AddRangeAsync(IEnumerable<Core.Models.Entities.ScheduledNotification> models)
+        {
+            var entities = models.Select(MapToEntity);
+            await _dbSet.AddRangeAsync(entities);
+        }
+
+        public override async Task UpdateAsync(Core.Models.Entities.ScheduledNotification model)
+        {
+            var entity = await _dbSet.FindAsync(model.Id);
+            if (entity != null)
+            {
+                UpdateEntity(entity, model);
+                _context.Entry(entity).State = EntityState.Modified;
+            }
+        }
+
+        public override async Task RemoveAsync(Core.Models.Entities.ScheduledNotification model)
+        {
+            var entity = await _dbSet.FindAsync(model.Id);
+            if (entity != null)
+            {
+                _dbSet.Remove(entity);
+            }
+            await Task.CompletedTask;
+        }
+
+        public override async Task RemoveRangeAsync(IEnumerable<Core.Models.Entities.ScheduledNotification> models)
+        {
+            var ids = models.Select(m => m.Id);
+            var entities = await _dbSet.Where(e => ids.Contains(e.Id)).ToListAsync();
+            _dbSet.RemoveRange(entities);
+            await Task.CompletedTask;
+        }
+
+        public override async Task<bool> AnyAsync(Expression<Func<Core.Models.Entities.ScheduledNotification, bool>> predicate)
+        {
+            var entityPredicate = ConvertPredicate(predicate);
+            return await _dbSet.AnyAsync(entityPredicate);
+        }
+
+        public override async Task<int> CountAsync(Expression<Func<Core.Models.Entities.ScheduledNotification, bool>>? predicate = null)
+        {
+            if (predicate == null)
+                return await _dbSet.CountAsync();
+            var entityPredicate = ConvertPredicate(predicate);
+            return await _dbSet.CountAsync(entityPredicate);
+        }
+
+        public async Task<IEnumerable<Core.Models.Entities.ScheduledNotification>> GetPendingNotificationsAsync()
+        {
+            var entities = await _dbSet
+                .Where(n => n.Status == "Pending")
                 .OrderBy(n => n.ScheduledTime)
                 .ToListAsync();
+            return entities.Select(MapToModel);
         }
 
-        public async Task<IEnumerable<ScheduledNotification>> GetFailedNotificationsAsync()
+        public async Task<IEnumerable<Core.Models.Entities.ScheduledNotification>> GetFailedNotificationsAsync()
         {
-            return await _dbSet
-                .Where(n => n.Status == NotificationStatus.Failed)
-                .OrderByDescending(n => n.LastRetryTime ?? n.ScheduledTime)
+            var entities = await _dbSet
+                .Where(n => n.Status == "Failed")
+                .OrderByDescending(n => n.LastAttemptTime)
                 .ToListAsync();
+            return entities.Select(MapToModel);
         }
 
-        public async Task<IEnumerable<ScheduledNotification>> GetNotificationsDueByAsync(DateTime dueTime)
+        public async Task<IEnumerable<Core.Models.Entities.ScheduledNotification>> GetNotificationsDueByAsync(DateTime dueTime)
         {
-            return await _dbSet
-                .Where(n => n.Status == NotificationStatus.Pending && n.ScheduledTime <= dueTime)
+            var entities = await _dbSet
+                .Where(n => n.Status == "Pending" && n.ScheduledTime <= dueTime)
                 .OrderBy(n => n.ScheduledTime)
                 .ToListAsync();
+            return entities.Select(MapToModel);
         }
 
-        public async Task<IEnumerable<ScheduledNotification>> GetNotificationsByStatusAsync(string status)
+        public async Task<IEnumerable<Core.Models.Entities.ScheduledNotification>> GetNotificationsByStatusAsync(string status)
         {
-            return await _dbSet
-                .Where(n => n.Status.ToString() == status)
-                .OrderByDescending(n => n.ScheduledTime)
+            var entities = await _dbSet
+                .Where(n => n.Status == status)
+                .OrderByDescending(n => n.LastAttemptTime)
                 .ToListAsync();
+            return entities.Select(MapToModel);
         }
 
         public async Task<int> GetPendingNotificationsCountAsync()
         {
-            return await _dbSet.CountAsync(n => n.Status == NotificationStatus.Pending);
+            return await _dbSet.CountAsync(n => n.Status == "Pending");
+        }
+
+        private static Core.Models.Entities.ScheduledNotification MapToModel(Core.Models.Entities.ScheduledNotification entity)
+        {
+            return new Core.Models.Entities.ScheduledNotification
+            {
+                Id = entity.Id,
+                Message = entity.Message,
+                ScheduledTime = entity.ScheduledTime,
+                Status = entity.Status,
+                LastAttemptTime = entity.LastAttemptTime,
+                RetryCount = entity.RetryCount,
+                CreatedAt = entity.CreatedAt,
+                UpdatedAt = entity.UpdatedAt
+            };
+        }
+
+        private static Core.Models.Entities.ScheduledNotification MapToEntity(Core.Models.Entities.ScheduledNotification model)
+        {
+            return new Core.Models.Entities.ScheduledNotification
+            {
+                Id = model.Id,
+                Message = model.Message,
+                ScheduledTime = model.ScheduledTime,
+                Status = model.Status,
+                LastAttemptTime = model.LastAttemptTime,
+                RetryCount = model.RetryCount,
+                CreatedAt = model.CreatedAt,
+                UpdatedAt = model.UpdatedAt
+            };
+        }
+
+        private static void UpdateEntity(Core.Models.Entities.ScheduledNotification entity, Core.Models.Entities.ScheduledNotification model)
+        {
+            entity.Message = model.Message;
+            entity.ScheduledTime = model.ScheduledTime;
+            entity.Status = model.Status;
+            entity.LastAttemptTime = model.LastAttemptTime;
+            entity.RetryCount = model.RetryCount;
+            entity.UpdatedAt = DateTime.UtcNow;
+        }
+
+        private static Expression<Func<Core.Models.Entities.ScheduledNotification, bool>> ConvertPredicate(Expression<Func<Core.Models.Entities.ScheduledNotification, bool>> predicate)
+        {
+            var parameter = Expression.Parameter(typeof(Core.Models.Entities.ScheduledNotification), "e");
+            var visitor = new PredicateConverter(predicate.Parameters[0], parameter);
+            var convertedBody = visitor.Visit(predicate.Body);
+            return Expression.Lambda<Func<Core.Models.Entities.ScheduledNotification, bool>>(convertedBody, parameter);
         }
     }
 
@@ -647,89 +794,171 @@ namespace DTCBillingSystem.Infrastructure.Repositories
         }
     }
 
-    public class NotificationMessageRepository : Repository<NotificationMessage>, INotificationRepository
+    public class NotificationMessageRepository : Repository<Core.Models.Entities.NotificationMessage>, INotificationRepository
     {
         public NotificationMessageRepository(DbContext context) : base(context) { }
 
-        // INotificationRepository specific methods
-        public async Task<IEnumerable<NotificationMessage>> GetPendingNotificationsAsync()
+        public override async Task<Core.Models.Entities.NotificationMessage?> GetByIdAsync(int id)
         {
-            return await _dbSet
-                .Where(n => n.Status == NotificationStatus.Pending)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
+            var entity = await _dbSet.FindAsync(id);
+            return entity != null ? MapToModel(entity) : null;
         }
 
-        public async Task<IEnumerable<NotificationMessage>> GetFailedNotificationsAsync()
+        public override async Task<IEnumerable<Core.Models.Entities.NotificationMessage>> GetAllAsync()
         {
-            return await _dbSet
-                .Where(n => n.Status == NotificationStatus.Failed)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
+            var entities = await _dbSet.ToListAsync();
+            return entities.Select(MapToModel);
         }
 
-        public async Task<IEnumerable<NotificationMessage>> GetNotificationsByRecipientAsync(string recipient)
+        public override async Task<IEnumerable<Core.Models.Entities.NotificationMessage>> FindAsync(Expression<Func<Core.Models.Entities.NotificationMessage, bool>> predicate)
         {
-            return await _dbSet
-                .Where(n => n.RecipientEmail == recipient || n.RecipientPhoneNumber == recipient)
-                .OrderByDescending(n => n.CreatedAt)
-                .ToListAsync();
+            var entityPredicate = ConvertPredicate(predicate);
+            var entities = await _dbSet.Where(entityPredicate).ToListAsync();
+            return entities.Select(MapToModel);
         }
 
-        // Base IRepository<NotificationMessage> methods
-        public override async Task<NotificationMessage?> GetByIdAsync(int id)
+        public override async Task AddAsync(Core.Models.Entities.NotificationMessage model)
         {
-            return await _dbSet.FindAsync(id);
-        }
-
-        public override async Task<IEnumerable<NotificationMessage>> GetAllAsync()
-        {
-            return await _dbSet.ToListAsync();
-        }
-
-        public override async Task<IEnumerable<NotificationMessage>> FindAsync(Expression<Func<NotificationMessage, bool>> predicate)
-        {
-            return await _dbSet.Where(predicate).ToListAsync();
-        }
-
-        public override async Task AddAsync(NotificationMessage entity)
-        {
+            var entity = MapToEntity(model);
             await _dbSet.AddAsync(entity);
         }
 
-        public override async Task AddRangeAsync(IEnumerable<NotificationMessage> entities)
+        public override async Task AddRangeAsync(IEnumerable<Core.Models.Entities.NotificationMessage> models)
         {
+            var entities = models.Select(MapToEntity);
             await _dbSet.AddRangeAsync(entities);
         }
 
-        public override async Task UpdateAsync(NotificationMessage entity)
+        public override async Task UpdateAsync(Core.Models.Entities.NotificationMessage model)
         {
-            _context.Entry(entity).State = EntityState.Modified;
+            var entity = await _dbSet.FindAsync(model.Id);
+            if (entity != null)
+            {
+                UpdateEntity(entity, model);
+                _context.Entry(entity).State = EntityState.Modified;
+            }
+        }
+
+        public override async Task RemoveAsync(Core.Models.Entities.NotificationMessage model)
+        {
+            var entity = await _dbSet.FindAsync(model.Id);
+            if (entity != null)
+            {
+                _dbSet.Remove(entity);
+            }
             await Task.CompletedTask;
         }
 
-        public override async Task RemoveAsync(NotificationMessage entity)
+        public override async Task RemoveRangeAsync(IEnumerable<Core.Models.Entities.NotificationMessage> models)
         {
-            _dbSet.Remove(entity);
-            await Task.CompletedTask;
-        }
-
-        public override async Task RemoveRangeAsync(IEnumerable<NotificationMessage> entities)
-        {
+            var ids = models.Select(m => m.Id);
+            var entities = await _dbSet.Where(e => ids.Contains(e.Id)).ToListAsync();
             _dbSet.RemoveRange(entities);
             await Task.CompletedTask;
         }
 
-        public override async Task<bool> AnyAsync(Expression<Func<NotificationMessage, bool>> predicate)
+        public override async Task<bool> AnyAsync(Expression<Func<Core.Models.Entities.NotificationMessage, bool>> predicate)
         {
-            return await _dbSet.AnyAsync(predicate);
+            var entityPredicate = ConvertPredicate(predicate);
+            return await _dbSet.AnyAsync(entityPredicate);
         }
 
-        public override async Task<int> CountAsync(Expression<Func<NotificationMessage, bool>>? predicate = null)
+        public override async Task<int> CountAsync(Expression<Func<Core.Models.Entities.NotificationMessage, bool>>? predicate = null)
         {
             if (predicate == null)
                 return await _dbSet.CountAsync();
-            return await _dbSet.CountAsync(predicate);
+            var entityPredicate = ConvertPredicate(predicate);
+            return await _dbSet.CountAsync(entityPredicate);
+        }
+
+        public async Task<IEnumerable<Core.Models.Entities.NotificationMessage>> GetPendingNotificationsAsync()
+        {
+            var entities = await _dbSet
+                .Where(n => n.Status == "Pending")
+                .OrderBy(n => n.CreatedAt)
+                .ToListAsync();
+            return entities.Select(MapToModel);
+        }
+
+        public async Task<IEnumerable<Core.Models.Entities.NotificationMessage>> GetFailedNotificationsAsync()
+        {
+            var entities = await _dbSet
+                .Where(n => n.Status == "Failed")
+                .OrderByDescending(n => n.UpdatedAt)
+                .ToListAsync();
+            return entities.Select(MapToModel);
+        }
+
+        public async Task<IEnumerable<Core.Models.Entities.NotificationMessage>> GetNotificationsByRecipientAsync(string recipient)
+        {
+            var entities = await _dbSet
+                .Where(n => n.RecipientEmail == recipient)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+            return entities.Select(MapToModel);
+        }
+
+        private static Core.Models.Entities.NotificationMessage MapToModel(Core.Models.Entities.NotificationMessage entity)
+        {
+            return new Core.Models.Entities.NotificationMessage
+            {
+                Id = entity.Id,
+                Subject = entity.Subject,
+                Body = entity.Body,
+                RecipientEmail = entity.RecipientEmail,
+                Status = entity.Status,
+                Type = entity.Type,
+                IsHtml = entity.IsHtml,
+                CC = entity.CC,
+                BCC = entity.BCC,
+                CreatedAt = entity.CreatedAt,
+                UpdatedAt = entity.UpdatedAt,
+                SentAt = entity.SentAt,
+                ErrorMessage = entity.ErrorMessage
+            };
+        }
+
+        private static Core.Models.Entities.NotificationMessage MapToEntity(Core.Models.Entities.NotificationMessage model)
+        {
+            return new Core.Models.Entities.NotificationMessage
+            {
+                Id = model.Id,
+                Subject = model.Subject,
+                Body = model.Body,
+                RecipientEmail = model.RecipientEmail,
+                Status = model.Status,
+                Type = model.Type,
+                IsHtml = model.IsHtml,
+                CC = model.CC,
+                BCC = model.BCC,
+                CreatedAt = model.CreatedAt,
+                UpdatedAt = model.UpdatedAt,
+                SentAt = model.SentAt,
+                ErrorMessage = model.ErrorMessage
+            };
+        }
+
+        private static void UpdateEntity(Core.Models.Entities.NotificationMessage entity, Core.Models.Entities.NotificationMessage model)
+        {
+            entity.Subject = model.Subject;
+            entity.Body = model.Body;
+            entity.RecipientEmail = model.RecipientEmail;
+            entity.Status = model.Status;
+            entity.Type = model.Type;
+            entity.IsHtml = model.IsHtml;
+            entity.CC = model.CC;
+            entity.BCC = model.BCC;
+            entity.UpdatedAt = DateTime.UtcNow;
+            entity.SentAt = model.SentAt;
+            entity.ErrorMessage = model.ErrorMessage;
+        }
+
+        private static Expression<Func<Core.Models.Entities.NotificationMessage, bool>> ConvertPredicate(Expression<Func<Core.Models.Entities.NotificationMessage, bool>> predicate)
+        {
+            var parameter = Expression.Parameter(typeof(Core.Models.Entities.NotificationMessage), "e");
+            var visitor = new PredicateConverter(predicate.Parameters[0], parameter);
+            var convertedBody = visitor.Visit(predicate.Body);
+            return Expression.Lambda<Func<Core.Models.Entities.NotificationMessage, bool>>(convertedBody, parameter);
         }
     }
 
@@ -767,174 +996,226 @@ namespace DTCBillingSystem.Infrastructure.Repositories
         }
     }
 
-    public class BackupInfoRepository : Repository<BackupInfo>, IBackupInfoRepository
+    public class BackupInfoRepository : Repository<Core.Models.Entities.BackupInfo>, IBackupInfoRepository
     {
         public BackupInfoRepository(DbContext context) : base(context) { }
 
-        public override async Task<BackupInfo?> GetByIdAsync(int id)
+        public override async Task<Core.Models.Entities.BackupInfo?> GetByIdAsync(int id)
         {
-            return await _dbSet.FindAsync(id);
+            var entity = await _dbSet.FindAsync(id);
+            return entity != null ? MapToModel(entity) : null;
         }
 
-        public override async Task<IEnumerable<BackupInfo>> GetAllAsync()
+        public override async Task<IEnumerable<Core.Models.Entities.BackupInfo>> GetAllAsync()
         {
-            return await _dbSet.ToListAsync();
+            var entities = await _dbSet.ToListAsync();
+            return entities.Select(MapToModel);
         }
 
-        public override async Task<IEnumerable<BackupInfo>> FindAsync(Expression<Func<BackupInfo, bool>> predicate)
+        public override async Task<IEnumerable<Core.Models.Entities.BackupInfo>> FindAsync(Expression<Func<Core.Models.Entities.BackupInfo, bool>> predicate)
         {
-            return await _dbSet.Where(predicate).ToListAsync();
+            var entities = await _dbSet.Where(predicate).ToListAsync();
+            return entities.Select(MapToModel);
         }
 
-        public override async Task AddAsync(BackupInfo entity)
+        public override async Task AddAsync(Core.Models.Entities.BackupInfo entity)
         {
             await _dbSet.AddAsync(entity);
         }
 
-        public override async Task AddRangeAsync(IEnumerable<BackupInfo> entities)
+        public override async Task AddRangeAsync(IEnumerable<Core.Models.Entities.BackupInfo> entities)
         {
             await _dbSet.AddRangeAsync(entities);
         }
 
-        public override async Task UpdateAsync(BackupInfo entity)
+        public override async Task UpdateAsync(Core.Models.Entities.BackupInfo entity)
         {
-            _context.Entry(entity).State = EntityState.Modified;
-            await Task.CompletedTask;
+            var existingEntity = await _dbSet.FindAsync(entity.Id);
+            if (existingEntity != null)
+            {
+                _context.Entry(existingEntity).CurrentValues.SetValues(entity);
+                existingEntity.UpdatedAt = DateTime.UtcNow;
+            }
         }
 
-        public override async Task RemoveAsync(BackupInfo entity)
+        public override async Task RemoveAsync(Core.Models.Entities.BackupInfo entity)
         {
             _dbSet.Remove(entity);
             await Task.CompletedTask;
         }
 
-        public override async Task RemoveRangeAsync(IEnumerable<BackupInfo> entities)
+        public override async Task RemoveRangeAsync(IEnumerable<Core.Models.Entities.BackupInfo> entities)
         {
             _dbSet.RemoveRange(entities);
             await Task.CompletedTask;
         }
 
-        public override async Task<bool> AnyAsync(Expression<Func<BackupInfo, bool>> predicate)
+        public override async Task<bool> AnyAsync(Expression<Func<Core.Models.Entities.BackupInfo, bool>> predicate)
         {
             return await _dbSet.AnyAsync(predicate);
         }
 
-        public override async Task<int> CountAsync(Expression<Func<BackupInfo, bool>>? predicate = null)
+        public override async Task<int> CountAsync(Expression<Func<Core.Models.Entities.BackupInfo, bool>>? predicate = null)
         {
             if (predicate == null)
                 return await _dbSet.CountAsync();
             return await _dbSet.CountAsync(predicate);
         }
 
-        public async Task<IEnumerable<BackupInfo>> GetByStatusAsync(BackupStatus status)
+        public async Task<IEnumerable<Core.Models.Entities.BackupInfo>> GetByStatusAsync(BackupStatus status)
         {
-            return await _dbSet
+            var entities = await _dbSet
                 .Where(b => b.Status == status)
-                .OrderByDescending(b => b.StartTime)
+                .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
+            return entities.Select(MapToModel);
         }
 
-        public async Task<IEnumerable<BackupInfo>> GetLatestBackupsAsync(int count)
+        public async Task<IEnumerable<Core.Models.Entities.BackupInfo>> GetLatestBackupsAsync(int count)
         {
-            return await _dbSet
-                .OrderByDescending(b => b.StartTime)
+            var entities = await _dbSet
+                .OrderByDescending(b => b.CreatedAt)
                 .Take(count)
                 .ToListAsync();
+            return entities.Select(MapToModel);
         }
 
-        public async Task<BackupInfo?> GetLatestSuccessfulBackupAsync()
+        public async Task<Core.Models.Entities.BackupInfo?> GetLatestSuccessfulBackupAsync()
         {
-            return await _dbSet
+            var entity = await _dbSet
                 .Where(b => b.Status == BackupStatus.Completed)
-                .OrderByDescending(b => b.StartTime)
+                .OrderByDescending(b => b.CreatedAt)
                 .FirstOrDefaultAsync();
+            return entity != null ? MapToModel(entity) : null;
+        }
+
+        private static Core.Models.Entities.BackupInfo MapToModel(Core.Models.Entities.BackupInfo entity)
+        {
+            return new Core.Models.Entities.BackupInfo
+            {
+                Id = entity.Id,
+                FileName = entity.FileName,
+                FilePath = entity.FilePath,
+                FileSize = entity.FileSize,
+                Status = entity.Status,
+                StartTime = entity.StartTime,
+                EndTime = entity.EndTime,
+                ErrorMessage = entity.ErrorMessage,
+                CreatedAt = entity.CreatedAt,
+                UpdatedAt = entity.UpdatedAt
+            };
         }
     }
 
-    public class BackupScheduleRepository : Repository<BackupSchedule>, IBackupScheduleRepository
+    public class BackupScheduleRepository : Repository<Core.Models.Entities.BackupSchedule>, IBackupScheduleRepository
     {
         public BackupScheduleRepository(DbContext context) : base(context) { }
 
-        public override async Task<BackupSchedule?> GetByIdAsync(int id)
+        public override async Task<Core.Models.Entities.BackupSchedule?> GetByIdAsync(int id)
         {
-            return await _dbSet.FindAsync(id);
+            var entity = await _dbSet.FindAsync(id);
+            return entity != null ? MapToModel(entity) : null;
         }
 
-        public override async Task<IEnumerable<BackupSchedule>> GetAllAsync()
+        public override async Task<IEnumerable<Core.Models.Entities.BackupSchedule>> GetAllAsync()
         {
-            return await _dbSet.ToListAsync();
+            var entities = await _dbSet.ToListAsync();
+            return entities.Select(MapToModel);
         }
 
-        public override async Task<IEnumerable<BackupSchedule>> FindAsync(Expression<Func<BackupSchedule, bool>> predicate)
+        public override async Task<IEnumerable<Core.Models.Entities.BackupSchedule>> FindAsync(Expression<Func<Core.Models.Entities.BackupSchedule, bool>> predicate)
         {
-            return await _dbSet.Where(predicate).ToListAsync();
+            var entities = await _dbSet.Where(predicate).ToListAsync();
+            return entities.Select(MapToModel);
         }
 
-        public override async Task AddAsync(BackupSchedule entity)
+        public override async Task AddAsync(Core.Models.Entities.BackupSchedule entity)
         {
             await _dbSet.AddAsync(entity);
         }
 
-        public override async Task AddRangeAsync(IEnumerable<BackupSchedule> entities)
+        public override async Task AddRangeAsync(IEnumerable<Core.Models.Entities.BackupSchedule> entities)
         {
             await _dbSet.AddRangeAsync(entities);
         }
 
-        public override async Task UpdateAsync(BackupSchedule entity)
+        public override async Task UpdateAsync(Core.Models.Entities.BackupSchedule entity)
         {
-            _context.Entry(entity).State = EntityState.Modified;
-            await Task.CompletedTask;
+            var existingEntity = await _dbSet.FindAsync(entity.Id);
+            if (existingEntity != null)
+            {
+                _context.Entry(existingEntity).CurrentValues.SetValues(entity);
+                existingEntity.UpdatedAt = DateTime.UtcNow;
+            }
         }
 
-        public override async Task RemoveAsync(BackupSchedule entity)
+        public override async Task RemoveAsync(Core.Models.Entities.BackupSchedule entity)
         {
             _dbSet.Remove(entity);
             await Task.CompletedTask;
         }
 
-        public override async Task RemoveRangeAsync(IEnumerable<BackupSchedule> entities)
+        public override async Task RemoveRangeAsync(IEnumerable<Core.Models.Entities.BackupSchedule> entities)
         {
             _dbSet.RemoveRange(entities);
             await Task.CompletedTask;
         }
 
-        public override async Task<bool> AnyAsync(Expression<Func<BackupSchedule, bool>> predicate)
+        public override async Task<bool> AnyAsync(Expression<Func<Core.Models.Entities.BackupSchedule, bool>> predicate)
         {
             return await _dbSet.AnyAsync(predicate);
         }
 
-        public override async Task<int> CountAsync(Expression<Func<BackupSchedule, bool>>? predicate = null)
+        public override async Task<int> CountAsync(Expression<Func<Core.Models.Entities.BackupSchedule, bool>>? predicate = null)
         {
             if (predicate == null)
                 return await _dbSet.CountAsync();
             return await _dbSet.CountAsync(predicate);
         }
 
-        public async Task<IEnumerable<BackupSchedule>> GetActiveSchedulesAsync()
+        public async Task<IEnumerable<Core.Models.Entities.BackupSchedule>> GetActiveSchedulesAsync()
         {
-            return await _dbSet
-                .Where(b => b.IsEnabled)
+            var entities = await _dbSet
+                .Where(b => b.IsActive)
                 .OrderBy(b => b.NextRunTime)
                 .ToListAsync();
+            return entities.Select(MapToModel);
         }
 
         public async Task<int> GetActiveSchedulesCountAsync()
         {
-            return await _dbSet.CountAsync(b => b.IsEnabled);
+            return await _dbSet.CountAsync(b => b.IsActive);
         }
 
-        public async Task<IEnumerable<BackupSchedule>> GetSchedulesDueByAsync(DateTime dueTime)
+        public async Task<IEnumerable<Core.Models.Entities.BackupSchedule>> GetSchedulesDueByAsync(DateTime dueTime)
         {
-            return await _dbSet
-                .Where(b => b.IsEnabled && b.NextRunTime <= dueTime)
+            var entities = await _dbSet
+                .Where(b => b.IsActive && b.NextRunTime <= dueTime)
                 .OrderBy(b => b.NextRunTime)
                 .ToListAsync();
+            return entities.Select(MapToModel);
         }
 
-        public async Task<BackupSchedule?> GetByNameAsync(string name)
+        public async Task<Core.Models.Entities.BackupSchedule?> GetByNameAsync(string name)
         {
-            return await _dbSet
-                .FirstOrDefaultAsync(b => b.Name == name);
+            var entity = await _dbSet.FirstOrDefaultAsync(b => b.Name == name);
+            return entity != null ? MapToModel(entity) : null;
+        }
+
+        private static Core.Models.Entities.BackupSchedule MapToModel(Core.Models.Entities.BackupSchedule entity)
+        {
+            return new Core.Models.Entities.BackupSchedule
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Description = entity.Description,
+                CronExpression = entity.CronExpression,
+                IsActive = entity.IsActive,
+                LastRunTime = entity.LastRunTime,
+                NextRunTime = entity.NextRunTime,
+                CreatedAt = entity.CreatedAt,
+                UpdatedAt = entity.UpdatedAt
+            };
         }
     }
 
