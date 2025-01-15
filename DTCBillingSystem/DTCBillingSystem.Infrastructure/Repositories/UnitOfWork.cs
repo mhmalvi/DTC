@@ -11,15 +11,18 @@ public class UnitOfWork : IUnitOfWork
     private bool _disposed;
 
     public ICustomerRepository Customers { get; }
-    public IBillingRateRepository BillingRates { get; }
+    public IRepository<BillingRate> BillingRates { get; }
     public IMonthlyBillRepository MonthlyBills { get; }
     public IPaymentRecordRepository PaymentRecords { get; }
     public IUserRepository Users { get; }
     public IAuditLogRepository AuditLogs { get; }
     public IMeterReadingRepository MeterReadings { get; }
-    public INotificationHistoryRepository NotificationHistories { get; }
+    public INotificationRepository Notifications { get; }
     public INotificationSettingsRepository NotificationSettings { get; }
     public IPrintJobRepository PrintJobs { get; }
+    public IBackupInfoRepository BackupInfos { get; }
+    public IScheduledNotificationRepository ScheduledNotifications { get; }
+    public IBackupScheduleRepository BackupSchedules { get; }
 
     public UnitOfWork(ApplicationDbContext context)
     {
@@ -31,9 +34,12 @@ public class UnitOfWork : IUnitOfWork
         Users = new UserRepository(_context);
         AuditLogs = new AuditLogRepository(_context);
         MeterReadings = new MeterReadingRepository(_context);
-        NotificationHistories = new NotificationHistoryRepository(_context);
+        Notifications = new NotificationMessageRepository(_context);
         NotificationSettings = new NotificationSettingsRepository(_context);
         PrintJobs = new PrintJobRepository(_context);
+        BackupInfos = new BackupInfoRepository(_context);
+        ScheduledNotifications = new ScheduledNotificationRepository(_context);
+        BackupSchedules = new BackupScheduleRepository(_context);
     }
 
     public async Task<int> SaveChangesAsync()

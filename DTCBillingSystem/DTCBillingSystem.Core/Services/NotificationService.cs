@@ -38,7 +38,7 @@ namespace DTCBillingSystem.Core.Services
             var customer = await _unitOfWork.Customers.GetByIdAsync(bill.CustomerId)
                 ?? throw new ArgumentException($"Customer with ID {bill.CustomerId} not found.");
 
-            var message = new NotificationMessage
+            var message = new Models.NotificationMessage
             {
                 To = customer.Email,
                 Subject = "New Bill Generated",
@@ -58,7 +58,7 @@ namespace DTCBillingSystem.Core.Services
             var customer = await _unitOfWork.Customers.GetByIdAsync(payment.CustomerId)
                 ?? throw new ArgumentException($"Customer with ID {payment.CustomerId} not found.");
 
-            var message = new NotificationMessage
+            var message = new Models.NotificationMessage
             {
                 To = customer.Email,
                 Subject = "Payment Received",
@@ -78,7 +78,7 @@ namespace DTCBillingSystem.Core.Services
             var customer = await _unitOfWork.Customers.GetByIdAsync(bill.CustomerId)
                 ?? throw new ArgumentException($"Customer with ID {bill.CustomerId} not found.");
 
-            var message = new NotificationMessage
+            var message = new Models.NotificationMessage
             {
                 To = customer.Email,
                 Subject = "Payment Due Reminder",
@@ -98,7 +98,7 @@ namespace DTCBillingSystem.Core.Services
             var customer = await _unitOfWork.Customers.GetByIdAsync(bill.CustomerId)
                 ?? throw new ArgumentException($"Customer with ID {bill.CustomerId} not found.");
 
-            var message = new NotificationMessage
+            var message = new Models.NotificationMessage
             {
                 To = customer.Email,
                 Subject = "Overdue Payment Notice",
@@ -116,7 +116,7 @@ namespace DTCBillingSystem.Core.Services
             if (adminEmails == null || !adminEmails.Any())
                 return;
 
-            var notification = new NotificationMessage
+            var notification = new Models.NotificationMessage
             {
                 Subject = $"System Alert: {type}",
                 Body = message,
@@ -130,15 +130,15 @@ namespace DTCBillingSystem.Core.Services
             }
         }
 
-        public async Task SendBulkNotificationsAsync(IEnumerable<NotificationMessage> messages)
+        public async Task SendBulkNotificationsAsync(IEnumerable<Models.NotificationMessage> messages)
         {
             await _emailService.SendBulkEmailAsync(messages);
         }
 
-        public async Task<IEnumerable<NotificationMessage>> GetUserNotificationsAsync(int userId)
+        public async Task<IEnumerable<Models.NotificationMessage>> GetUserNotificationsAsync(int userId)
         {
             var notifications = await _unitOfWork.Notifications.FindAsync(n => n.RecipientId == userId);
-            return notifications.Select(n => new NotificationMessage
+            return notifications.Select(n => new Models.NotificationMessage
             {
                 To = n.RecipientEmail,
                 Subject = n.Subject,
@@ -150,7 +150,7 @@ namespace DTCBillingSystem.Core.Services
 
         public async Task<UserNotificationPreferences> GetUserNotificationSettingsAsync(int userId)
         {
-            var settings = await _unitOfWork.NotificationSettings.FindAsync(ns => ns.RecipientId == userId);
+            var settings = await _unitOfWork.NotificationSettings.FindAsync(ns => ns.CustomerId == userId);
             var entitySettings = settings.FirstOrDefault();
 
             if (entitySettings == null)
@@ -160,7 +160,7 @@ namespace DTCBillingSystem.Core.Services
 
             return new UserNotificationPreferences
             {
-                UserId = entitySettings.RecipientId,
+                UserId = entitySettings.CustomerId,
                 EmailEnabled = entitySettings.EmailEnabled,
                 SmsEnabled = entitySettings.SmsEnabled,
                 InAppEnabled = entitySettings.InAppEnabled,
@@ -175,14 +175,14 @@ namespace DTCBillingSystem.Core.Services
 
         public async Task UpdateUserNotificationSettingsAsync(int userId, UserNotificationPreferences settings)
         {
-            var existingSettings = await _unitOfWork.NotificationSettings.FindAsync(ns => ns.RecipientId == userId);
+            var existingSettings = await _unitOfWork.NotificationSettings.FindAsync(ns => ns.CustomerId == userId);
             var entitySettings = existingSettings.FirstOrDefault();
 
             if (entitySettings == null)
             {
-                entitySettings = new NotificationSettings
+                entitySettings = new Models.Entities.NotificationSettings
                 {
-                    RecipientId = userId,
+                    CustomerId = userId,
                     EmailEnabled = settings.EmailEnabled,
                     SmsEnabled = settings.SmsEnabled,
                     InAppEnabled = settings.InAppEnabled,
@@ -213,11 +213,20 @@ namespace DTCBillingSystem.Core.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task ScheduleNotificationAsync(NotificationMessage message, DateTime scheduledTime)
+        public async Task ScheduleNotificationAsync(Models.NotificationMessage message, DateTime scheduledTime)
         {
-            var scheduledNotification = new DTCBillingSystem.Core.Models.Entities.ScheduledNotification
+            var scheduledNotification = new Models.Entities.ScheduledNotification
             {
-                Message = message,
+                Message = new Models.Entities.NotificationMessage
+                {
+                    Subject = message.Subject,
+                    Body = message.Body,
+                    RecipientEmail = message.To,
+                    IsHtml = message.IsHtml,
+                    Status = NotificationStatus.Pending,
+                    Type = message.Type,
+                    CustomerId = message.RecipientId
+                },
                 ScheduledTime = scheduledTime,
                 Status = NotificationStatus.Pending
             };

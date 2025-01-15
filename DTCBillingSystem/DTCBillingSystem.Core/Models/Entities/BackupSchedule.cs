@@ -9,6 +9,8 @@ namespace DTCBillingSystem.Core.Models.Entities
         public BackupType Type { get; set; }
         public string CronExpression { get; set; } = string.Empty;
         public bool IsEnabled { get; set; } = true;
+        public bool IsActive { get; set; } = true;
+        public BackupFrequency Frequency { get; set; }
         public DateTime? LastRunTime { get; set; }
         public DateTime? NextRunTime { get; set; }
         public string BackupPath { get; set; } = string.Empty;

@@ -1,5 +1,5 @@
-using DTCBillingSystem.Shared.Interfaces;
-using DTCBillingSystem.Shared.Models.Entities;
+using DTCBillingSystem.Core.Interfaces;
+using DTCBillingSystem.Core.Models.Entities;
 using DTCBillingSystem.Infrastructure.Data;
 using DTCBillingSystem.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -16,18 +16,22 @@ namespace DTCBillingSystem.Infrastructure
 
             services.AddScoped<DbContext>(provider => provider.GetService<ApplicationDbContext>());
 
-            services.AddScoped<IRepository<Customer>, Repository<Customer>>();
-            services.AddScoped<IRepository<MonthlyBill>, Repository<MonthlyBill>>();
-            services.AddScoped<IRepository<PaymentRecord>, Repository<PaymentRecord>>();
-            services.AddScoped<IRepository<MeterReading>, Repository<MeterReading>>();
-            services.AddScoped<IRepository<NotificationMessage>, Repository<NotificationMessage>>();
-            services.AddScoped<IRepository<BackupInfo>, Repository<BackupInfo>>();
-            services.AddScoped<IRepository<BackupSchedule>, Repository<BackupSchedule>>();
-            services.AddScoped<IRepository<User>, Repository<User>>();
-            services.AddScoped<IRepository<AuditLog>, Repository<AuditLog>>();
-            services.AddScoped<IRepository<BillingRate>, Repository<BillingRate>>();
-            services.AddScoped<IRepository<PrintJob>, Repository<PrintJob>>();
+            // Register repositories
+            services.AddScoped<ICustomerRepository, CustomerRepository>();
+            services.AddScoped<IMonthlyBillRepository, MonthlyBillRepository>();
+            services.AddScoped<IPaymentRecordRepository, PaymentRecordRepository>();
+            services.AddScoped<IMeterReadingRepository, MeterReadingRepository>();
+            services.AddScoped<INotificationRepository, NotificationMessageRepository>();
+            services.AddScoped<IBackupInfoRepository, BackupInfoRepository>();
+            services.AddScoped<IBackupScheduleRepository, BackupScheduleRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+            services.AddScoped<IBillingRateRepository, BillingRateRepository>();
+            services.AddScoped<IPrintJobRepository, PrintJobRepository>();
+            services.AddScoped<INotificationHistoryRepository, NotificationHistoryRepository>();
+            services.AddScoped<INotificationSettingsRepository, NotificationSettingsRepository>();
 
+            // Register UnitOfWork
             services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;
