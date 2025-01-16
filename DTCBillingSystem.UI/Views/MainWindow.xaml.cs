@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using DTCBillingSystem.UI.Services;
 using DTCBillingSystem.UI.ViewModels;
+using System.Diagnostics;
 
 namespace DTCBillingSystem.UI.Views
 {
@@ -15,39 +16,53 @@ namespace DTCBillingSystem.UI.Views
 
         public MainWindow(INavigationService navigationService, IDialogService dialogService, MainViewModel viewModel)
         {
+            Debug.WriteLine("MainWindow constructor started");
             try
             {
                 // Store services
                 _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+                Debug.WriteLine("Navigation service initialized");
+                
                 _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
+                Debug.WriteLine("Dialog service initialized");
+                
                 _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+                Debug.WriteLine("ViewModel initialized");
 
                 // Initialize window
+                Debug.WriteLine("Starting InitializeComponent");
                 InitializeComponent();
+                Debug.WriteLine("InitializeComponent completed");
 
                 // Set DataContext first
                 DataContext = _viewModel;
+                Debug.WriteLine("DataContext set to MainViewModel");
 
                 // Validate MainFrame exists
                 if (MainFrame == null)
                 {
+                    Debug.WriteLine("ERROR: MainFrame is null after initialization");
                     throw new InvalidOperationException("MainFrame control not found");
                 }
+                Debug.WriteLine("MainFrame validated successfully");
 
                 // Set window properties
                 WindowStartupLocation = WindowStartupLocation.CenterScreen;
                 WindowState = WindowState.Normal;
                 ShowInTaskbar = true;
                 ResizeMode = ResizeMode.CanResize;
+                Debug.WriteLine("Window properties set");
 
                 // Add event handlers
                 Loaded += MainWindow_Loaded;
                 Closing += MainWindow_Closing;
                 ContentRendered += MainWindow_ContentRendered;
+                Debug.WriteLine("Event handlers attached");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"MainWindow initialization error: {ex.Message}\nStack trace: {ex.StackTrace}");
+                var errorMsg = $"MainWindow initialization error: {ex.Message}\nStack trace: {ex.StackTrace}";
+                Debug.WriteLine(errorMsg);
                 MessageBox.Show(
                     $"Failed to initialize main window: {ex.Message}",
                     "Initialization Error",
@@ -59,53 +74,72 @@ namespace DTCBillingSystem.UI.Views
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            Debug.WriteLine("MainWindow_Loaded event started");
             try
             {
-                System.Diagnostics.Debug.WriteLine("MainWindow: Window loaded");
+                // Validate MainFrame exists
+                if (MainFrame == null)
+                {
+                    Debug.WriteLine("ERROR: MainFrame is null in Loaded event");
+                    throw new InvalidOperationException("MainFrame control not found");
+                }
+                Debug.WriteLine("MainFrame validated in Loaded event");
+
+                // Initialize navigation service with the frame
+                Debug.WriteLine("Initializing navigation service with MainFrame");
+                _navigationService.Initialize(MainFrame, this);
+                Debug.WriteLine("Navigation service initialized successfully");
+                
+                // Navigate to dashboard
+                Debug.WriteLine("Attempting to navigate to DashboardView");
+                _navigationService.NavigateToAsync("DashboardView");
+                Debug.WriteLine("Navigation to DashboardView requested");
+                
                 Activate();
                 Focus();
+                Debug.WriteLine("Window activated and focused");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error in MainWindow_Loaded: {ex.Message}");
+                var errorMsg = $"Error in MainWindow_Loaded: {ex.Message}\nStack trace: {ex.StackTrace}";
+                Debug.WriteLine(errorMsg);
+                MessageBox.Show(
+                    $"Failed to initialize window: {ex.Message}",
+                    "Initialization Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
             }
         }
 
         private void MainWindow_ContentRendered(object sender, EventArgs e)
         {
+            Debug.WriteLine("MainWindow_ContentRendered event fired");
             try
             {
-                System.Diagnostics.Debug.WriteLine("MainWindow: Content rendered");
+                if (MainFrame == null)
+                {
+                    Debug.WriteLine("ERROR: MainFrame is null in ContentRendered event");
+                    return;
+                }
+                Debug.WriteLine($"MainFrame status - Content: {MainFrame.Content}, NavigationService: {MainFrame.NavigationService != null}");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error in MainWindow_ContentRendered: {ex.Message}");
+                Debug.WriteLine($"Error in ContentRendered: {ex.Message}");
             }
         }
 
-        private void MainWindow_Closing(object? sender, CancelEventArgs e)
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
+            Debug.WriteLine("MainWindow_Closing event started");
             try
             {
-                var result = MessageBox.Show(
-                    "Are you sure you want to exit the application?",
-                    "Exit Confirmation",
-                    MessageBoxButton.YesNo,
-                    MessageBoxImage.Question);
-
-                if (result == MessageBoxResult.No)
-                {
-                    e.Cancel = true;
-                    return;
-                }
-
-                // Ensure proper cleanup
-                Application.Current.Shutdown();
+                // Add any cleanup logic here
+                Debug.WriteLine("MainWindow closing successfully");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error during window closing: {ex.Message}");
-                Application.Current.Shutdown();
+                Debug.WriteLine($"Error during window closing: {ex.Message}");
             }
         }
 

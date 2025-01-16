@@ -90,35 +90,47 @@ namespace DTCBillingSystem.UI.ViewModels
                     return;
                 }
 
+                // Log the attempt
+                await _auditService.LogAsync("User", "System", 1, "Debug", $"Login attempt for user: {Username}");
+                
                 var success = await _authenticationService.LoginAsync(Username.Trim(), Password.Trim());
-                var user = await _authenticationService.GetCurrentUserAsync();
-
-                if (success && user != null)
+                await _auditService.LogAsync("User", "System", 1, "Debug", "Authentication attempt completed");
+                
+                if (!success)
                 {
-                    await _auditService.LogAsync("User", user.Id.ToString(), user.Id, "Login");
-                    
-                    // Use dispatcher to ensure UI updates happen on the UI thread
-                    Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        try
-                        {
-                            _navigationService.NavigateToMain();
-                        }
-                        catch (Exception ex)
-                        {
-                            ErrorMessage = $"Failed to navigate to main window: {ex.Message}";
-                        }
-                    });
-                }
-                else
-                {
-                    await _auditService.LogAsync("User", "0", 0, "LoginFailed", $"Failed login attempt for user '{Username}'");
+                    await _auditService.LogAsync("User", "0", 1, "LoginFailed", $"Failed login attempt for user '{Username}'");
                     ErrorMessage = "Invalid username or password";
+                    return;
                 }
+
+                var user = await _authenticationService.GetCurrentUserAsync();
+                await _auditService.LogAsync("User", "System", 1, "Debug", "GetCurrentUser completed");
+
+                if (user == null)
+                {
+                    await _auditService.LogAsync("User", "0", 1, "LoginError", "User is null after successful login");
+                    ErrorMessage = "Authentication error: User not found";
+                    return;
+                }
+
+                await _auditService.LogAsync("User", user.Id.ToString(), user.Id, "Login");
+                
+                // Use dispatcher to ensure UI updates happen on the UI thread
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    try
+                    {
+                        _navigationService.NavigateToMain();
+                    }
+                    catch (Exception ex)
+                    {
+                        ErrorMessage = $"Failed to navigate to main window: {ex.Message}";
+                    }
+                });
             }
             catch (Exception ex)
             {
-                await _auditService.LogAsync("User", "0", 0, "LoginError", $"Error during login: {ex.Message}");
+                await _auditService.LogAsync("User", "0", 1, "LoginError", $"Error during login: {ex.Message}");
                 ErrorMessage = $"An error occurred during login: {ex.Message}";
             }
             finally

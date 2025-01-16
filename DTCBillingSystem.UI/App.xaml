@@ -12,47 +12,24 @@
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- Material Design Settings -->
-            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignRaisedButton}">
-                <Setter Property="Margin" Value="4"/>
-                <Setter Property="Padding" Value="16,4"/>
-                <Setter Property="materialDesign:ButtonAssist.CornerRadius" Value="4"/>
-            </Style>
-
-            <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource MaterialDesignTextBox}">
-                <Setter Property="Margin" Value="4"/>
-                <Setter Property="Padding" Value="4"/>
-                <Setter Property="VerticalAlignment" Value="Center"/>
-            </Style>
-
-            <Style TargetType="{x:Type PasswordBox}" BasedOn="{StaticResource MaterialDesignPasswordBox}">
-                <Setter Property="Margin" Value="4"/>
-                <Setter Property="Padding" Value="4"/>
-                <Setter Property="VerticalAlignment" Value="Center"/>
-            </Style>
-
-            <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource MaterialDesignComboBox}">
-                <Setter Property="Margin" Value="4"/>
-                <Setter Property="materialDesign:HintAssist.FloatingScale" Value="0.8"/>
-            </Style>
-
-            <Style TargetType="{x:Type DataGrid}" BasedOn="{StaticResource MaterialDesignDataGrid}">
-                <Setter Property="AutoGenerateColumns" Value="False"/>
-                <Setter Property="IsReadOnly" Value="True"/>
-                <Setter Property="SelectionMode" Value="Single"/>
-                <Setter Property="SelectionUnit" Value="FullRow"/>
-                <Setter Property="GridLinesVisibility" Value="All"/>
-                <Setter Property="BorderThickness" Value="1"/>
-                <Setter Property="RowHeaderWidth" Value="0"/>
-                <Setter Property="Margin" Value="4"/>
-            </Style>
+            <!-- Theme Settings -->
+            <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="{DynamicResource Primary500}" />
+            <SolidColorBrush x:Key="PrimaryHueDarkBrush" Color="{DynamicResource Primary700}" />
+            <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="{DynamicResource Primary300}" />
+            <SolidColorBrush x:Key="SecondaryAccentBrush" Color="{DynamicResource Secondary500}" />
+            <SolidColorBrush x:Key="SecondaryAccentForegroundBrush" Color="{DynamicResource Secondary500Foreground}" />
 
             <!-- Converters -->
-            <conv:BoolToStatusConverter x:Key="BoolToStatusConverter"/>
-            <conv:BoolToActionTextConverter x:Key="BoolToActionTextConverter"/>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
             <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
             <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+            <conv:BoolToStatusConverter x:Key="BoolToStatusConverter"/>
+            <conv:BoolToActionTextConverter x:Key="BoolToActionTextConverter"/>
+            <conv:BooleanToActiveStatusConverter x:Key="BooleanToActiveStatusConverter"/>
+            <conv:BooleanToStatusColorConverter x:Key="BooleanToStatusColorConverter"/>
+            <conv:BooleanToStatusIconConverter x:Key="BooleanToStatusIconConverter"/>
+            <conv:NullToCollapsedConverter x:Key="NullToCollapsedConverter"/>
 
             <!-- Customer Types -->
             <ObjectDataProvider x:Key="CustomerTypes" 

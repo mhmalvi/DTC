@@ -6,6 +6,7 @@ using DTCBillingSystem.UI.Views;
 using DTCBillingSystem.UI.ViewModels;
 using System.Reflection;
 using System.Linq;
+using System.Diagnostics;
 
 namespace DTCBillingSystem.UI.Services
 {
@@ -57,61 +58,97 @@ namespace DTCBillingSystem.UI.Services
         {
             try
             {
+                Debug.WriteLine($"ViewLocator: Attempting to create view '{viewName}'");
+                
                 // Get the executing assembly
                 var assembly = Assembly.GetExecutingAssembly();
+                Debug.WriteLine($"ViewLocator: Using assembly {assembly.FullName}");
                 
                 // Find the view type in the current assembly
                 var viewType = assembly.GetTypes()
-                    .FirstOrDefault(t => t.FullName == $"DTCBillingSystem.UI.Views.{viewName}");
+                    .FirstOrDefault(t => t.Name == viewName);
 
                 if (viewType == null)
                 {
-                    var error = $"View {viewName} not found in assembly {assembly.FullName}";
-                    System.Diagnostics.Debug.WriteLine(error);
+                    var availableTypes = string.Join(", ", assembly.GetTypes()
+                        .Where(t => t.Name.EndsWith("View"))
+                        .Select(t => t.Name));
+                    var error = $"View '{viewName}' not found in assembly {assembly.FullName}. Available views: {availableTypes}";
+                    Debug.WriteLine($"ViewLocator ERROR: {error}");
                     throw new ArgumentException(error);
                 }
+                Debug.WriteLine($"ViewLocator: Found view type {viewType.FullName}");
 
                 // Try to get view model if it exists
                 var viewModelType = assembly.GetTypes()
-                    .FirstOrDefault(t => t.FullName == $"DTCBillingSystem.UI.ViewModels.{viewName}ViewModel");
+                    .FirstOrDefault(t => t.Name == $"{viewName}ViewModel");
                 
                 if (viewModelType != null)
                 {
+                    Debug.WriteLine($"ViewLocator: Found matching ViewModel type {viewModelType.FullName}");
                     try
                     {
+                        Debug.WriteLine("ViewLocator: Creating ViewModel instance");
                         var viewModel = _serviceProvider.GetRequiredService(viewModelType);
-                        var view = ActivatorUtilities.CreateInstance(_serviceProvider, viewType);
+                        Debug.WriteLine("ViewLocator: ViewModel created successfully");
+
+                        Debug.WriteLine("ViewLocator: Creating View instance");
+                        // Try to create view with ViewModel parameter first
+                        var constructor = viewType.GetConstructor(new[] { viewModelType });
+                        object view;
+                        
+                        if (constructor != null)
+                        {
+                            Debug.WriteLine("ViewLocator: Found constructor with ViewModel parameter");
+                            view = constructor.Invoke(new[] { viewModel });
+                        }
+                        else
+                        {
+                            Debug.WriteLine("ViewLocator: Using DI to create view");
+                            view = _serviceProvider.GetRequiredService(viewType);
+                        }
+                        
+                        Debug.WriteLine("ViewLocator: View created successfully");
                         
                         if (view == null)
-                            throw new InvalidOperationException($"Could not create instance of view {viewName}");
-
-                        if (view is FrameworkElement frameworkElement)
                         {
-                            frameworkElement.DataContext = viewModel;
+                            Debug.WriteLine($"ViewLocator ERROR: View instance is null for {viewName}");
+                            throw new InvalidOperationException($"Could not create instance of view {viewName}");
                         }
 
-                        System.Diagnostics.Debug.WriteLine($"Successfully created view {viewName} with view model");
+                        if (view is FrameworkElement frameworkElement && constructor == null)
+                        {
+                            Debug.WriteLine("ViewLocator: Setting DataContext");
+                            frameworkElement.DataContext = viewModel;
+                            Debug.WriteLine("ViewLocator: DataContext set successfully");
+                        }
+
+                        Debug.WriteLine($"ViewLocator: Successfully created view {viewName} with view model");
                         return view;
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Error creating view {viewName} with view model: {ex.Message}");
-                        // Continue to fallback
+                        Debug.WriteLine($"ViewLocator ERROR: Failed to create view {viewName} with view model: {ex.Message}\nStack trace: {ex.StackTrace}");
+                        throw;
                     }
                 }
 
-                // Fallback to creating view without view model
-                System.Diagnostics.Debug.WriteLine($"Creating view {viewName} without view model");
-                var fallbackView = ActivatorUtilities.CreateInstance(_serviceProvider, viewType);
-                if (fallbackView == null)
+                // If no view model exists, just create the view
+                Debug.WriteLine($"ViewLocator: No ViewModel found for {viewName}, creating view only");
+                var viewOnly = _serviceProvider.GetRequiredService(viewType);
+                if (viewOnly == null)
+                {
+                    Debug.WriteLine($"ViewLocator ERROR: View instance is null for {viewName}");
                     throw new InvalidOperationException($"Could not create instance of view {viewName}");
+                }
 
-                return fallbackView;
+                Debug.WriteLine($"ViewLocator: Successfully created view {viewName} without view model");
+                return viewOnly;
             }
             catch (Exception ex)
             {
                 var error = $"Failed to create view {viewName}: {ex.Message}";
-                System.Diagnostics.Debug.WriteLine(error);
+                Debug.WriteLine($"ViewLocator CRITICAL ERROR: {error}\nStack trace: {ex.StackTrace}");
                 throw new InvalidOperationException(error, ex);
             }
         }
