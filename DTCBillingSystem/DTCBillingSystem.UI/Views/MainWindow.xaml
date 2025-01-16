@@ -1,0 +1,44 @@
+<Window x:Class="DTCBillingSystem.UI.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DTCBillingSystem.UI.Views"
+        mc:Ignorable="d"
+        Title="DTC Billing System" Height="768" Width="1024"
+        WindowStartupLocation="CenterScreen">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Menu -->
+        <Menu Grid.Row="0">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Exit" Click="ExitMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Customers">
+                <MenuItem Header="_Manage Customers" Click="ManageCustomersMenuItem_Click"/>
+                <MenuItem Header="_Import Customers" Click="ImportCustomersMenuItem_Click"/>
+                <MenuItem Header="_Export Customers" Click="ExportCustomersMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Billing">
+                <MenuItem Header="_Generate Bills" Click="GenerateBillsMenuItem_Click"/>
+                <MenuItem Header="_Process Payments" Click="ProcessPaymentsMenuItem_Click"/>
+                <MenuItem Header="_View Reports" Click="ViewReportsMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Settings">
+                <MenuItem Header="_User Management" Click="UserManagementMenuItem_Click"/>
+                <MenuItem Header="_System Settings" Click="SystemSettingsMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_About" Click="AboutMenuItem_Click"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- Main Content -->
+        <Frame Grid.Row="1" x:Name="MainFrame" NavigationUIVisibility="Hidden"/>
+    </Grid>
+</Window> 
