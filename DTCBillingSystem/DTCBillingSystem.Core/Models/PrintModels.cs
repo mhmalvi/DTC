@@ -1,17 +1,23 @@
-using System;
+using System.Collections.Generic;
 
 namespace DTCBillingSystem.Core.Models
 {
-    public class PrintJobInfo
+    public class PrintModels
     {
-        public required string JobId { get; set; }
-        public required string Message { get; set; }
-        public required string ErrorDetails { get; set; }
-        public required string PrinterName { get; set; }
-        public int Copies { get; set; }
-        public bool IsDuplex { get; set; }
-        public required string DocumentType { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime? CompletedAt { get; set; }
+        public string Name { get; set; }
+        public string Model { get; set; }
+        public string Status { get; set; }
+        public string Location { get; set; }
+        public string Description { get; set; }
+        public List<string> SupportedPaperSizes { get; set; } = new();
+
+        public PrintModels(string name, string model, string status, string location, string description)
+        {
+            Name = name;
+            Model = model;
+            Status = status;
+            Location = location;
+            Description = description;
+        }
     }
 } 

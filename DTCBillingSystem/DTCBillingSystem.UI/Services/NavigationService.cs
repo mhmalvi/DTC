@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Threading.Tasks;
+using DTCBillingSystem.UI.Views;
 
 namespace DTCBillingSystem.UI.Services
 {
@@ -75,20 +76,40 @@ namespace DTCBillingSystem.UI.Services
 
         public void NavigateToMain()
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            try
             {
-                var mainWindow = _viewLocator.CreateMainWindow(this);
-                mainWindow.Show();
-
-                // Close other windows
-                foreach (Window window in Application.Current.Windows)
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    if (window != mainWindow)
+                    var mainWindow = _viewLocator.CreateMainWindow();
+                    if (mainWindow == null)
                     {
-                        window.Close();
+                        throw new InvalidOperationException("Failed to create main window");
                     }
-                }
-            });
+
+                    // Show the new window before closing others to prevent application exit
+                    mainWindow.Show();
+                    mainWindow.Activate();
+
+                    // Close other windows
+                    foreach (Window window in Application.Current.Windows)
+                    {
+                        if (window != mainWindow && window is LoginWindow)
+                        {
+                            window.Close();
+                        }
+                    }
+
+                    // Set as the new main window
+                    Application.Current.MainWindow = mainWindow;
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error navigating to main window: {ex.Message}", 
+                               "Navigation Error", 
+                               MessageBoxButton.OK, 
+                               MessageBoxImage.Error);
+            }
         }
 
         public Task NavigateToMainWindow()

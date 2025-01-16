@@ -28,14 +28,24 @@ namespace DTCBillingSystem.Infrastructure.Data
             base.OnModelCreating(modelBuilder);
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
-            // Seed initial admin user with properly hashed password
-            var salt = RandomNumberGenerator.GetBytes(16); // Same size as PasswordHasher.SaltSize
-            var hash = Rfc2898DeriveBytes.Pbkdf2(
-                "admin123", // Initial password
-                salt,
-                350000, // Same as PasswordHasher.Iterations
-                HashAlgorithmName.SHA256,
-                32); // Same as PasswordHasher.HashSize
+            // Seed default admin user
+            var salt = new byte[32];
+            using (var rng = new System.Security.Cryptography.RNGCryptoServiceProvider())
+            {
+                rng.GetBytes(salt);
+            }
+
+            var password = "Admin@123";
+            var passwordBytes = System.Text.Encoding.UTF8.GetBytes(password);
+            var combinedBytes = new byte[passwordBytes.Length + salt.Length];
+            Buffer.BlockCopy(passwordBytes, 0, combinedBytes, 0, passwordBytes.Length);
+            Buffer.BlockCopy(salt, 0, combinedBytes, passwordBytes.Length, salt.Length);
+
+            var hash = new byte[32];
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                hash = sha256.ComputeHash(combinedBytes);
+            }
 
             modelBuilder.Entity<User>().HasData(new User
             {
@@ -52,7 +62,7 @@ namespace DTCBillingSystem.Infrastructure.Data
                 LastModifiedAt = DateTime.UtcNow,
                 CreatedBy = "system",
                 LastModifiedBy = "system",
-                RequirePasswordChange = true
+                RequirePasswordChange = false
             });
         }
     }

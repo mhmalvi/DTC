@@ -8,32 +8,41 @@ namespace DTCBillingSystem.Core.Services
     {
         private const int SaltSize = 16;
         private const int HashSize = 32;
-        private const int Iterations = 350000;
-        private static readonly HashAlgorithmName HashAlgorithm = HashAlgorithmName.SHA256;
+        private const int Iterations = 10000;
 
         public (byte[] Hash, byte[] Salt) HashPassword(string password)
         {
-            var salt = RandomNumberGenerator.GetBytes(SaltSize);
-            var hash = Rfc2898DeriveBytes.Pbkdf2(
-                password,
-                salt,
-                Iterations,
-                HashAlgorithm,
-                HashSize);
+            var salt = new byte[SaltSize];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(salt);
+            }
+
+            using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256);
+            var hash = pbkdf2.GetBytes(HashSize);
 
             return (hash, salt);
         }
 
         public bool VerifyPassword(string password, byte[] storedHash, byte[] storedSalt)
         {
-            var computedHash = Rfc2898DeriveBytes.Pbkdf2(
-                password,
-                storedSalt,
-                Iterations,
-                HashAlgorithm,
-                HashSize);
+            using var pbkdf2 = new Rfc2898DeriveBytes(password, storedSalt, Iterations, HashAlgorithmName.SHA256);
+            var computedHash = pbkdf2.GetBytes(HashSize);
 
-            return CryptographicOperations.FixedTimeEquals(computedHash, storedHash);
+            if (computedHash.Length != storedHash.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < computedHash.Length; i++)
+            {
+                if (computedHash[i] != storedHash[i])
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 } 

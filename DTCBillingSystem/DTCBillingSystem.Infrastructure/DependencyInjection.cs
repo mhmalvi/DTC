@@ -1,38 +1,30 @@
 using DTCBillingSystem.Core.Interfaces;
-using DTCBillingSystem.Core.Models.Entities;
+using DTCBillingSystem.Core.Services;
 using DTCBillingSystem.Infrastructure.Data;
 using DTCBillingSystem.Infrastructure.Repositories;
+using DTCBillingSystem.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace DTCBillingSystem.Infrastructure
+namespace DTCBillingSystem.Infrastructure;
+
+public static class DependencyInjection
 {
-    public static class DependencyInjection
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, string connectionString)
-        {
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(connectionString));
+        services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlite(
+                configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddScoped<DbContext>(provider => 
-                provider.GetRequiredService<ApplicationDbContext>());
+        services.AddScoped<IUserService, DTCBillingSystem.Core.Services.UserService>();
+        services.AddScoped<IPasswordHasher, DTCBillingSystem.Core.Services.PasswordHasher>();
+        services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IUnitOfWork, DTCBillingSystem.Infrastructure.Repositories.UnitOfWork>();
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IAuditService, DTCBillingSystem.Core.Services.AuditService>();
 
-            // Register repositories
-            services.AddScoped<ICustomerRepository, CustomerRepository>();
-            services.AddScoped<IMonthlyBillRepository, MonthlyBillRepository>();
-            services.AddScoped<IPaymentRecordRepository, PaymentRecordRepository>();
-            services.AddScoped<IMeterReadingRepository, MeterReadingRepository>();
-            services.AddScoped<IBackupInfoRepository, BackupInfoRepository>();
-            services.AddScoped<IBackupScheduleRepository, BackupScheduleRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IAuditLogRepository, AuditLogRepository>();
-            services.AddScoped<IBillingRateRepository, BillingRateRepository>();
-            services.AddScoped<IPrintJobRepository, PrintJobRepository>();
-
-            // Register UnitOfWork
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-            return services;
-        }
+        return services;
     }
 } 

@@ -9,7 +9,7 @@ namespace DTCBillingSystem.UI.Services
     public interface IWindowFactory
     {
         LoginWindow CreateLoginWindow();
-        UI.MainWindow CreateMainWindow();
+        MainWindow CreateMainWindow();
     }
 
     public class WindowFactory : IWindowFactory
@@ -28,11 +28,12 @@ namespace DTCBillingSystem.UI.Services
             return window;
         }
 
-        public UI.MainWindow CreateMainWindow()
+        public MainWindow CreateMainWindow()
         {
             var navigationService = _serviceProvider.GetRequiredService<INavigationService>();
+            var dialogService = _serviceProvider.GetRequiredService<IDialogService>();
             var mainViewModel = _serviceProvider.GetRequiredService<MainViewModel>();
-            var window = new UI.MainWindow(navigationService, mainViewModel);
+            var window = new MainWindow(navigationService, dialogService, mainViewModel);
             return window;
         }
     }

@@ -51,6 +51,8 @@
             <conv:BoolToStatusConverter x:Key="BoolToStatusConverter"/>
             <conv:BoolToActionTextConverter x:Key="BoolToActionTextConverter"/>
             <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+            <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+            <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
 
             <!-- Customer Types -->
             <ObjectDataProvider x:Key="CustomerTypes" 

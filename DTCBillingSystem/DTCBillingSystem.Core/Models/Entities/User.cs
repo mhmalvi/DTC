@@ -11,7 +11,6 @@ namespace DTCBillingSystem.Core.Models.Entities
         public string LastName { get; set; } = string.Empty;
         public byte[] PasswordHash { get; set; } = Array.Empty<byte>();
         public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
-        public string Salt { get; set; } = string.Empty;
         public UserRole Role { get; set; }
         public bool IsActive { get; set; } = true;
         public DateTime? LastLoginAt { get; set; }

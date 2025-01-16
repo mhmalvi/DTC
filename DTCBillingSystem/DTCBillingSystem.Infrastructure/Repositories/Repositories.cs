@@ -535,7 +535,7 @@ namespace DTCBillingSystem.Infrastructure.Repositories
                 Username = entity.Username,
                 Email = entity.Email,
                 PasswordHash = entity.PasswordHash,
-                Salt = entity.Salt,
+                PasswordSalt = entity.PasswordSalt,
                 Role = entity.Role,
                 IsActive = entity.IsActive,
                 LastLoginAt = entity.LastLoginAt,

@@ -1,32 +1,30 @@
 using System;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using DTCBillingSystem.Core.Interfaces;
+using DTCBillingSystem.Core.Models.Authentication;
 using DTCBillingSystem.UI.Commands;
 using DTCBillingSystem.UI.Services;
+using System.Windows;
 
 namespace DTCBillingSystem.UI.ViewModels
 {
     public class LoginViewModel : ViewModelBase
     {
-        private readonly IAuthenticationService _authService;
+        private readonly IAuthenticationService _authenticationService;
         private readonly INavigationService _navigationService;
         private readonly IAuditService _auditService;
         private string _username = string.Empty;
+        private string _password = string.Empty;
         private string _errorMessage = string.Empty;
+        private bool _isLoading;
+        private AsyncRelayCommand? _loginCommand;
 
-        public LoginViewModel(
-            IAuthenticationService authService,
-            INavigationService navigationService,
-            IAuditService auditService)
+        public LoginViewModel(IAuthenticationService authenticationService, INavigationService navigationService, IAuditService auditService)
         {
-            _authService = authService;
+            _authenticationService = authenticationService;
             _navigationService = navigationService;
             _auditService = auditService;
-
-            LoginCommand = new AsyncRelayCommand<PasswordBox>(LoginAsync);
             ExitCommand = new RelayCommand(Exit);
         }
 
@@ -35,48 +33,97 @@ namespace DTCBillingSystem.UI.ViewModels
             get => _username;
             set
             {
-                _username = value;
-                OnPropertyChanged();
+                SetProperty(ref _username, value);
+                OnPropertyChanged(nameof(CanLogin));
+                (_loginCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
+            }
+        }
+
+        public string Password
+        {
+            get => _password;
+            set
+            {
+                SetProperty(ref _password, value);
+                OnPropertyChanged(nameof(CanLogin));
+                (_loginCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
             }
         }
 
         public string ErrorMessage
         {
             get => _errorMessage;
+            set => SetProperty(ref _errorMessage, value);
+        }
+
+        public bool IsLoading
+        {
+            get => _isLoading;
             set
             {
-                _errorMessage = value;
-                OnPropertyChanged();
+                SetProperty(ref _isLoading, value);
+                OnPropertyChanged(nameof(CanLogin));
+                (_loginCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
             }
         }
 
-        public ICommand LoginCommand { get; }
+        public bool CanLogin => !IsLoading && !string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password);
+
+        public ICommand LoginCommand => _loginCommand ??= new AsyncRelayCommand(LoginAsync, () => CanLogin);
         public ICommand ExitCommand { get; }
 
-        private async Task LoginAsync(PasswordBox? passwordBox)
+        private void ClearError()
         {
-            if (passwordBox == null) return;
+            ErrorMessage = string.Empty;
+        }
 
+        private async Task LoginAsync()
+        {
             try
             {
-                ErrorMessage = string.Empty;
-                var success = await _authService.LoginAsync(Username, passwordBox.Password);
+                IsLoading = true;
+                ClearError();
 
-                if (success)
+                if (string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(Password))
                 {
-                    await _auditService.LogActionAsync("Authentication", null, "Login", $"User '{Username}' logged in successfully");
-                    await _navigationService.NavigateToMainWindow();
+                    ErrorMessage = "Username and password are required";
+                    return;
+                }
+
+                var success = await _authenticationService.LoginAsync(Username.Trim(), Password.Trim());
+                var user = await _authenticationService.GetCurrentUserAsync();
+
+                if (success && user != null)
+                {
+                    await _auditService.LogAsync("User", user.Id.ToString(), user.Id, "Login");
+                    
+                    // Use dispatcher to ensure UI updates happen on the UI thread
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        try
+                        {
+                            _navigationService.NavigateToMain();
+                        }
+                        catch (Exception ex)
+                        {
+                            ErrorMessage = $"Failed to navigate to main window: {ex.Message}";
+                        }
+                    });
                 }
                 else
                 {
+                    await _auditService.LogAsync("User", "0", 0, "LoginFailed", $"Failed login attempt for user '{Username}'");
                     ErrorMessage = "Invalid username or password";
-                    await _auditService.LogActionAsync("Authentication", null, "Login", $"Failed login attempt for user '{Username}'");
                 }
             }
             catch (Exception ex)
             {
-                ErrorMessage = "An error occurred during login";
-                await _auditService.LogActionAsync("Authentication", null, "Login", $"Login error for user '{Username}': {ex.Message}");
+                await _auditService.LogAsync("User", "0", 0, "LoginError", $"Error during login: {ex.Message}");
+                ErrorMessage = $"An error occurred during login: {ex.Message}";
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 

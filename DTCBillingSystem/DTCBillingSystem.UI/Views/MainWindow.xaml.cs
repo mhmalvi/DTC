@@ -18,6 +18,26 @@ namespace DTCBillingSystem.UI.Views
             _dialogService = dialogService;
             _viewModel = viewModel;
             DataContext = _viewModel;
+
+            // Initialize navigation service with the main frame
+            _navigationService.Initialize(MainFrame, this);
+
+            // Navigate to dashboard by default
+            _navigationService.NavigateToAsync("DashboardView");
+
+            // Handle window closing
+            Closing += MainWindow_Closing;
+        }
+
+        private void MainWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (MessageBox.Show("Are you sure you want to exit the application?", 
+                               "Exit Confirmation", 
+                               MessageBoxButton.YesNo, 
+                               MessageBoxImage.Question) == MessageBoxResult.No)
+            {
+                e.Cancel = true;
+            }
         }
 
         private void ExitMenuItem_Click(object sender, RoutedEventArgs e)

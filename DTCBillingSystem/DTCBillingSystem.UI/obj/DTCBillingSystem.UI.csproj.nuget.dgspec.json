@@ -1,36 +1,30 @@
 {
   "format": 1,
   "restore": {
-    "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj": {}
+    "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj": {}
   },
   "projects": {
-    "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj": {
+    "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj",
+        "projectUniqueName": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj",
         "projectName": "DTCBillingSystem.Core",
-        "projectPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj",
-        "packagesPath": "C:\\Users\\d_rak\\.nuget\\packages\\",
-        "outputPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\obj\\",
+        "projectPath": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj",
+        "packagesPath": "C:\\Users\\AAA Technology\\.nuget\\packages\\",
+        "outputPath": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\d_rak\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\AAA Technology\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "net8.0"
+          "net6.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net8.0": {
-            "targetAlias": "net8.0",
+          "net6.0": {
+            "targetAlias": "net6.0",
             "projectReferences": {}
           }
         },
@@ -38,41 +32,35 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.100"
+        }
       },
       "frameworks": {
-        "net8.0": {
-          "targetAlias": "net8.0",
+        "net6.0": {
+          "targetAlias": "net6.0",
           "dependencies": {
             "Microsoft.Extensions.Configuration": {
               "target": "Package",
-              "version": "[9.0.1, )"
+              "version": "[6.0.25, )"
             },
             "Microsoft.Extensions.DependencyInjection": {
               "target": "Package",
-              "version": "[9.0.1, )"
+              "version": "[6.0.25, )"
             },
             "Microsoft.Extensions.Logging": {
               "target": "Package",
-              "version": "[9.0.1, )"
+              "version": "[6.0.25, )"
             },
             "Microsoft.Extensions.Logging.Console": {
               "target": "Package",
-              "version": "[9.0.1, )"
+              "version": "[6.0.25, )"
             },
             "Microsoft.Extensions.Logging.Debug": {
               "target": "Package",
-              "version": "[9.0.1, )"
+              "version": "[6.0.25, )"
             },
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
-              "version": "[7.2.0, )"
+              "version": "[6.35.0, )"
             }
           },
           "imports": [
@@ -91,40 +79,34 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.428\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Infrastructure\\DTCBillingSystem.Infrastructure.csproj": {
+    "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Infrastructure\\DTCBillingSystem.Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Infrastructure\\DTCBillingSystem.Infrastructure.csproj",
+        "projectUniqueName": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Infrastructure\\DTCBillingSystem.Infrastructure.csproj",
         "projectName": "DTCBillingSystem.Infrastructure",
-        "projectPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Infrastructure\\DTCBillingSystem.Infrastructure.csproj",
-        "packagesPath": "C:\\Users\\d_rak\\.nuget\\packages\\",
-        "outputPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Infrastructure\\obj\\",
+        "projectPath": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Infrastructure\\DTCBillingSystem.Infrastructure.csproj",
+        "packagesPath": "C:\\Users\\AAA Technology\\.nuget\\packages\\",
+        "outputPath": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Infrastructure\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\d_rak\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\AAA Technology\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "net8.0"
+          "net6.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net8.0": {
-            "targetAlias": "net8.0",
+          "net6.0": {
+            "targetAlias": "net6.0",
             "projectReferences": {
-              "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj": {
-                "projectPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj"
+              "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj": {
+                "projectPath": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj"
               }
             }
           }
@@ -133,213 +115,193 @@
           "warnAsError": [
             "NU1605"
           ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.100"
+        }
       },
       "frameworks": {
-        "net8.0": {
-          "targetAlias": "net8.0",
+        "net6.0": {
+          "targetAlias": "net6.0",
           "dependencies": {
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[9.0.1, )"
-            },
-            "Microsoft.EntityFrameworkCore.SqlServer": {
-              "target": "Package",
-              "version": "[8.0.0, )"
-            },
-            "Microsoft.EntityFrameworkCore.Sqlite": {
-              "target": "Package",
-              "version": "[9.0.1, )"
-            },
-            "Microsoft.Extensions.Configuration": {
-              "target": "Package",
-              "version": "[9.0.1, )"
-            },
-            "Microsoft.Extensions.DependencyInjection": {
-              "target": "Package",
-              "version": "[9.0.1, )"
-            }
-          },
-          "imports": [
-            "net461",
-            "net462",
-            "net47",
-            "net471",
-            "net472",
-            "net48",
-            "net481"
-          ],
-          "assetTargetFallback": true,
-          "warn": true,
-          "frameworkReferences": {
-            "Microsoft.NETCore.App": {
-              "privateAssets": "all"
-            }
-          },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
-        }
-      }
-    },
-    "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Shared\\DTCBillingSystem.Shared.csproj": {
-      "version": "1.0.0",
-      "restore": {
-        "projectUniqueName": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Shared\\DTCBillingSystem.Shared.csproj",
-        "projectName": "DTCBillingSystem.Shared",
-        "projectPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Shared\\DTCBillingSystem.Shared.csproj",
-        "packagesPath": "C:\\Users\\d_rak\\.nuget\\packages\\",
-        "outputPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Shared\\obj\\",
-        "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
-        "configFilePaths": [
-          "C:\\Users\\d_rak\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
-        ],
-        "originalTargetFrameworks": [
-          "net8.0"
-        ],
-        "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://api.nuget.org/v3/index.json": {}
-        },
-        "frameworks": {
-          "net8.0": {
-            "targetAlias": "net8.0",
-            "projectReferences": {
-              "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj": {
-                "projectPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj"
-              }
-            }
-          }
-        },
-        "warningProperties": {
-          "warnAsError": [
-            "NU1605"
-          ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.100"
-      },
-      "frameworks": {
-        "net8.0": {
-          "targetAlias": "net8.0",
-          "imports": [
-            "net461",
-            "net462",
-            "net47",
-            "net471",
-            "net472",
-            "net48",
-            "net481"
-          ],
-          "assetTargetFallback": true,
-          "warn": true,
-          "frameworkReferences": {
-            "Microsoft.NETCore.App": {
-              "privateAssets": "all"
-            }
-          },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
-        }
-      }
-    },
-    "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj": {
-      "version": "1.0.0",
-      "restore": {
-        "projectUniqueName": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj",
-        "projectName": "DTCBillingSystem.UI",
-        "projectPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj",
-        "packagesPath": "C:\\Users\\d_rak\\.nuget\\packages\\",
-        "outputPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.UI\\obj\\",
-        "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
-        "configFilePaths": [
-          "C:\\Users\\d_rak\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
-        ],
-        "originalTargetFrameworks": [
-          "net8.0-windows"
-        ],
-        "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "https://api.nuget.org/v3/index.json": {}
-        },
-        "frameworks": {
-          "net8.0-windows7.0": {
-            "targetAlias": "net8.0-windows",
-            "projectReferences": {
-              "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj": {
-                "projectPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj"
-              },
-              "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Infrastructure\\DTCBillingSystem.Infrastructure.csproj": {
-                "projectPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Infrastructure\\DTCBillingSystem.Infrastructure.csproj"
-              },
-              "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Shared\\DTCBillingSystem.Shared.csproj": {
-                "projectPath": "I:\\Aethon - Projects\\-dtf\\DTC\\DTCBillingSystem\\DTCBillingSystem.Shared\\DTCBillingSystem.Shared.csproj"
-              }
-            }
-          }
-        },
-        "warningProperties": {
-          "warnAsError": [
-            "NU1605"
-          ]
-        },
-        "restoreAuditProperties": {
-          "enableAudit": "true",
-          "auditLevel": "low",
-          "auditMode": "direct"
-        },
-        "SdkAnalysisLevel": "9.0.100"
-      },
-      "frameworks": {
-        "net8.0-windows7.0": {
-          "targetAlias": "net8.0-windows",
-          "dependencies": {
-            "MaterialDesignColors": {
-              "target": "Package",
-              "version": "[5.2.1, )"
-            },
-            "MaterialDesignThemes": {
-              "target": "Package",
-              "version": "[5.2.1, )"
+              "version": "[6.0.25, )"
             },
             "Microsoft.EntityFrameworkCore.Design": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
               "target": "Package",
-              "version": "[9.0.1, )"
+              "version": "[6.0.25, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[6.0.25, )"
             },
             "Microsoft.EntityFrameworkCore.Sqlite": {
               "target": "Package",
-              "version": "[9.0.1, )"
+              "version": "[6.0.25, )"
             },
             "Microsoft.Extensions.Configuration": {
               "target": "Package",
-              "version": "[9.0.1, )"
-            },
-            "Microsoft.Extensions.Configuration.Json": {
-              "target": "Package",
-              "version": "[9.0.1, )"
+              "version": "[6.0.25, )"
             },
             "Microsoft.Extensions.DependencyInjection": {
               "target": "Package",
-              "version": "[9.0.1, )"
+              "version": "[6.0.25, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.428\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Shared\\DTCBillingSystem.Shared.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Shared\\DTCBillingSystem.Shared.csproj",
+        "projectName": "DTCBillingSystem.Shared",
+        "projectPath": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Shared\\DTCBillingSystem.Shared.csproj",
+        "packagesPath": "C:\\Users\\AAA Technology\\.nuget\\packages\\",
+        "outputPath": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Shared\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\AAA Technology\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net6.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net6.0": {
+            "targetAlias": "net6.0",
+            "projectReferences": {
+              "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj": {
+                "projectPath": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net6.0": {
+          "targetAlias": "net6.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.428\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj",
+        "projectName": "DTCBillingSystem.UI",
+        "projectPath": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.UI\\DTCBillingSystem.UI.csproj",
+        "packagesPath": "C:\\Users\\AAA Technology\\.nuget\\packages\\",
+        "outputPath": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.UI\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\AAA Technology\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net6.0-windows"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net6.0-windows7.0": {
+            "targetAlias": "net6.0-windows",
+            "projectReferences": {
+              "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj": {
+                "projectPath": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Core\\DTCBillingSystem.Core.csproj"
+              },
+              "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Infrastructure\\DTCBillingSystem.Infrastructure.csproj": {
+                "projectPath": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Infrastructure\\DTCBillingSystem.Infrastructure.csproj"
+              },
+              "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Shared\\DTCBillingSystem.Shared.csproj": {
+                "projectPath": "E:\\Aethon_draft\\dtcl\\DTC\\DTCBillingSystem\\DTCBillingSystem.Shared\\DTCBillingSystem.Shared.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net6.0-windows7.0": {
+          "targetAlias": "net6.0-windows",
+          "dependencies": {
+            "MaterialDesignColors": {
+              "target": "Package",
+              "version": "[2.1.4, )"
+            },
+            "MaterialDesignThemes": {
+              "target": "Package",
+              "version": "[4.9.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[6.0.25, )"
+            },
+            "Microsoft.EntityFrameworkCore.Sqlite": {
+              "target": "Package",
+              "version": "[6.0.25, )"
+            },
+            "Microsoft.Extensions.Configuration": {
+              "target": "Package",
+              "version": "[6.0.25, )"
+            },
+            "Microsoft.Extensions.Configuration.Binder": {
+              "target": "Package",
+              "version": "[6.0.25, )"
+            },
+            "Microsoft.Extensions.Configuration.Json": {
+              "target": "Package",
+              "version": "[6.0.25, )"
+            },
+            "Microsoft.Extensions.DependencyInjection": {
+              "target": "Package",
+              "version": "[6.0.25, )"
             }
           },
           "imports": [
@@ -361,7 +323,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.101/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.428\\RuntimeIdentifierGraph.json"
         }
       }
     }
