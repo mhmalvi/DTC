@@ -37,3 +37,4 @@ DocumentLayout.backup.json
 **/[Pp]ackages/*
 # except build/, which is used as an MSBuild target.
 !**/[Pp]ackages/build/ 
+.fake

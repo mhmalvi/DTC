@@ -4,6 +4,8 @@ using System.Windows.Controls;
 using Microsoft.Extensions.DependencyInjection;
 using DTCBillingSystem.UI.Views;
 using DTCBillingSystem.UI.ViewModels;
+using System.Reflection;
+using System.Linq;
 
 namespace DTCBillingSystem.UI.Services
 {
@@ -55,41 +57,52 @@ namespace DTCBillingSystem.UI.Services
         {
             try
             {
-                var viewType = Type.GetType($"DTCBillingSystem.UI.Views.{viewName}");
+                // Get the executing assembly
+                var assembly = Assembly.GetExecutingAssembly();
+                
+                // Find the view type in the current assembly
+                var viewType = assembly.GetTypes()
+                    .FirstOrDefault(t => t.FullName == $"DTCBillingSystem.UI.Views.{viewName}");
+
                 if (viewType == null)
-                    throw new ArgumentException($"View {viewName} not found");
+                {
+                    var error = $"View {viewName} not found in assembly {assembly.FullName}";
+                    System.Diagnostics.Debug.WriteLine(error);
+                    throw new ArgumentException(error);
+                }
 
                 // Try to get view model if it exists
-                var viewModelTypeName = $"DTCBillingSystem.UI.ViewModels.{viewName}ViewModel";
-                var viewModelType = Type.GetType(viewModelTypeName);
+                var viewModelType = assembly.GetTypes()
+                    .FirstOrDefault(t => t.FullName == $"DTCBillingSystem.UI.ViewModels.{viewName}ViewModel");
                 
                 if (viewModelType != null)
                 {
                     try
                     {
-                        var viewModel = _serviceProvider.GetService(viewModelType);
-                        if (viewModel != null)
+                        var viewModel = _serviceProvider.GetRequiredService(viewModelType);
+                        var view = ActivatorUtilities.CreateInstance(_serviceProvider, viewType);
+                        
+                        if (view == null)
+                            throw new InvalidOperationException($"Could not create instance of view {viewName}");
+
+                        if (view is FrameworkElement frameworkElement)
                         {
-                            var view = Activator.CreateInstance(viewType);
-                            if (view == null)
-                                throw new InvalidOperationException($"Could not create instance of view {viewName}");
-
-                            if (view is FrameworkElement frameworkElement)
-                            {
-                                frameworkElement.DataContext = viewModel;
-                            }
-
-                            return view;
+                            frameworkElement.DataContext = viewModel;
                         }
+
+                        System.Diagnostics.Debug.WriteLine($"Successfully created view {viewName} with view model");
+                        return view;
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // If getting the view model fails, fall back to creating just the view
+                        System.Diagnostics.Debug.WriteLine($"Error creating view {viewName} with view model: {ex.Message}");
+                        // Continue to fallback
                     }
                 }
 
-                // Create view without view model
-                var fallbackView = Activator.CreateInstance(viewType);
+                // Fallback to creating view without view model
+                System.Diagnostics.Debug.WriteLine($"Creating view {viewName} without view model");
+                var fallbackView = ActivatorUtilities.CreateInstance(_serviceProvider, viewType);
                 if (fallbackView == null)
                     throw new InvalidOperationException($"Could not create instance of view {viewName}");
 
@@ -97,7 +110,9 @@ namespace DTCBillingSystem.UI.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Failed to create view {viewName}: {ex.Message}", ex);
+                var error = $"Failed to create view {viewName}: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine(error);
+                throw new InvalidOperationException(error, ex);
             }
         }
 

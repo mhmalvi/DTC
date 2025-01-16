@@ -87,6 +87,10 @@ namespace DTCBillingSystem.UI
             services.AddScoped<PaymentViewModel>();
             services.AddScoped<ReportViewModel>();
             services.AddScoped<SettingsViewModel>();
+
+            // Register Views
+            services.AddTransient<DashboardView>();
+            services.AddTransient<CustomerView>();
         }
 
         protected override async void OnStartup(StartupEventArgs e)

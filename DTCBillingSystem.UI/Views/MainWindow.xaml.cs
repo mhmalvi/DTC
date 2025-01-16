@@ -17,39 +17,39 @@ namespace DTCBillingSystem.UI.Views
         {
             try
             {
-                InitializeComponent();
+                // Store services
                 _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
                 _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
                 _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
+
+                // Initialize window
+                InitializeComponent();
+
+                // Set DataContext first
                 DataContext = _viewModel;
 
-                // Initialize navigation service with the main frame
-                _navigationService.Initialize(MainFrame, this);
-
-                // Navigate to dashboard by default
-                Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+                // Validate MainFrame exists
+                if (MainFrame == null)
                 {
-                    try
-                    {
-                        _navigationService.NavigateToAsync("DashboardView");
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(
-                            $"Failed to load dashboard: {ex.Message}\n\nThe application will continue to work, but some features may be limited.",
-                            "Navigation Warning",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Warning);
-                    }
-                }));
+                    throw new InvalidOperationException("MainFrame control not found");
+                }
 
-                // Handle window closing
+                // Set window properties
+                WindowStartupLocation = WindowStartupLocation.CenterScreen;
+                WindowState = WindowState.Normal;
+                ShowInTaskbar = true;
+                ResizeMode = ResizeMode.CanResize;
+
+                // Add event handlers
+                Loaded += MainWindow_Loaded;
                 Closing += MainWindow_Closing;
+                ContentRendered += MainWindow_ContentRendered;
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"MainWindow initialization error: {ex.Message}\nStack trace: {ex.StackTrace}");
                 MessageBox.Show(
-                    $"Error initializing main window: {ex.Message}\n\nStack trace: {ex.StackTrace}",
+                    $"Failed to initialize main window: {ex.Message}",
                     "Initialization Error",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error);
@@ -57,26 +57,66 @@ namespace DTCBillingSystem.UI.Views
             }
         }
 
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("MainWindow: Window loaded");
+                Activate();
+                Focus();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in MainWindow_Loaded: {ex.Message}");
+            }
+        }
+
+        private void MainWindow_ContentRendered(object sender, EventArgs e)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("MainWindow: Content rendered");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error in MainWindow_ContentRendered: {ex.Message}");
+            }
+        }
+
         private void MainWindow_Closing(object? sender, CancelEventArgs e)
         {
-            if (MessageBox.Show(
-                "Are you sure you want to exit the application?",
-                "Exit Confirmation",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question) == MessageBoxResult.No)
+            try
             {
-                e.Cancel = true;
+                var result = MessageBox.Show(
+                    "Are you sure you want to exit the application?",
+                    "Exit Confirmation",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.No)
+                {
+                    e.Cancel = true;
+                    return;
+                }
+
+                // Ensure proper cleanup
+                Application.Current.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error during window closing: {ex.Message}");
+                Application.Current.Shutdown();
             }
         }
 
         private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            Application.Current.Shutdown();
+            Close();
         }
 
         private void ManageCustomersMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            _navigationService.NavigateToAsync("Customers");
+            _navigationService.NavigateToAsync("CustomerView");
         }
 
         private async void ImportCustomersMenuItem_Click(object sender, RoutedEventArgs e)
@@ -116,8 +156,7 @@ namespace DTCBillingSystem.UI.Views
 
         private async void AboutMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            await _dialogService.ShowInfoAsync("About", 
-                "DTC Billing System\nVersion 1.0\n\n© 2024 Your Company");
+            await _dialogService.ShowInfoAsync("About", "DTC Billing System\nVersion 1.0\n© 2024 Aethon");
         }
     }
 } 
