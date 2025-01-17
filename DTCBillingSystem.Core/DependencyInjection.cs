@@ -22,16 +22,18 @@ namespace DTCBillingSystem.Core
             if (string.IsNullOrEmpty(audience))
                 throw new InvalidOperationException("JWT Audience is not configured");
 
+            // Register singleton services
             services.AddSingleton<ITokenService>(new TokenService(
                 secretKey,
                 issuer,
                 audience));
 
-            services.AddScoped<IBillingService, BillingService>();
-            services.AddScoped<IAuditService, AuditService>();
+            // Register core services in correct dependency order
             services.AddScoped<IPasswordHasher, PasswordHasher>();
-            services.AddScoped<IReportService, ReportService>();
+            services.AddScoped<IAuditService, AuditService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IBillingService, BillingService>();
+            services.AddScoped<IReportService, ReportService>();
 
             return services;
         }

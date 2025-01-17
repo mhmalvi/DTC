@@ -204,50 +204,135 @@
     </UserControl.Resources>
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="280"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <!-- Enhanced Loading Overlay -->
-        <Grid Grid.RowSpan="2" 
-              Background="#E6FFFFFF" 
-              Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" 
-                            Value="0" 
-                            IsIndeterminate="True" 
-                            Width="64" 
-                            Height="64"
-                            Foreground="#00ffff"/>
-                <TextBlock Text="Loading..." 
-                         Margin="0,20,0,0"
-                         Style="{StaticResource MaterialDesignBody1TextBlock}"
-                         FontSize="16"
-                         FontWeight="Medium"
-                         Foreground="#00ffff"/>
-            </StackPanel>
-        </Grid>
+        <!-- Sidebar -->
+        <Border Grid.Column="0" 
+                Background="#1e2433" 
+                BorderBrush="#2d3748" 
+                BorderThickness="0,0,1,0">
+            <DockPanel>
+                <!-- App Logo -->
+                <StackPanel DockPanel.Dock="Top" Margin="24,32,24,40">
+                    <TextBlock Text="DTC Billing" 
+                             FontSize="24" 
+                             FontWeight="Bold"
+                             Foreground="#00ffff">
+                        <TextBlock.Effect>
+                            <DropShadowEffect BlurRadius="15" 
+                                            ShadowDepth="0" 
+                                            Opacity="0.4" 
+                                            Color="#00ffff"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                    <TextBlock Text="Management System" 
+                             FontSize="14"
+                             Margin="0,4,0,0"
+                             Foreground="#a0aec0"/>
+                </StackPanel>
 
-        <!-- Enhanced Error Message -->
-        <materialDesign:Snackbar Grid.Row="0"
-                                IsActive="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyToBooleanConverter}}"
-                                Message="{Binding ErrorMessage}"
-                                Background="#ef4444"
-                                ActionButtonStyle="{StaticResource MaterialDesignFlatButton}"/>
+                <!-- Navigation Menu -->
+                <StackPanel>
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                            Height="48" 
+                            Margin="12,4"
+                            Foreground="#00ffff"
+                            Background="#242937">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="ViewDashboard" 
+                                                   Width="24" 
+                                                   Height="24" 
+                                                   Margin="0,0,12,0"/>
+                            <TextBlock Text="Dashboard" 
+                                     VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                            Height="48" 
+                            Margin="12,4"
+                            Foreground="#a0aec0">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="AccountMultiple" 
+                                                   Width="24" 
+                                                   Height="24" 
+                                                   Margin="0,0,12,0"/>
+                            <TextBlock Text="Customers" 
+                                     VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                            Height="48" 
+                            Margin="12,4"
+                            Foreground="#a0aec0">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="FileDocument" 
+                                                   Width="24" 
+                                                   Height="24" 
+                                                   Margin="0,0,12,0"/>
+                            <TextBlock Text="Bills" 
+                                     VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                            Height="48" 
+                            Margin="12,4"
+                            Foreground="#a0aec0">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="CashRegister" 
+                                                   Width="24" 
+                                                   Height="24" 
+                                                   Margin="0,0,12,0"/>
+                            <TextBlock Text="Payments" 
+                                     VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                            Height="48" 
+                            Margin="12,4"
+                            Foreground="#a0aec0">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="ChartLine" 
+                                                   Width="24" 
+                                                   Height="24" 
+                                                   Margin="0,0,12,0"/>
+                            <TextBlock Text="Reports" 
+                                     VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource MaterialDesignFlatButton}" 
+                            Height="48" 
+                            Margin="12,4"
+                            Foreground="#a0aec0">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="Cog" 
+                                                   Width="24" 
+                                                   Height="24" 
+                                                   Margin="0,0,12,0"/>
+                            <TextBlock Text="Settings" 
+                                     VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </DockPanel>
+        </Border>
 
         <!-- Main Content -->
-        <ScrollViewer Grid.Row="1" Margin="40" 
+        <ScrollViewer Grid.Column="1" 
+                     Margin="40" 
                      VerticalScrollBarVisibility="Auto"
                      Template="{StaticResource MaterialDesignScrollViewerTemplate}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Enhanced Welcome Message -->
+                <!-- Welcome Message -->
                 <StackPanel Grid.Row="0" Margin="0,0,0,40">
                     <TextBlock Text="Welcome back!" 
                              Style="{StaticResource MaterialDesignHeadline4TextBlock}"
@@ -339,18 +424,61 @@
                     </materialDesign:Card>
                 </Grid>
 
-                <!-- Recent Activity Section -->
-                <Grid Grid.Row="2" Margin="0,40,0,0">
+                <!-- Additional Cards Row -->
+                <Grid Grid.Row="2" Margin="0,24,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
+                    <!-- Monthly Revenue Chart -->
+                    <materialDesign:Card Grid.Column="0" 
+                                       Style="{StaticResource GlassmorphismCard}"
+                                       Margin="0,0,12,0">
+                        <DockPanel>
+                            <TextBlock Text="Monthly Revenue" 
+                                     DockPanel.Dock="Top"
+                                     Style="{StaticResource SectionTitle}"/>
+                            <Grid Height="200">
+                                <!-- Add chart here -->
+                                <TextBlock Text="Chart Placeholder" 
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Center"
+                                         Foreground="#a0aec0"/>
+                            </Grid>
+                        </DockPanel>
+                    </materialDesign:Card>
+
+                    <!-- Payment Status -->
+                    <materialDesign:Card Grid.Column="1" 
+                                       Style="{StaticResource GlassmorphismCard}"
+                                       Margin="12,0,0,0">
+                        <DockPanel>
+                            <TextBlock Text="Payment Status" 
+                                     DockPanel.Dock="Top"
+                                     Style="{StaticResource SectionTitle}"/>
+                            <Grid Height="200">
+                                <!-- Add chart here -->
+                                <TextBlock Text="Chart Placeholder" 
+                                         VerticalAlignment="Center"
+                                         HorizontalAlignment="Center"
+                                         Foreground="#a0aec0"/>
+                            </Grid>
+                        </DockPanel>
+                    </materialDesign:Card>
+                </Grid>
+
+                <!-- Recent Activity Section -->
+                <Grid Grid.Row="3" Margin="0,24,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
                     <!-- Recent Bills -->
-                    <materialDesign:Card Grid.Column="0" Style="{StaticResource GlassmorphismCard}">
-                        <materialDesign:Card.RenderTransform>
-                            <TranslateTransform/>
-                        </materialDesign:Card.RenderTransform>
+                    <materialDesign:Card Grid.Column="0" 
+                                       Style="{StaticResource GlassmorphismCard}"
+                                       Margin="0,0,12,0">
                         <DockPanel>
                             <TextBlock Text="Recent Bills" 
                                      DockPanel.Dock="Top"
@@ -393,6 +521,70 @@
                                         </Grid>
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
+                            </ListView>
+                        </DockPanel>
+                    </materialDesign:Card>
+
+                    <!-- Recent Activities -->
+                    <materialDesign:Card Grid.Column="1" 
+                                       Style="{StaticResource GlassmorphismCard}"
+                                       Margin="12,0,0,0">
+                        <DockPanel>
+                            <TextBlock Text="Recent Activities" 
+                                     DockPanel.Dock="Top"
+                                     Style="{StaticResource SectionTitle}"/>
+                            <ListView Style="{StaticResource ListViewStyle}"
+                                    ItemContainerStyle="{StaticResource ListItemStyle}">
+                                <ListViewItem>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <materialDesign:PackIcon Kind="Bell" 
+                                                               Width="24" 
+                                                               Height="24"
+                                                               Margin="0,0,16,0"
+                                                               Foreground="#00ffff"
+                                                               VerticalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="New Payment Received" 
+                                                     FontWeight="SemiBold"
+                                                     FontSize="14"
+                                                     Foreground="#e2e8f0"/>
+                                            <TextBlock Text="2 minutes ago"
+                                                     Opacity="0.7"
+                                                     FontSize="12"
+                                                     Foreground="#a0aec0"
+                                                     Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </ListViewItem>
+                                <ListViewItem>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <materialDesign:PackIcon Kind="AlertCircle" 
+                                                               Width="24" 
+                                                               Height="24"
+                                                               Margin="0,0,16,0"
+                                                               Foreground="#00ffff"
+                                                               VerticalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="Bill Due Reminder" 
+                                                     FontWeight="SemiBold"
+                                                     FontSize="14"
+                                                     Foreground="#e2e8f0"/>
+                                            <TextBlock Text="15 minutes ago"
+                                                     Opacity="0.7"
+                                                     FontSize="12"
+                                                     Foreground="#a0aec0"
+                                                     Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </ListViewItem>
                             </ListView>
                         </DockPanel>
                     </materialDesign:Card>

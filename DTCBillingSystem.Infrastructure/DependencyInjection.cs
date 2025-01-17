@@ -1,5 +1,4 @@
 using DTCBillingSystem.Core.Interfaces;
-using DTCBillingSystem.Core.Services;
 using DTCBillingSystem.Infrastructure.Data;
 using DTCBillingSystem.Infrastructure.Repositories;
 using DTCBillingSystem.Infrastructure.Services;
@@ -19,19 +18,16 @@ public static class DependencyInjection
             throw new InvalidOperationException("Connection string 'DefaultConnection' not found in configuration.");
         }
 
+        // Register database context
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlite(connectionString));
 
-        // Register repositories and infrastructure services
+        // Register repositories
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IAuthenticationService, AuthenticationService>();
-        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-        // Register Core services that are required by Infrastructure
-        // but not already registered in Core.AddCoreServices
-        services.AddScoped<IUserService, DTCBillingSystem.Core.Services.UserService>();
-        services.AddScoped<IPasswordHasher, DTCBillingSystem.Core.Services.PasswordHasher>();
-        services.AddScoped<IAuditService, DTCBillingSystem.Core.Services.AuditService>();
+        // Register infrastructure-specific services
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
 
         return services;
     }

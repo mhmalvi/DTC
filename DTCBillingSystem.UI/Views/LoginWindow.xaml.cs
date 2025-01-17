@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using DTCBillingSystem.UI.ViewModels;
 
 namespace DTCBillingSystem.UI.Views
@@ -16,6 +17,9 @@ namespace DTCBillingSystem.UI.Views
 
             // Handle password changes
             PasswordBox.PasswordChanged += PasswordBox_PasswordChanged;
+            
+            // Enable window dragging
+            MouseDown += Window_MouseDown;
         }
 
         private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
@@ -24,6 +28,24 @@ namespace DTCBillingSystem.UI.Views
             {
                 ((LoginViewModel)DataContext).Password = ((PasswordBox)sender).Password;
             }
+        }
+
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                DragMove();
+            }
+        }
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 } 
