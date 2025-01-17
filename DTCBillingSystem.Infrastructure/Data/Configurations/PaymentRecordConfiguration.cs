@@ -14,6 +14,8 @@ namespace DTCBillingSystem.Infrastructure.Data.Configurations
 
             builder.Property(x => x.PaymentDate).IsRequired();
             builder.Property(x => x.Amount).IsRequired().HasPrecision(18, 2);
+            builder.Property(x => x.AmountPaid).IsRequired().HasPrecision(18, 2);
+            builder.Property(x => x.LatePaymentCharges).HasPrecision(18, 2);
             builder.Property(x => x.PaymentMethod).IsRequired();
             builder.Property(x => x.ReferenceNumber).HasMaxLength(50);
             builder.Property(x => x.Notes).HasMaxLength(500);

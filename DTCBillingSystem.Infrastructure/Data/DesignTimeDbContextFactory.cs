@@ -11,11 +11,15 @@ namespace DTCBillingSystem.Infrastructure.Data
         public ApplicationDbContext CreateDbContext(string[] args)
         {
             var configuration = new ConfigurationBuilder()
-                .AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json"), optional: true)
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .Build();
 
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            optionsBuilder.UseSqlite(configuration.GetConnectionString("DefaultConnection") ?? "Data Source=dtcbilling.db");
+            var connectionString = configuration.GetConnectionString("DefaultConnection") ?? 
+                "Data Source=DTCBillingSystem.db";
+
+            optionsBuilder.UseSqlite(connectionString);
 
             // Create a mock IPasswordHasher for design-time
             var mockPasswordHasher = new MockPasswordHasher();

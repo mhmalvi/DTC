@@ -15,6 +15,8 @@ namespace DTCBillingSystem.Infrastructure.Data.Configurations
             builder.Property(c => c.PhoneNumber).HasMaxLength(15);
             builder.Property(c => c.Status).IsRequired();
             builder.Property(c => c.RegistrationDate).IsRequired();
+            builder.Property(c => c.CurrentBalance).HasPrecision(18, 2);
+            builder.Property(c => c.SecurityDeposit).HasPrecision(18, 2);
 
             builder.HasMany(c => c.MonthlyBills)
                 .WithOne(b => b.Customer)

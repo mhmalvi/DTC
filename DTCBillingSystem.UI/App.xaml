@@ -4,6 +4,7 @@
              xmlns:local="clr-namespace:DTCBillingSystem.UI"
              xmlns:conv="clr-namespace:DTCBillingSystem.UI.Converters"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:enums="clr-namespace:DTCBillingSystem.Core.Models.Enums;assembly=DTCBillingSystem.Core">
     <Application.Resources>
         <ResourceDictionary>
@@ -24,6 +25,7 @@
             <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
             <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+            <conv:StringNotEmptyToBooleanConverter x:Key="StringNotEmptyToBooleanConverter"/>
             <conv:BoolToStatusConverter x:Key="BoolToStatusConverter"/>
             <conv:BoolToActionTextConverter x:Key="BoolToActionTextConverter"/>
             <conv:BooleanToActiveStatusConverter x:Key="BooleanToActiveStatusConverter"/>
@@ -41,8 +43,7 @@
             </ObjectDataProvider>
 
             <!-- Sort Options -->
-            <x:Array x:Key="SortOptions" Type="sys:String" 
-                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+            <x:Array x:Key="SortOptions" Type="{x:Type sys:String}">
                 <sys:String>Name</sys:String>
                 <sys:String>AccountNumber</sys:String>
                 <sys:String>Type</sys:String>

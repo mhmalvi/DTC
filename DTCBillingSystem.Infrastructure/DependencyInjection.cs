@@ -22,12 +22,15 @@ public static class DependencyInjection
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlite(connectionString));
 
-        services.AddScoped<IUserService, DTCBillingSystem.Core.Services.UserService>();
-        services.AddScoped<IPasswordHasher, DTCBillingSystem.Core.Services.PasswordHasher>();
-        services.AddScoped<ITokenService, TokenService>();
-        services.AddScoped<IUnitOfWork, DTCBillingSystem.Infrastructure.Repositories.UnitOfWork>();
+        // Register repositories and infrastructure services
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IAuthenticationService, AuthenticationService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+        // Register Core services that are required by Infrastructure
+        // but not already registered in Core.AddCoreServices
+        services.AddScoped<IUserService, DTCBillingSystem.Core.Services.UserService>();
+        services.AddScoped<IPasswordHasher, DTCBillingSystem.Core.Services.PasswordHasher>();
         services.AddScoped<IAuditService, DTCBillingSystem.Core.Services.AuditService>();
 
         return services;

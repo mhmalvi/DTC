@@ -46,13 +46,13 @@ namespace DTCBillingSystem.Infrastructure.Data
             var passwordHasher = new PasswordHasher();
 
             // Hash the default admin password using PBKDF2
-            var password = "Admin@123";
+            var password = "123";
             var (hash, salt) = passwordHasher.HashPassword(password);
 
             modelBuilder.Entity<User>().HasData(new User
             {
                 Id = 1,
-                Username = "admin",
+                Username = "ad",
                 Email = "admin@dtcbilling.com",
                 FirstName = "System",
                 LastName = "Administrator",

@@ -11,7 +11,6 @@ using DTCBillingSystem.Core.Models.Entities;
 using DTCBillingSystem.Core.Models.Enums;
 using DTCBillingSystem.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Data.SqlClient;
 using BackupInfoModel = DTCBillingSystem.Core.Models.BackupInfo;
 using BackupInfoEntity = DTCBillingSystem.Core.Models.Entities.BackupInfo;
 using BackupScheduleModel = DTCBillingSystem.Core.Models.BackupSchedule;
@@ -56,92 +55,62 @@ namespace DTCBillingSystem.Infrastructure.Services
                 DatabaseVersion = entity.DatabaseVersion,
                 IsVerified = entity.IsVerified,
                 CreatedAt = entity.CreatedAt,
-                CreatedBy = entity.CreatedBy ?? string.Empty,
-                LastModifiedAt = entity.UpdatedAt ?? DateTime.UtcNow,
-                LastModifiedBy = entity.LastModifiedBy ?? string.Empty
+                CreatedBy = entity.CreatedBy,
+                LastModifiedAt = entity.LastModifiedAt,
+                LastModifiedBy = entity.LastModifiedBy
             };
         }
 
         public async Task<BackupInfoModel> CreateFullBackupAsync(string backupPath)
         {
-            var backupInfo = new BackupInfoEntity
-            {
-                Name = $"FullBackup_{DateTime.UtcNow:yyyyMMddHHmmss}",
-                Type = BackupType.Full.ToString(),
-                FilePath = Path.Combine(backupPath, $"full_backup_{DateTime.UtcNow:yyyyMMddHHmmss}.bak"),
-                Status = BackupStatus.InProgress,
-                StartTime = DateTime.UtcNow,
-                IsCompressed = true,
-                IncludesTransactionLogs = true,
-                CreatedAt = DateTime.UtcNow
-            };
-
             try
             {
+                // Create backup directory if it doesn't exist
+                var backupDir = Path.GetDirectoryName(backupPath);
+                if (!Directory.Exists(backupDir))
+                {
+                    Directory.CreateDirectory(backupDir);
+                }
+
+                // Copy the SQLite database file
+                var dbPath = Path.GetFullPath(_dbContext.Database.GetDbConnection().ConnectionString.Replace("Data Source=", ""));
+                File.Copy(dbPath, backupPath, true);
+
+                var backupInfo = new BackupInfoEntity
+                {
+                    Name = Path.GetFileName(backupPath),
+                    Type = BackupType.Full.ToString(),
+                    FilePath = backupPath,
+                    Status = BackupStatus.Completed,
+                    StartTime = DateTime.UtcNow,
+                    EndTime = DateTime.UtcNow,
+                    FileSize = new FileInfo(backupPath).Length,
+                    DatabaseVersion = "SQLite",
+                    IsCompressed = false,
+                    IncludesTransactionLogs = false,
+                    IsVerified = true,
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedBy = "system",
+                    LastModifiedAt = DateTime.UtcNow,
+                    LastModifiedBy = "system"
+                };
+
                 await _backupInfoRepository.AddAsync(backupInfo);
-                var dbName = _dbContext.Database.GetDbConnection().Database;
-                await _dbContext.Database.ExecuteSqlRawAsync(
-                    "BACKUP DATABASE [@dbName] TO DISK = @p0",
-                    new[] { dbName, backupInfo.FilePath });
+                await _auditService.LogActionAsync("Backup", backupInfo.Id, "Create", "Created full backup");
 
-                backupInfo.Status = BackupStatus.Completed;
-                backupInfo.EndTime = DateTime.UtcNow;
-                await _backupInfoRepository.UpdateAsync(backupInfo);
-
-                await _auditService.LogActionAsync("Backup", backupInfo.Id, "Create", $"Full backup created at {backupInfo.FilePath}");
                 return ConvertToModel(backupInfo);
             }
             catch (Exception ex)
             {
-                backupInfo.Status = BackupStatus.Failed;
-                backupInfo.EndTime = DateTime.UtcNow;
-                backupInfo.ErrorMessage = ex.Message;
-                await _backupInfoRepository.UpdateAsync(backupInfo);
-
-                await _auditService.LogActionAsync("Backup", backupInfo.Id, "Error", $"Full backup failed: {ex.Message}");
+                await _auditService.LogActionAsync("Backup", 0, "Error", $"Backup failed: {ex.Message}");
                 throw;
             }
         }
 
         public async Task<BackupInfoModel> CreateDifferentialBackupAsync(string backupPath)
         {
-            var backupInfo = new BackupInfoEntity
-            {
-                Name = $"DiffBackup_{DateTime.UtcNow:yyyyMMddHHmmss}",
-                Type = BackupType.Differential.ToString(),
-                FilePath = Path.Combine(backupPath, $"diff_backup_{DateTime.UtcNow:yyyyMMddHHmmss}.bak"),
-                Status = BackupStatus.InProgress,
-                StartTime = DateTime.UtcNow,
-                IsCompressed = true,
-                IncludesTransactionLogs = false,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            try
-            {
-                await _backupInfoRepository.AddAsync(backupInfo);
-                var dbName = _dbContext.Database.GetDbConnection().Database;
-                await _dbContext.Database.ExecuteSqlRawAsync(
-                    "BACKUP DATABASE [@dbName] TO DISK = @p0 WITH DIFFERENTIAL",
-                    new[] { dbName, backupInfo.FilePath });
-
-                backupInfo.Status = BackupStatus.Completed;
-                backupInfo.EndTime = DateTime.UtcNow;
-                await _backupInfoRepository.UpdateAsync(backupInfo);
-
-                await _auditService.LogActionAsync("Backup", backupInfo.Id, "Create", $"Differential backup created at {backupInfo.FilePath}");
-                return ConvertToModel(backupInfo);
-            }
-            catch (Exception ex)
-            {
-                backupInfo.Status = BackupStatus.Failed;
-                backupInfo.EndTime = DateTime.UtcNow;
-                backupInfo.ErrorMessage = ex.Message;
-                await _backupInfoRepository.UpdateAsync(backupInfo);
-
-                await _auditService.LogActionAsync("Backup", backupInfo.Id, "Error", $"Differential backup failed: {ex.Message}");
-                throw;
-            }
+            // For SQLite, we'll just create a full backup since SQLite doesn't support differential backups
+            return await CreateFullBackupAsync(backupPath);
         }
 
         public async Task<bool> RestoreFromBackupAsync(string backupPath)
@@ -149,19 +118,25 @@ namespace DTCBillingSystem.Infrastructure.Services
             try
             {
                 if (!File.Exists(backupPath))
-                    return false;
+                {
+                    throw new FileNotFoundException("Backup file not found", backupPath);
+                }
 
-                var dbName = _dbContext.Database.GetDbConnection().Database;
-                var sql = $"RESTORE DATABASE [{dbName}] FROM DISK = @p0 WITH REPLACE";
+                var dbPath = Path.GetFullPath(_dbContext.Database.GetDbConnection().ConnectionString.Replace("Data Source=", ""));
                 
-                await _dbContext.Database.ExecuteSqlRawAsync(sql, backupPath);
-                await _auditService.LogActionAsync("Backup", 0, "Restore", $"Database restored from {backupPath}");
+                // Close all connections
+                await _dbContext.Database.CloseConnectionAsync();
+                
+                // Copy backup file to database location
+                File.Copy(backupPath, dbPath, true);
+
+                await _auditService.LogActionAsync("Backup", 0, "Restore", "Database restored from backup");
                 return true;
             }
             catch (Exception ex)
             {
                 await _auditService.LogActionAsync("Backup", 0, "Error", $"Restore failed: {ex.Message}");
-                return false;
+                throw;
             }
         }
 
@@ -170,12 +145,16 @@ namespace DTCBillingSystem.Infrastructure.Services
             try
             {
                 if (!File.Exists(backupPath))
+                {
                     return false;
+                }
 
-                var sql = "RESTORE VERIFYONLY FROM DISK = @p0";
-                
-                await _dbContext.Database.ExecuteSqlRawAsync(sql, backupPath);
-                await _auditService.LogActionAsync("Backup", 0, "Verify", $"Backup verified: {backupPath}");
+                // For SQLite, we'll just verify if the file exists and can be opened
+                using var connection = new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={backupPath}");
+                await connection.OpenAsync();
+                await connection.CloseAsync();
+
+                await _auditService.LogActionAsync("Backup", 0, "Verify", "Backup verification completed");
                 return true;
             }
             catch (Exception ex)

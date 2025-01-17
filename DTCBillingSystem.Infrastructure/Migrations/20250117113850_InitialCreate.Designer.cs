@@ -11,13 +11,13 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DTCBillingSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250115234457_InitialCreate")]
+    [Migration("20250117113850_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.25");
+            modelBuilder.HasAnnotation("ProductVersion", "6.0.0");
 
             modelBuilder.Entity("DTCBillingSystem.Core.Models.Entities.AuditLog", b =>
                 {
@@ -166,6 +166,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("CurrentBalance")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("CustomerType")
@@ -218,6 +219,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("SecurityDeposit")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ShopNo")
@@ -244,6 +246,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal?>("Consumption")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
@@ -258,6 +261,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
 
                     b.Property<string>("ImageUrl")
                         .IsRequired()
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsAnomalous")
@@ -272,20 +276,25 @@ namespace DTCBillingSystem.Infrastructure.Migrations
 
                     b.Property<string>("MeterNumber")
                         .IsRequired()
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Notes")
                         .IsRequired()
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal?>("PreviousReading")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ReadBy")
                         .IsRequired()
+                        .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Reading")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("ReadingDate")
@@ -299,13 +308,14 @@ namespace DTCBillingSystem.Infrastructure.Migrations
 
                     b.Property<string>("ValidationNotes")
                         .IsRequired()
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("MeterReadings");
+                    b.ToTable("MeterReadings", (string)null);
                 });
 
             modelBuilder.Entity("DTCBillingSystem.Core.Models.Entities.MonthlyBill", b =>
@@ -315,25 +325,27 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal?>("ACPresentReading")
-                        .HasPrecision(10, 2)
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal?>("ACPreviousReading")
-                        .HasPrecision(10, 2)
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("BillNumber")
                         .IsRequired()
+                        .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("BillingMonth")
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("BlowerFanCharge")
-                        .HasPrecision(10, 2)
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
@@ -350,7 +362,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("GeneratorCharge")
-                        .HasPrecision(10, 2)
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("LastModifiedAt")
@@ -364,28 +376,30 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PaymentReference")
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("PresentReading")
-                        .HasPrecision(10, 2)
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("PreviousReading")
-                        .HasPrecision(10, 2)
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("ServiceCharge")
-                        .HasPrecision(10, 2)
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Status")
-                        .HasMaxLength(20)
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("TaxAmount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -406,6 +420,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("AmountPaid")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
@@ -426,6 +441,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<decimal>("LatePaymentCharges")
+                        .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("MonthlyBillId")
@@ -605,19 +621,19 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 1, 15, 23, 44, 57, 400, DateTimeKind.Utc).AddTicks(8903),
+                            CreatedAt = new DateTime(2025, 1, 17, 11, 38, 50, 558, DateTimeKind.Utc).AddTicks(2487),
                             CreatedBy = "system",
                             Email = "admin@dtcbilling.com",
                             FirstName = "System",
                             IsActive = true,
-                            LastModifiedAt = new DateTime(2025, 1, 15, 23, 44, 57, 400, DateTimeKind.Utc).AddTicks(8904),
+                            LastModifiedAt = new DateTime(2025, 1, 17, 11, 38, 50, 558, DateTimeKind.Utc).AddTicks(2490),
                             LastModifiedBy = "system",
                             LastName = "Administrator",
-                            PasswordHash = new byte[] { 200, 223, 60, 174, 70, 235, 226, 86, 154, 222, 198, 14, 182, 16, 207, 215, 220, 173, 147, 81, 223, 44, 191, 4, 186, 202, 182, 164, 105, 227, 226, 139 },
-                            PasswordSalt = new byte[] { 142, 253, 67, 38, 227, 103, 81, 247, 123, 23, 110, 176, 119, 85, 59, 118, 65, 135, 73, 16, 183, 203, 247, 59, 203, 217, 36, 68, 194, 143, 178, 210 },
+                            PasswordHash = new byte[] { 54, 195, 218, 156, 201, 167, 150, 110, 216, 154, 191, 64, 33, 128, 249, 87, 17, 93, 83, 24, 0, 125, 94, 209, 164, 22, 191, 13, 246, 81, 39, 40 },
+                            PasswordSalt = new byte[] { 86, 126, 46, 95, 41, 169, 1, 96, 189, 181, 104, 90, 155, 63, 19, 127 },
                             RequirePasswordChange = false,
                             Role = 0,
-                            Username = "admin"
+                            Username = "ad"
                         });
                 });
 
@@ -637,7 +653,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                     b.HasOne("DTCBillingSystem.Core.Models.Entities.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Customer");

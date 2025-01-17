@@ -1,176 +1,87 @@
 ﻿using System;
-using System.IO;
 using System.Windows;
-using System.Windows.Media;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Services;
 using DTCBillingSystem.Infrastructure.Data;
-using DTCBillingSystem.Infrastructure.Repositories;
-using DTCBillingSystem.Infrastructure.Services;
-using DTCBillingSystem.UI.Services;
 using DTCBillingSystem.UI.ViewModels;
 using DTCBillingSystem.UI.Views;
-using System.Diagnostics;
-using MaterialDesignThemes.Wpf;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using System.IO;
+using DTCBillingSystem.Core;
+using DTCBillingSystem.Infrastructure;
+using DTCBillingSystem.UI.Services;
 
 namespace DTCBillingSystem.UI
 {
     public partial class App : Application
     {
-        private IServiceProvider? _serviceProvider;
-        private IConfiguration? _configuration;
+        private ServiceProvider serviceProvider;
+        private IConfiguration Configuration;
 
         public App()
         {
-            try
-            {
-                Debug.WriteLine("Initializing application...");
+            Configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .Build();
 
-                AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
-                {
-                    Debug.WriteLine($"Attempting to resolve assembly: {args.Name}");
-                    return null;
-                };
-
-                AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
-                {
-                    Debug.WriteLine($"Unhandled exception: {args.ExceptionObject}");
-                };
-
-                _configuration = new ConfigurationBuilder()
-                    .AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json"), optional: true)
-                    .Build();
-
-                var services = new ServiceCollection();
-                ConfigureServices(services);
-                _serviceProvider = services.BuildServiceProvider();
-
-                Debug.WriteLine("Application initialization completed successfully.");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error during application initialization: {ex.Message}\nStack trace: {ex.StackTrace}");
-                MessageBox.Show($"Error during startup: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                Current.Shutdown();
-            }
+            var services = new ServiceCollection();
+            ConfigureServices(services);
+            serviceProvider = services.BuildServiceProvider();
         }
 
         private void ConfigureServices(IServiceCollection services)
         {
-            try
-            {
-                Debug.WriteLine("Configuring services...");
+            // Add Core and Infrastructure services
+            services.AddCoreServices(Configuration);
+            services.AddInfrastructure(Configuration);
 
-                // Add configuration
-                services.AddSingleton<IConfiguration>(_configuration!);
+            // Add DatabaseSeeder
+            services.AddTransient<DatabaseSeeder>();
 
-                // Add Core services
-                services.AddSingleton<IPasswordHasher, Core.Services.PasswordHasher>();
-                services.AddSingleton<ITokenService>(provider =>
-                {
-                    var secretKey = _configuration!["JwtSettings:SecretKey"] ?? "your-secret-key-here";
-                    var issuer = _configuration["JwtSettings:Issuer"] ?? "dtcbilling";
-                    var audience = _configuration["JwtSettings:Audience"] ?? "dtcbilling-clients";
-                    var expirationMinutes = int.Parse(_configuration["JwtSettings:ExpirationMinutes"] ?? "60");
-                    return new Core.Services.TokenService(secretKey, issuer, audience, expirationMinutes);
-                });
-                services.AddSingleton<IUserService, Core.Services.UserService>();
+            // Add UI Services
+            services.AddSingleton<IViewLocator, ViewLocator>();
+            services.AddSingleton<INavigationService, NavigationService>();
+            services.AddSingleton<IDialogService, DialogService>();
+            services.AddSingleton<IWindowFactory, WindowFactory>();
 
-                // Add DbContext
-                services.AddDbContext<ApplicationDbContext>((provider, options) =>
-                {
-                    options.UseSqlite(_configuration!.GetConnectionString("DefaultConnection") ?? "Data Source=dtcbilling.db");
-                });
-                services.AddScoped<DbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
-                services.AddScoped<ApplicationDbContext>((provider) =>
-                {
-                    var options = provider.GetRequiredService<DbContextOptions<ApplicationDbContext>>();
-                    var passwordHasher = provider.GetRequiredService<IPasswordHasher>();
-                    return new ApplicationDbContext(options, passwordHasher);
-                });
+            // Add ViewModels
+            services.AddTransient<DashboardViewModel>();
+            services.AddTransient<LoginViewModel>();
+            services.AddTransient<MainViewModel>();
 
-                // Add Infrastructure services
-                services.AddScoped<IUnitOfWork, UnitOfWork>();
-                services.AddScoped<IAuthenticationService, Infrastructure.Services.AuthenticationService>();
-                services.AddScoped<ICustomerService, Infrastructure.Services.CustomerService>();
-                services.AddScoped<IBillingService, Infrastructure.Services.BillingService>();
-                services.AddScoped<IPaymentService, Infrastructure.Services.PaymentService>();
-                services.AddScoped<IBackupService, Infrastructure.Services.BackupService>();
-                services.AddScoped<IAuditService, Infrastructure.Services.AuditService>();
-                services.AddScoped<IPrintService, Infrastructure.Services.PrintService>();
-                services.AddScoped<IMeterReadingService, Infrastructure.Services.MeterReadingService>();
-
-                // Add UI services
-                services.AddScoped<INavigationService, NavigationService>();
-                services.AddScoped<IViewLocator, ViewLocator>();
-                services.AddScoped<ICurrentUserService, CurrentUserService>();
-                services.AddScoped<IDialogService, DialogService>();
-                services.AddScoped<IWindowFactory, WindowFactory>();
-
-                // Register ViewModels
-                services.AddScoped<LoginViewModel>();
-                services.AddScoped<MainViewModel>();
-                services.AddScoped<DashboardViewModel>();
-                services.AddScoped<CustomerViewModel>();
-                services.AddScoped<BillViewModel>();
-                services.AddScoped<PaymentViewModel>();
-                services.AddScoped<ReportViewModel>();
-                services.AddScoped<SettingsViewModel>();
-
-                // Register Views
-                services.AddTransient<MainWindow>();
-                services.AddTransient<LoginWindow>();
-                services.AddScoped<DashboardView>();
-                services.AddTransient<CustomerView>();
-                services.AddTransient<BillView>();
-                services.AddTransient<PaymentView>();
-                services.AddTransient<ReportView>();
-                services.AddTransient<SettingsView>();
-
-                Debug.WriteLine("Services configured successfully.");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error configuring services: {ex.Message}\nStack trace: {ex.StackTrace}");
-                throw;
-            }
+            // Add Views
+            services.AddTransient<DashboardView>();
+            services.AddTransient<LoginWindow>();
+            services.AddTransient<MainWindow>();
         }
 
         protected override async void OnStartup(StartupEventArgs e)
         {
+            base.OnStartup(e);
+
             try
             {
-                Debug.WriteLine("Starting application...");
+                // Get the DbContext and ensure database is created
+                using (var scope = serviceProvider.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    await dbContext.Database.EnsureCreatedAsync();
 
-                // Initialize MaterialDesign
-                var paletteHelper = new PaletteHelper();
-                ITheme theme = paletteHelper.GetTheme();
-                theme.SetBaseTheme(Theme.Light);
-                theme.SetPrimaryColor(Color.FromRgb(103, 58, 183));  // DeepPurple
-                theme.SetSecondaryColor(Color.FromRgb(205, 220, 57));  // Lime
-                paletteHelper.SetTheme(theme);
-
-                base.OnStartup(e);
-
-                // Initialize database
-                var dbContext = _serviceProvider.GetRequiredService<ApplicationDbContext>();
-                await dbContext.Database.EnsureCreatedAsync();
+                    // Seed the database
+                    var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+                    await seeder.SeedAsync();
+                }
 
                 // Show login window
-                var loginWindow = new LoginWindow(
-                    _serviceProvider.GetRequiredService<LoginViewModel>());
-
-                Debug.WriteLine("Showing login window...");
+                var loginWindow = serviceProvider.GetRequiredService<LoginWindow>();
                 loginWindow.Show();
-                Debug.WriteLine("Login window shown successfully.");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error during startup: {ex.Message}\nStack trace: {ex.StackTrace}");
-                MessageBox.Show($"Error during startup: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"An error occurred during startup: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 Current.Shutdown();
             }
         }

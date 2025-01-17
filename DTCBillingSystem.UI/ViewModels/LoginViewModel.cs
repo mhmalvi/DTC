@@ -115,18 +115,56 @@ namespace DTCBillingSystem.UI.ViewModels
 
                 await _auditService.LogAsync("User", user.Id.ToString(), user.Id, "Login");
                 
+                // Create a TaskCompletionSource to track the navigation
+                var navigationComplete = new TaskCompletionSource<bool>();
+
                 // Use dispatcher to ensure UI updates happen on the UI thread
-                Application.Current.Dispatcher.Invoke(() =>
+                await Application.Current.Dispatcher.InvokeAsync(async () =>
                 {
                     try
                     {
+                        // Attempt to navigate
                         _navigationService.NavigateToMain();
+                        navigationComplete.SetResult(true);
+
+                        // Log successful navigation
+                        await _auditService.LogAsync("User", user.Id.ToString(), user.Id, "Navigation", "Successfully navigated to main window");
                     }
                     catch (Exception ex)
                     {
-                        ErrorMessage = $"Failed to navigate to main window: {ex.Message}";
+                        var errorDetails = $"Navigation Error: {ex.Message}\nStack Trace: {ex.StackTrace}";
+                        await _auditService.LogAsync("User", user.Id.ToString(), user.Id, "NavigationError", errorDetails);
+                        
+                        // Force logout since navigation failed
+                        await _authenticationService.LogoutAsync();
+                        
+                        ErrorMessage = "Failed to open main window. Please try logging in again.";
+                        MessageBox.Show(
+                            $"Failed to open main window. Error: {ex.Message}",
+                            "Navigation Error",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+                            
+                        navigationComplete.SetException(ex);
                     }
                 });
+
+                // Wait for navigation to complete with a timeout
+                var timeoutTask = Task.Delay(TimeSpan.FromSeconds(5));
+                var completedTask = await Task.WhenAny(navigationComplete.Task, timeoutTask);
+
+                if (completedTask == timeoutTask)
+                {
+                    // Navigation timed out
+                    await _auditService.LogAsync("User", user.Id.ToString(), user.Id, "NavigationError", "Navigation to main window timed out");
+                    await _authenticationService.LogoutAsync();
+                    
+                    ErrorMessage = "Failed to open main window (timeout). Please try logging in again.";
+                    throw new TimeoutException("Navigation to main window timed out");
+                }
+
+                // If we get here, navigation was successful
+                await _auditService.LogAsync("User", user.Id.ToString(), user.Id, "Navigation", "Login and navigation completed successfully");
             }
             catch (Exception ex)
             {

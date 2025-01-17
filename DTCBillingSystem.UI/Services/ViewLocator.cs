@@ -88,39 +88,38 @@ namespace DTCBillingSystem.UI.Services
                     Debug.WriteLine($"ViewLocator: Found matching ViewModel type {viewModelType.FullName}");
                     try
                     {
-                        Debug.WriteLine("ViewLocator: Creating ViewModel instance");
+                        // Get the view model from the service provider
                         var viewModel = _serviceProvider.GetRequiredService(viewModelType);
-                        Debug.WriteLine("ViewLocator: ViewModel created successfully");
+                        Debug.WriteLine("ViewLocator: ViewModel instance created");
 
-                        Debug.WriteLine("ViewLocator: Creating View instance");
-                        // Try to create view with ViewModel parameter first
+                        // Try to find a constructor that takes the view model
                         var constructor = viewType.GetConstructor(new[] { viewModelType });
-                        object view;
                         
+                        object? view;
                         if (constructor != null)
                         {
-                            Debug.WriteLine("ViewLocator: Found constructor with ViewModel parameter");
+                            // Create view with view model parameter
                             view = constructor.Invoke(new[] { viewModel });
+                            Debug.WriteLine("ViewLocator: View created with ViewModel parameter");
                         }
                         else
                         {
-                            Debug.WriteLine("ViewLocator: Using DI to create view");
-                            view = _serviceProvider.GetRequiredService(viewType);
-                        }
-                        
-                        Debug.WriteLine("ViewLocator: View created successfully");
-                        
-                        if (view == null)
-                        {
-                            Debug.WriteLine($"ViewLocator ERROR: View instance is null for {viewName}");
-                            throw new InvalidOperationException($"Could not create instance of view {viewName}");
+                            // Create view without parameters
+                            view = ActivatorUtilities.CreateInstance(_serviceProvider, viewType);
+                            Debug.WriteLine("ViewLocator: View created without parameters");
+                            
+                            // Set DataContext manually
+                            if (view is FrameworkElement frameworkElement)
+                            {
+                                frameworkElement.DataContext = viewModel;
+                                Debug.WriteLine("ViewLocator: DataContext set manually");
+                            }
                         }
 
-                        if (view is FrameworkElement frameworkElement && constructor == null)
+                        if (view == null)
                         {
-                            Debug.WriteLine("ViewLocator: Setting DataContext");
-                            frameworkElement.DataContext = viewModel;
-                            Debug.WriteLine("ViewLocator: DataContext set successfully");
+                            Debug.WriteLine($"ViewLocator ERROR: Failed to create view instance for {viewName}");
+                            throw new InvalidOperationException($"Failed to create view instance for {viewName}");
                         }
 
                         Debug.WriteLine($"ViewLocator: Successfully created view {viewName} with view model");
@@ -128,28 +127,30 @@ namespace DTCBillingSystem.UI.Services
                     }
                     catch (Exception ex)
                     {
-                        Debug.WriteLine($"ViewLocator ERROR: Failed to create view {viewName} with view model: {ex.Message}\nStack trace: {ex.StackTrace}");
-                        throw;
+                        Debug.WriteLine($"ViewLocator ERROR: Failed to create view with view model: {ex.Message}");
+                        throw new InvalidOperationException($"Failed to create view with view model: {ex.Message}", ex);
                     }
                 }
-
-                // If no view model exists, just create the view
-                Debug.WriteLine($"ViewLocator: No ViewModel found for {viewName}, creating view only");
-                var viewOnly = _serviceProvider.GetRequiredService(viewType);
-                if (viewOnly == null)
+                else
                 {
-                    Debug.WriteLine($"ViewLocator ERROR: View instance is null for {viewName}");
-                    throw new InvalidOperationException($"Could not create instance of view {viewName}");
-                }
+                    // Create view without view model
+                    Debug.WriteLine("ViewLocator: No matching ViewModel found, creating view without ViewModel");
+                    var view = ActivatorUtilities.CreateInstance(_serviceProvider, viewType);
+                    
+                    if (view == null)
+                    {
+                        Debug.WriteLine($"ViewLocator ERROR: Failed to create view instance for {viewName}");
+                        throw new InvalidOperationException($"Failed to create view instance for {viewName}");
+                    }
 
-                Debug.WriteLine($"ViewLocator: Successfully created view {viewName} without view model");
-                return viewOnly;
+                    Debug.WriteLine($"ViewLocator: Successfully created view {viewName} without view model");
+                    return view;
+                }
             }
             catch (Exception ex)
             {
-                var error = $"Failed to create view {viewName}: {ex.Message}";
-                Debug.WriteLine($"ViewLocator CRITICAL ERROR: {error}\nStack trace: {ex.StackTrace}");
-                throw new InvalidOperationException(error, ex);
+                Debug.WriteLine($"ViewLocator ERROR: {ex.Message}");
+                throw;
             }
         }
 

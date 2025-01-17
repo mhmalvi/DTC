@@ -11,18 +11,15 @@ namespace DTCBillingSystem.Core.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordHasher _passwordHasher;
-        private readonly ITokenService _tokenService;
         private readonly IAuditService _auditService;
 
         public UserService(
             IUnitOfWork unitOfWork,
             IPasswordHasher passwordHasher,
-            ITokenService tokenService,
             IAuditService auditService)
         {
             _unitOfWork = unitOfWork;
             _passwordHasher = passwordHasher;
-            _tokenService = tokenService;
             _auditService = auditService;
         }
 
@@ -47,8 +44,6 @@ namespace DTCBillingSystem.Core.Services
 
             user.LastLoginAt = DateTime.UtcNow;
             await _unitOfWork.SaveChangesAsync();
-
-            var token = _tokenService.GenerateToken(user);
             
             await _auditService.LogAsync("User", user.Id.ToString(), user.Id, AuditAction.Login.ToString());
 
@@ -56,7 +51,6 @@ namespace DTCBillingSystem.Core.Services
             {
                 Success = true,
                 Message = "Authentication successful",
-                Token = token,
                 Username = user.Username,
                 Role = user.Role,
                 RequirePasswordChange = user.RequirePasswordChange,
