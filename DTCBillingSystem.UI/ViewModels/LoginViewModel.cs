@@ -20,9 +20,10 @@ namespace DTCBillingSystem.UI.ViewModels
         private bool _isLoading;
         private AsyncRelayCommand? _loginCommand;
 
+        public event EventHandler? LoginSuccessful;
+
         public LoginViewModel(IAuthenticationService authenticationService, INavigationService navigationService, IAuditService auditService)
         {
-            MessageBox.Show("LoginViewModel constructor called", "Debug Info");
             _authenticationService = authenticationService;
             _navigationService = navigationService;
             _auditService = auditService;
@@ -87,7 +88,6 @@ namespace DTCBillingSystem.UI.ViewModels
         {
             try
             {
-                MessageBox.Show("Login attempt started", "Debug Info");
                 IsLoading = true;
                 ClearError();
 
@@ -97,8 +97,6 @@ namespace DTCBillingSystem.UI.ViewModels
                     return;
                 }
 
-                MessageBox.Show($"Attempting login with username: {Username}", "Debug Info");
-                
                 // Log the attempt
                 await _auditService.LogAsync("User", "System", 1, "Debug", $"Login attempt for user: {Username}");
                 
@@ -107,19 +105,18 @@ namespace DTCBillingSystem.UI.ViewModels
 
                 if (success)
                 {
-                    MessageBox.Show("Login successful", "Debug Info");
                     await _navigationService.NavigateToDashboardAsync();
+                    LoginSuccessful?.Invoke(this, EventArgs.Empty);
                 }
                 else
                 {
-                    MessageBox.Show("Login failed", "Debug Info");
                     ErrorMessage = "Invalid username or password";
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Login error: {ex.Message}\n\nDetails: {ex.InnerException?.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 ErrorMessage = "An error occurred during login. Please try again.";
+                await _auditService.LogAsync("Error", "System", 3, "Error", $"Login error: {ex.Message}");
             }
             finally
             {

@@ -4,41 +4,88 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DTCBillingSystem.UI.Views"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Style="{StaticResource MaterialDesignWindow}"
         mc:Ignorable="d"
-        Title="DTC Billing System" Height="768" Width="1024"
-        WindowStartupLocation="CenterScreen">
+        Title="DTC Billing System" 
+        Height="768" 
+        Width="1024"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent">
     
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <materialDesign:DialogHost Identifier="RootDialog" 
+                             SnackbarMessageQueue="{Binding ElementName=MainSnackbar, Path=MessageQueue}">
+        <Grid Background="{DynamicResource MaterialDesignPaper}">
+            <Grid.Resources>
+                <Style TargetType="{x:Type Grid}">
+                    <Setter Property="TextElement.Foreground" Value="{DynamicResource MaterialDesignBody}" />
+                    <Setter Property="TextElement.FontWeight" Value="Regular" />
+                    <Setter Property="TextElement.FontSize" Value="13" />
+                    <Setter Property="TextOptions.TextFormattingMode" Value="Ideal" />
+                    <Setter Property="TextOptions.TextRenderingMode" Value="Auto" />
+                    <Setter Property="materialDesign:ThemeAssist.Theme" Value="Dark" />
+                </Style>
+            </Grid.Resources>
+            
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-        <!-- Menu -->
-        <Menu Grid.Row="0">
-            <MenuItem Header="_File">
-                <MenuItem Header="_Exit" Click="ExitMenuItem_Click"/>
-            </MenuItem>
-            <MenuItem Header="_Customers">
-                <MenuItem Header="_Manage Customers" Click="ManageCustomersMenuItem_Click"/>
-                <MenuItem Header="_Import Customers" Click="ImportCustomersMenuItem_Click"/>
-                <MenuItem Header="_Export Customers" Click="ExportCustomersMenuItem_Click"/>
-            </MenuItem>
-            <MenuItem Header="_Billing">
-                <MenuItem Header="_Generate Bills" Click="GenerateBillsMenuItem_Click"/>
-                <MenuItem Header="_Process Payments" Click="ProcessPaymentsMenuItem_Click"/>
-                <MenuItem Header="_View Reports" Click="ViewReportsMenuItem_Click"/>
-            </MenuItem>
-            <MenuItem Header="_Settings">
-                <MenuItem Header="_User Management" Click="UserManagementMenuItem_Click"/>
-                <MenuItem Header="_System Settings" Click="SystemSettingsMenuItem_Click"/>
-            </MenuItem>
-            <MenuItem Header="_Help">
-                <MenuItem Header="_About" Click="AboutMenuItem_Click"/>
-            </MenuItem>
-        </Menu>
+                <!-- Title Bar -->
+                <Border Grid.Row="0" Background="{DynamicResource PrimaryHueDarkBrush}" MouseLeftButtonDown="Border_MouseLeftButtonDown">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
-        <!-- Main Content -->
-        <Frame Grid.Row="1" x:Name="MainFrame" NavigationUIVisibility="Hidden"/>
-    </Grid>
+                        <!-- App Logo/Title -->
+                        <TextBlock Grid.Column="0" 
+                                 Text="DTC Billing"
+                                 FontSize="16"
+                                 FontWeight="Bold"
+                                 Margin="12,8"
+                                 VerticalAlignment="Center"
+                                 Foreground="{DynamicResource MaterialDesignBody}"/>
+
+                        <!-- Window Controls -->
+                        <StackPanel Grid.Column="2" 
+                                  Orientation="Horizontal"
+                                  HorizontalAlignment="Right">
+                            <Button Style="{StaticResource WindowTitleBarButton}"
+                                    Click="MinimizeButton_Click"
+                                    ToolTip="Minimize">
+                                <materialDesign:PackIcon Kind="WindowMinimize"/>
+                            </Button>
+                            <Button Style="{StaticResource WindowTitleBarButton}"
+                                    Click="MaximizeRestoreButton_Click"
+                                    ToolTip="Maximize">
+                                <materialDesign:PackIcon Kind="WindowMaximize"/>
+                            </Button>
+                            <Button Style="{StaticResource WindowTitleBarButton}"
+                                    Click="CloseButton_Click"
+                                    ToolTip="Close">
+                                <materialDesign:PackIcon Kind="WindowClose"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Main Content -->
+                <Frame x:Name="MainFrame" 
+                       Grid.Row="1"
+                       NavigationUIVisibility="Hidden"/>
+
+                <!-- Snackbar for notifications -->
+                <materialDesign:Snackbar x:Name="MainSnackbar"
+                                       Grid.Row="1"
+                                       MessageQueue="{materialDesign:MessageQueue}"/>
+            </Grid>
+        </Grid>
+    </materialDesign:DialogHost>
 </Window> 

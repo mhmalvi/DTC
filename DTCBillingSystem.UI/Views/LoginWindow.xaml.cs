@@ -20,6 +20,26 @@ namespace DTCBillingSystem.UI.Views
             
             // Enable window dragging
             MouseDown += Window_MouseDown;
+
+            // Subscribe to login success
+            _viewModel.LoginSuccessful += ViewModel_LoginSuccessful;
+        }
+
+        private void LoginInput_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                if (_viewModel.LoginCommand.CanExecute(null))
+                {
+                    _viewModel.LoginCommand.Execute(null);
+                }
+                e.Handled = true;
+            }
+        }
+
+        private void ViewModel_LoginSuccessful(object? sender, System.EventArgs e)
+        {
+            Close();
         }
 
         private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)

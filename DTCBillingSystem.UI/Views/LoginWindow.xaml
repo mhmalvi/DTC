@@ -136,7 +136,8 @@
                                 Background="#FF1C1F26"
                                 Foreground="#E6FFFFFF"
                                 Margin="0,16,0,0"
-                                FontSize="14"/>
+                                FontSize="14"
+                                KeyDown="LoginInput_KeyDown"/>
 
                         <PasswordBox x:Name="PasswordBox"
                                    materialDesign:HintAssist.Hint="Password"
@@ -147,9 +148,11 @@
                                    Background="#FF1C1F26"
                                    Foreground="#E6FFFFFF"
                                    Margin="0,16,0,0"
-                                   FontSize="14"/>
+                                   FontSize="14"
+                                   KeyDown="LoginInput_KeyDown"/>
 
-                        <Button Content="LOGIN"
+                        <Button x:Name="LoginButton"
+                                Content="LOGIN"
                                 Command="{Binding LoginCommand}"
                                 Style="{StaticResource MaterialDesignFlatButton}"
                                 Background="{StaticResource CustomCyanBrush}"

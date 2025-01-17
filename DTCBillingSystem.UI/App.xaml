@@ -5,13 +5,28 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="DeepPurple" SecondaryColor="Lime" />
+                <materialDesign:BundledTheme BaseTheme="Dark" 
+                                           PrimaryColor="Cyan" 
+                                           SecondaryColor="Teal" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Button.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.TextBox.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.PasswordBox.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Card.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Override MaterialDesign Colors -->
+            <SolidColorBrush x:Key="PrimaryHueDarkBrush" Color="#FF1C1F26"/>
+            <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="#FF262A35"/>
+            <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="#FF2D3039"/>
+            
+            <!-- Custom Colors -->
+            <Color x:Key="CustomCyanColor">#00FFF0</Color>
+            <SolidColorBrush x:Key="CustomCyanBrush" Color="{StaticResource CustomCyanColor}"/>
+            
+            <!-- Custom Styles -->
+            <Style x:Key="WindowTitleBarButton" TargetType="{x:Type Button}" BasedOn="{StaticResource MaterialDesignIconButton}">
+                <Setter Property="Width" Value="24"/>
+                <Setter Property="Height" Value="24"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="Foreground" Value="#CCFFFFFF"/>
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

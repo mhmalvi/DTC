@@ -11,12 +11,14 @@ namespace DTCBillingSystem.UI.Services
     public class NavigationService : INavigationService
     {
         private readonly IServiceProvider _serviceProvider;
-        private Frame _mainFrame;
-        private Window _mainWindow;
+        private Frame? _mainFrame;
+        private Window? _mainWindow;
+        private bool _isInitialized;
 
         public NavigationService(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _isInitialized = false;
         }
 
         public bool CanNavigateBack => _mainFrame?.CanGoBack ?? false;
@@ -25,40 +27,48 @@ namespace DTCBillingSystem.UI.Services
         {
             _mainFrame = mainFrame ?? throw new ArgumentNullException(nameof(mainFrame));
             _mainWindow = mainWindow ?? throw new ArgumentNullException(nameof(mainWindow));
+            _isInitialized = true;
         }
 
-        public void SetFrame(Frame frame)
+        private void EnsureInitialized()
         {
-            _mainFrame = frame ?? throw new ArgumentNullException(nameof(frame));
+            if (!_isInitialized || _mainFrame == null)
+            {
+                throw new InvalidOperationException("NavigationService not initialized. Call Initialize first.");
+            }
         }
 
         public void NavigateTo<T>() where T : class
         {
+            EnsureInitialized();
             var view = _serviceProvider.GetRequiredService<T>();
-            _mainFrame?.Navigate(view);
+            _mainFrame!.Navigate(view);
         }
 
         public void NavigateTo(Type viewModelType)
         {
+            EnsureInitialized();
             var view = _serviceProvider.GetService(viewModelType);
             if (view != null)
             {
-                _mainFrame?.Navigate(view);
+                _mainFrame!.Navigate(view);
             }
         }
 
         public void NavigateTo<T>(object parameter) where T : class
         {
+            EnsureInitialized();
             var view = _serviceProvider.GetRequiredService<T>();
-            _mainFrame?.Navigate(view, parameter);
+            _mainFrame!.Navigate(view, parameter);
         }
 
         public void NavigateTo(Type viewModelType, object parameter)
         {
+            EnsureInitialized();
             var view = _serviceProvider.GetService(viewModelType);
             if (view != null)
             {
-                _mainFrame?.Navigate(view, parameter);
+                _mainFrame!.Navigate(view, parameter);
             }
         }
 
@@ -68,22 +78,21 @@ namespace DTCBillingSystem.UI.Services
             {
                 await Task.Run(() => Application.Current.Dispatcher.Invoke(() =>
                 {
-                    if (_mainFrame == null)
-                        throw new InvalidOperationException("Navigation service not initialized. Call Initialize first.");
+                    EnsureInitialized();
 
                     switch (viewName?.ToLower())
                     {
                         case "dashboardview":
                             var dashboardViewModel = _serviceProvider.GetRequiredService<DashboardViewModel>();
-                            _mainFrame.Navigate(new DashboardView(dashboardViewModel));
+                            _mainFrame!.Navigate(new DashboardView(dashboardViewModel));
                             break;
                         case "customersview":
                             var customersViewModel = _serviceProvider.GetRequiredService<CustomersViewModel>();
-                            _mainFrame.Navigate(new CustomersView(customersViewModel));
+                            _mainFrame!.Navigate(new CustomersView(customersViewModel));
                             break;
                         case "settingsview":
                             var settingsViewModel = _serviceProvider.GetRequiredService<SettingsViewModel>();
-                            _mainFrame.Navigate(new SettingsView(settingsViewModel));
+                            _mainFrame!.Navigate(new SettingsView(settingsViewModel));
                             break;
                         default:
                             throw new ArgumentException($"Unknown view: {viewName}");
@@ -99,24 +108,29 @@ namespace DTCBillingSystem.UI.Services
 
         public void NavigateBack()
         {
+            EnsureInitialized();
             if (CanNavigateBack)
             {
-                _mainFrame?.GoBack();
+                _mainFrame!.GoBack();
             }
         }
 
         public void NavigateToMain()
-        {            try
+        {
+            try
             {
                 var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
                 Application.Current.MainWindow = mainWindow;
                 mainWindow.Show();
 
-                // Close the login window
-                if (_mainWindow != null && _mainWindow.GetType() == typeof(LoginWindow))
+                // Close the login window if it exists
+                if (_mainWindow != null && _mainWindow is LoginWindow loginWindow)
                 {
-                    _mainWindow.Close();
+                    loginWindow.Close();
                 }
+
+                // Update the current window reference
+                _mainWindow = mainWindow;
             }
             catch (Exception ex)
             {
@@ -138,15 +152,17 @@ namespace DTCBillingSystem.UI.Services
             try
             {
                 // First navigate to main window if we're not already there
-                if (_mainWindow == null || _mainWindow.GetType() == typeof(LoginWindow))
+                if (_mainWindow == null || _mainWindow is LoginWindow)
                 {
                     NavigateToMain();
                 }
 
+                EnsureInitialized();
+
                 // Then navigate to dashboard
                 var dashboardViewModel = _serviceProvider.GetRequiredService<DashboardViewModel>();
                 var dashboardView = new DashboardView(dashboardViewModel);
-                _mainFrame?.Navigate(dashboardView);
+                _mainFrame!.Navigate(dashboardView);
             }
             catch (Exception ex)
             {
@@ -161,6 +177,12 @@ namespace DTCBillingSystem.UI.Services
             {
                 NavigateToDashboard();
             }));
+        }
+
+        public void SetFrame(Frame frame)
+        {
+            _mainFrame = frame ?? throw new ArgumentNullException(nameof(frame));
+            _isInitialized = _mainWindow != null;
         }
     }
 } 
