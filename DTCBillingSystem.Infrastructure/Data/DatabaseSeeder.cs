@@ -63,7 +63,7 @@ namespace DTCBillingSystem.Infrastructure.Data
             try
             {
                 // Check if admin user already exists
-                if (!await _context.Users.AnyAsync(u => u.Username == "admin"))
+                if (!await _context.Users.AnyAsync())
                 {
                     Debug.WriteLine("Admin user does not exist, creating...");
 

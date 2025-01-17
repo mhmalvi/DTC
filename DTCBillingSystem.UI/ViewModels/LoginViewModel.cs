@@ -105,7 +105,8 @@ namespace DTCBillingSystem.UI.ViewModels
 
                 if (success)
                 {
-                    await _navigationService.NavigateToDashboardAsync();
+                    // First navigate to main window to ensure proper initialization
+                    await _navigationService.NavigateToMainWindow();
                     LoginSuccessful?.Invoke(this, EventArgs.Empty);
                 }
                 else

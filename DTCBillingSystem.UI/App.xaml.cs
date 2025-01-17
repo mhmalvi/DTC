@@ -101,7 +101,7 @@ namespace DTCBillingSystem.UI
                 options.UseSqlite(connectionString);
                 options.EnableSensitiveDataLogging();
                 options.EnableDetailedErrors();
-            }, ServiceLifetime.Transient);
+            }, ServiceLifetime.Scoped);
 
             // Configure and register TokenService first
             var jwtSettings = _configuration.GetSection("JwtSettings");
@@ -112,23 +112,24 @@ namespace DTCBillingSystem.UI
             services.AddSingleton<ITokenService>(new Core.Services.TokenService(secretKey, issuer, audience));
 
             // Register repositories
-            services.AddTransient<IUnitOfWork, Infrastructure.Repositories.UnitOfWork>();
+            services.AddScoped<IUnitOfWork, Infrastructure.Repositories.UnitOfWork>();
 
             // Register core services in dependency order
-            services.AddTransient<IPasswordHasher, Core.Services.PasswordHasher>();
-            services.AddTransient<IPrintService, Core.Services.PrintService>();
-            services.AddTransient<ICustomerService, Core.Services.CustomerService>();
-            services.AddTransient<IBillingService, Core.Services.BillingService>();
-            services.AddTransient<IUserService, Core.Services.UserService>();
-            services.AddTransient<IAuditService, Core.Services.AuditService>();
-            services.AddTransient<IReportService, Core.Services.ReportService>();
+            services.AddScoped<IPasswordHasher, Core.Services.PasswordHasher>();
+            services.AddScoped<IPrintService, Core.Services.PrintService>();
+            services.AddScoped<ICustomerService, Core.Services.CustomerService>();
+            services.AddScoped<IBillingService, Core.Services.BillingService>();
+            services.AddScoped<IUserService, Core.Services.UserService>();
+            services.AddScoped<IAuditService, Core.Services.AuditService>();
+            services.AddScoped<IReportService, Core.Services.ReportService>();
+            services.AddScoped<IDashboardService, Infrastructure.Services.DashboardService>();
 
             // Register infrastructure services
-            services.AddTransient<ICurrentUserService, Infrastructure.Services.CurrentUserService>();
-            services.AddTransient<IAuthenticationService, Infrastructure.Services.AuthenticationService>();
+            services.AddScoped<ICurrentUserService, Infrastructure.Services.CurrentUserService>();
+            services.AddScoped<IAuthenticationService, Infrastructure.Services.AuthenticationService>();
 
             // Add DatabaseSeeder
-            services.AddTransient<DatabaseSeeder>();
+            services.AddScoped<DatabaseSeeder>();
 
             // Register UI services as singletons to maintain state
             services.AddSingleton<INavigationService, NavigationService>();

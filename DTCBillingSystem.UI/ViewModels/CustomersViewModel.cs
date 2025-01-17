@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Linq;
 using System.Collections.Generic;
 using System.Windows;
+using System.Diagnostics;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models.Entities;
 using DTCBillingSystem.Core.Models.Enums;
@@ -51,6 +52,8 @@ namespace DTCBillingSystem.UI.ViewModels
                 NextPageCommand = new RelayCommand(ExecuteNextPage, () => CanGoToNextPage);
                 PreviousPageCommand = new RelayCommand(ExecutePreviousPage, () => CanGoToPreviousPage);
                 ActivateDeactivateCommand = new AsyncRelayCommand<Customer>(ExecuteActivateDeactivateAsync);
+                NavigateToDashboardCommand = new RelayCommand(ExecuteNavigateToDashboard);
+                NavigateToSettingsCommand = new RelayCommand(ExecuteNavigateToSettings);
 
                 // Load customers asynchronously
                 Application.Current.Dispatcher.BeginInvoke(new Action(async () =>
@@ -182,6 +185,8 @@ namespace DTCBillingSystem.UI.ViewModels
         public ICommand NextPageCommand { get; }
         public ICommand PreviousPageCommand { get; }
         public ICommand ActivateDeactivateCommand { get; private set; }
+        public ICommand NavigateToDashboardCommand { get; }
+        public ICommand NavigateToSettingsCommand { get; }
 
         private async Task ExecuteAddCustomerAsync(object? _)
         {
@@ -320,6 +325,32 @@ namespace DTCBillingSystem.UI.ViewModels
             catch (Exception ex)
             {
                 await _dialogService.ShowErrorAsync("Error", $"Failed to update customer status: {ex.Message}");
+            }
+        }
+
+        private void ExecuteNavigateToDashboard()
+        {
+            try
+            {
+                _navigationService.NavigateToDashboard();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Navigation to Dashboard failed: {ex}");
+                _dialogService.ShowErrorAsync("Navigation Error", "Failed to navigate to Dashboard").Wait();
+            }
+        }
+
+        private void ExecuteNavigateToSettings()
+        {
+            try
+            {
+                _navigationService.NavigateToAsync("SettingsView").Wait();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Navigation to Settings failed: {ex}");
+                _dialogService.ShowErrorAsync("Navigation Error", "Failed to navigate to Settings").Wait();
             }
         }
     }

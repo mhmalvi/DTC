@@ -44,7 +44,32 @@ namespace DTCBillingSystem.Infrastructure.Data
             // Apply entity configurations from assembly
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
-            // Configure relationships and constraints
+            // Configure cascade delete behavior for related entities
+            modelBuilder.Entity<AuditLog>()
+                .HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MeterReading>()
+                .HasOne(m => m.Customer)
+                .WithMany()
+                .HasForeignKey(m => m.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<MonthlyBill>()
+                .HasOne(b => b.Customer)
+                .WithMany()
+                .HasForeignKey(b => b.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<PaymentRecord>()
+                .HasOne(p => p.Customer)
+                .WithMany()
+                .HasForeignKey(p => p.CustomerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configure unique constraints
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username)
                 .IsUnique();
@@ -54,30 +79,8 @@ namespace DTCBillingSystem.Infrastructure.Data
                 .IsUnique();
 
             modelBuilder.Entity<Customer>()
-                .HasIndex(c => c.Email)
+                .HasIndex(c => c.AccountNumber)
                 .IsUnique();
-
-            modelBuilder.Entity<Customer>()
-                .HasIndex(c => c.PhoneNumber)
-                .IsUnique();
-
-            modelBuilder.Entity<MonthlyBill>()
-                .HasOne(b => b.Customer)
-                .WithMany(c => c.MonthlyBills)
-                .HasForeignKey(b => b.CustomerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<PaymentRecord>()
-                .HasOne(p => p.Customer)
-                .WithMany()
-                .HasForeignKey(p => p.CustomerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<PaymentRecord>()
-                .HasOne(p => p.MonthlyBill)
-                .WithMany()
-                .HasForeignKey(p => p.MonthlyBillId)
-                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 } 

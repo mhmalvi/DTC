@@ -1,99 +1,41 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models.Entities;
-using DTCBillingSystem.Core.Models.Enums;
-using DTCBillingSystem.Infrastructure.Data;
+using DTCBillingSystem.Core.Services;
 using DTCBillingSystem.UI.Commands;
-using Microsoft.EntityFrameworkCore;
 using DTCBillingSystem.UI.Services;
 
 namespace DTCBillingSystem.UI.ViewModels
 {
     public class DashboardViewModel : ViewModelBase
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDashboardService _dashboardService;
         private readonly INavigationService _navigationService;
-        private bool _isLoading;
-        private string _errorMessage = string.Empty;
-        private decimal _totalRevenue;
-        private int _totalCustomers;
-        private int _pendingBills;
-        private int _overduePayments;
         private ObservableCollection<MonthlyBill> _recentBills;
         private ObservableCollection<PaymentRecord> _recentPayments;
+        private int _totalCustomers;
+        private decimal _totalRevenue;
+        private int _pendingBills;
+        private bool _isLoading;
+        private string _errorMessage = string.Empty;
 
-        public DashboardViewModel(ApplicationDbContext context, INavigationService navigationService)
+        public DashboardViewModel(
+            IDashboardService dashboardService,
+            INavigationService navigationService)
         {
-            _context = context;
-            _navigationService = navigationService;
+            _dashboardService = dashboardService ?? throw new ArgumentNullException(nameof(dashboardService));
+            _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+            
             _recentBills = new ObservableCollection<MonthlyBill>();
             _recentPayments = new ObservableCollection<PaymentRecord>();
+            
             LoadDashboardDataCommand = new RelayCommand(async () => await LoadDashboardDataAsync());
             NavigateToCustomersCommand = new RelayCommand(() => _navigationService.NavigateToCustomers());
+            
             _ = LoadDashboardDataAsync(); // Load data when the view model is created
-        }
-
-        public bool IsLoading
-        {
-            get => _isLoading;
-            set
-            {
-                _isLoading = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public string ErrorMessage
-        {
-            get => _errorMessage;
-            set
-            {
-                _errorMessage = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public decimal TotalRevenue
-        {
-            get => _totalRevenue;
-            set
-            {
-                _totalRevenue = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public int TotalCustomers
-        {
-            get => _totalCustomers;
-            set
-            {
-                _totalCustomers = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public int PendingBills
-        {
-            get => _pendingBills;
-            set
-            {
-                _pendingBills = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public int OverduePayments
-        {
-            get => _overduePayments;
-            set
-            {
-                _overduePayments = value;
-                OnPropertyChanged();
-            }
         }
 
         public ObservableCollection<MonthlyBill> RecentBills
@@ -116,6 +58,56 @@ namespace DTCBillingSystem.UI.ViewModels
             }
         }
 
+        public int TotalCustomers
+        {
+            get => _totalCustomers;
+            set
+            {
+                _totalCustomers = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public decimal TotalRevenue
+        {
+            get => _totalRevenue;
+            set
+            {
+                _totalRevenue = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int PendingBills
+        {
+            get => _pendingBills;
+            set
+            {
+                _pendingBills = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set
+            {
+                _isLoading = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public string ErrorMessage
+        {
+            get => _errorMessage;
+            set
+            {
+                _errorMessage = value;
+                OnPropertyChanged();
+            }
+        }
+
         public ICommand LoadDashboardDataCommand { get; }
         public ICommand NavigateToCustomersCommand { get; }
 
@@ -126,55 +118,18 @@ namespace DTCBillingSystem.UI.ViewModels
                 IsLoading = true;
                 ErrorMessage = string.Empty;
 
-                // Load total revenue (sum of all paid bills)
-                var paidBills = await _context.MonthlyBills
-                    .Where(b => b.Status == BillStatus.Paid)
-                    .Select(b => b.TotalAmount)
-                    .ToListAsync();
-                TotalRevenue = paidBills.Sum();
+                var (recentBills, recentPayments, totalCustomers, totalRevenue, pendingBills) = 
+                    await _dashboardService.GetDashboardDataAsync();
 
-                // Load total customers
-                TotalCustomers = await _context.Customers
-                    .CountAsync(c => c.IsActive);
-
-                // Load pending bills count
-                PendingBills = await _context.MonthlyBills
-                    .CountAsync(b => b.Status == BillStatus.Pending);
-
-                // Load overdue payments count
-                OverduePayments = await _context.MonthlyBills
-                    .CountAsync(b => b.Status == BillStatus.Overdue);
-
-                // Load recent bills
-                var recentBills = await _context.MonthlyBills
-                    .Include(b => b.Customer)
-                    .OrderByDescending(b => b.BillingMonth)
-                    .Take(5)
-                    .ToListAsync();
-
-                RecentBills.Clear();
-                foreach (var bill in recentBills)
-                {
-                    RecentBills.Add(bill);
-                }
-
-                // Load recent payments
-                var recentPayments = await _context.PaymentRecords
-                    .Include(p => p.MonthlyBill)
-                    .ThenInclude(b => b.Customer)
-                    .OrderByDescending(p => p.PaymentDate)
-                    .Take(5)
-                    .ToListAsync();
-
-                RecentPayments.Clear();
-                foreach (var payment in recentPayments)
-                {
-                    RecentPayments.Add(payment);
-                }
+                RecentBills = new ObservableCollection<MonthlyBill>(recentBills);
+                RecentPayments = new ObservableCollection<PaymentRecord>(recentPayments);
+                TotalCustomers = totalCustomers;
+                TotalRevenue = totalRevenue;
+                PendingBills = pendingBills;
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Error loading dashboard data: {ex.Message}";
+                ErrorMessage = $"Failed to load dashboard data: {ex.Message}";
             }
             finally
             {

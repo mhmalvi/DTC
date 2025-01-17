@@ -77,32 +77,48 @@ namespace DTCBillingSystem.UI.Services
         {
             try
             {
+                Debug.WriteLine($"NavigateToAsync called with view: {viewName}");
                 await Task.Run(() => Application.Current.Dispatcher.Invoke(() =>
                 {
                     EnsureInitialized();
 
-                    switch (viewName?.ToLower())
+                    using (var scope = _serviceProvider.CreateScope())
                     {
-                        case "dashboardview":
-                            var dashboardViewModel = _serviceProvider.GetRequiredService<DashboardViewModel>();
-                            _mainFrame!.Navigate(new DashboardView(dashboardViewModel));
-                            break;
-                        case "customersview":
-                            var customersViewModel = _serviceProvider.GetRequiredService<CustomersViewModel>();
-                            _mainFrame!.Navigate(new CustomersView(customersViewModel));
-                            break;
-                        case "settingsview":
-                            var settingsViewModel = _serviceProvider.GetRequiredService<SettingsViewModel>();
-                            _mainFrame!.Navigate(new SettingsView(settingsViewModel));
-                            break;
-                        default:
-                            throw new ArgumentException($"Unknown view: {viewName}");
+                        var serviceProvider = scope.ServiceProvider;
+                        switch (viewName?.ToLower())
+                        {
+                            case "dashboardview":
+                                var dashboardViewModel = serviceProvider.GetRequiredService<DashboardViewModel>();
+                                var dashboardView = new DashboardView(dashboardViewModel);
+                                _mainFrame!.Navigate(dashboardView);
+                                break;
+
+                            case "customersview":
+                                var customersViewModel = serviceProvider.GetRequiredService<CustomersViewModel>();
+                                var customersView = new CustomersView(customersViewModel);
+                                _mainFrame!.Navigate(customersView);
+                                break;
+
+                            case "settingsview":
+                                var settingsViewModel = serviceProvider.GetRequiredService<SettingsViewModel>();
+                                var settingsView = new SettingsView(settingsViewModel);
+                                _mainFrame!.Navigate(settingsView);
+                                break;
+
+                            default:
+                                throw new ArgumentException($"Unknown view: {viewName}");
+                        }
                     }
                 }));
+                Debug.WriteLine($"Navigation to {viewName} completed successfully");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Navigation error: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine($"Navigation error: {ex}");
+                MessageBox.Show($"Navigation failed: {ex.Message}\n\nDetails: {ex}", 
+                              "Navigation Error", 
+                              MessageBoxButton.OK, 
+                              MessageBoxImage.Error);
                 throw;
             }
         }
@@ -152,25 +168,27 @@ namespace DTCBillingSystem.UI.Services
         {
             try
             {
-                // First navigate to main window if we're not already there
-                if (_mainWindow == null || _mainWindow is LoginWindow)
-                {
-                    NavigateToMain();
-                }
-
+                Debug.WriteLine("NavigateToDashboard called");
                 EnsureInitialized();
 
                 using (var scope = _serviceProvider.CreateScope())
                 {
-                    // Then navigate to dashboard
-                    var dashboardViewModel = scope.ServiceProvider.GetRequiredService<DashboardViewModel>();
-                    var dashboardView = new DashboardView(dashboardViewModel);
-                    _mainFrame!.Navigate(dashboardView);
+                    var serviceProvider = scope.ServiceProvider;
+                    var viewModel = serviceProvider.GetRequiredService<DashboardViewModel>();
+                    var view = new DashboardView(viewModel);
+
+                    Debug.WriteLine("Navigating to DashboardView");
+                    _mainFrame!.Navigate(view);
+                    Debug.WriteLine("Navigation completed successfully");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error navigating to dashboard: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine($"Error in NavigateToDashboard: {ex}");
+                MessageBox.Show($"Navigation failed: {ex.Message}\n\nDetails: {ex}", 
+                              "Navigation Error", 
+                              MessageBoxButton.OK, 
+                              MessageBoxImage.Error);
                 throw;
             }
         }
@@ -198,9 +216,9 @@ namespace DTCBillingSystem.UI.Services
 
                 using (var scope = _serviceProvider.CreateScope())
                 {
-                    var viewModel = scope.ServiceProvider.GetRequiredService<CustomersViewModel>();
-                    var view = scope.ServiceProvider.GetRequiredService<CustomersView>();
-                    view.DataContext = viewModel;
+                    var serviceProvider = scope.ServiceProvider;
+                    var viewModel = serviceProvider.GetRequiredService<CustomersViewModel>();
+                    var view = new CustomersView(viewModel);
 
                     Debug.WriteLine("Navigating to CustomersView");
                     _mainFrame!.Navigate(view);
@@ -214,7 +232,7 @@ namespace DTCBillingSystem.UI.Services
                               "Navigation Error", 
                               MessageBoxButton.OK, 
                               MessageBoxImage.Error);
-                throw; // Rethrow to allow higher-level error handling
+                throw;
             }
         }
     }
