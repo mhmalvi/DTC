@@ -6,8 +6,14 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:conv="clr-namespace:DTCBillingSystem.UI.Converters"
              mc:Ignorable="d" 
-             d:DesignHeight="800" d:DesignWidth="1200"
-             Background="{DynamicResource MaterialDesignPaper}">
+             d:DesignHeight="800" d:DesignWidth="1200">
+    
+    <UserControl.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#f3f4f6" Offset="0"/>
+            <GradientStop Color="#ffffff" Offset="1"/>
+        </LinearGradientBrush>
+    </UserControl.Background>
 
     <UserControl.Resources>
         <ResourceDictionary>
@@ -19,23 +25,88 @@
             <conv:StringNotEmptyToBooleanConverter x:Key="StringNotEmptyToBooleanConverter"/>
             
             <Style x:Key="DashboardCard" TargetType="materialDesign:Card">
-                <Setter Property="Margin" Value="8"/>
-                <Setter Property="Padding" Value="16"/>
-                <Setter Property="UniformCornerRadius" Value="8"/>
-                <Setter Property="Background" Value="{DynamicResource MaterialDesignPaper}"/>
-                <Setter Property="materialDesign:ElevationAssist.Elevation" Value="Dp2"/>
+                <Setter Property="Margin" Value="12"/>
+                <Setter Property="Padding" Value="24"/>
+                <Setter Property="UniformCornerRadius" Value="16"/>
+                <Setter Property="Background" Value="White"/>
+                <Setter Property="materialDesign:ElevationAssist.Elevation" Value="Dp1"/>
+                <Setter Property="materialDesign:TransitionAssist.DisableTransitions" Value="False"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect BlurRadius="20" 
+                                        ShadowDepth="0" 
+                                        Opacity="0.1" 
+                                        Color="#000000"/>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="materialDesign:ElevationAssist.Elevation" Value="Dp3"/>
+                        <Setter Property="Effect">
+                            <Setter.Value>
+                                <DropShadowEffect BlurRadius="30" 
+                                                ShadowDepth="0" 
+                                                Opacity="0.15" 
+                                                Color="#000000"/>
+                            </Setter.Value>
+                        </Setter>
+                    </Trigger>
+                </Style.Triggers>
             </Style>
             
             <Style x:Key="StatisticValue" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="24"/>
-                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="FontSize" Value="36"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}"/>
-                <Setter Property="Margin" Value="0,8,0,4"/>
+                <Setter Property="Margin" Value="0,16,0,8"/>
+                <Setter Property="TextAlignment" Value="Left"/>
             </Style>
             
             <Style x:Key="StatisticLabel" TargetType="TextBlock">
                 <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="Medium"/>
                 <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBodyLight}"/>
+                <Setter Property="TextAlignment" Value="Left"/>
+                <Setter Property="Opacity" Value="0.8"/>
+            </Style>
+
+            <Style x:Key="IconStyle" TargetType="materialDesign:PackIcon">
+                <Setter Property="Width" Value="32"/>
+                <Setter Property="Height" Value="32"/>
+                <Setter Property="Foreground" Value="{DynamicResource SecondaryAccentBrush}"/>
+                <Setter Property="Opacity" Value="0.9"/>
+            </Style>
+
+            <Style x:Key="SectionTitle" TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignHeadline6TextBlock}">
+                <Setter Property="Margin" Value="0,0,0,24"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="FontSize" Value="20"/>
+                <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}"/>
+            </Style>
+
+            <Style x:Key="ListItemStyle" TargetType="ListViewItem">
+                <Setter Property="Padding" Value="16,12"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Margin" Value="0,4"/>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <SolidColorBrush Color="{DynamicResource Primary100}" Opacity="0.1"/>
+                            </Setter.Value>
+                        </Setter>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="ListViewStyle" TargetType="ListView">
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Hidden"/>
+                <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
+                <Setter Property="Margin" Value="0"/>
+                <Setter Property="Padding" Value="0"/>
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -46,25 +117,35 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Loading Overlay -->
+        <!-- Loading Overlay with Fade Animation -->
         <Grid Grid.RowSpan="2" 
-              Background="{DynamicResource MaterialDesignPaper}" 
-              Opacity="0.9" 
+              Background="#80FFFFFF" 
               Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
-            <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" 
-                        Value="0" 
-                        IsIndeterminate="True" 
-                        Width="50" 
-                        Height="50"/>
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" 
+                            Value="0" 
+                            IsIndeterminate="True" 
+                            Width="56" 
+                            Height="56"
+                            Foreground="{DynamicResource SecondaryAccentBrush}"/>
+                <TextBlock Text="Loading..." 
+                         Margin="0,16,0,0"
+                         Style="{StaticResource MaterialDesignBody1TextBlock}"
+                         Foreground="{DynamicResource MaterialDesignBody}"/>
+            </StackPanel>
         </Grid>
 
         <!-- Error Message -->
         <materialDesign:Snackbar Grid.Row="0"
                                 IsActive="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyToBooleanConverter}}"
-                                Message="{Binding ErrorMessage}"/>
+                                Message="{Binding ErrorMessage}"
+                                Background="#ef4444"
+                                ActionButtonStyle="{StaticResource MaterialDesignFlatButton}"/>
 
         <!-- Main Content -->
-        <ScrollViewer Grid.Row="1" Margin="16">
+        <ScrollViewer Grid.Row="1" Margin="32" 
+                     VerticalScrollBarVisibility="Auto"
+                     Template="{StaticResource MaterialDesignScrollViewerTemplate}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -72,8 +153,20 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
+                <!-- Welcome Message -->
+                <StackPanel Grid.Row="0" Margin="0,0,0,32">
+                    <TextBlock Text="Welcome back!" 
+                             Style="{StaticResource MaterialDesignHeadline4TextBlock}"
+                             FontWeight="Bold"
+                             Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                    <TextBlock Text="Here's what's happening with your billing system today."
+                             Style="{StaticResource MaterialDesignBody1TextBlock}"
+                             Margin="0,8,0,0"
+                             Opacity="0.7"/>
+                </StackPanel>
+
                 <!-- Statistics Cards -->
-                <Grid Grid.Row="0">
+                <Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -85,9 +178,7 @@
                     <materialDesign:Card Grid.Column="0" Style="{StaticResource DashboardCard}">
                         <StackPanel>
                             <materialDesign:PackIcon Kind="CurrencyUsd" 
-                                                   Width="24" 
-                                                   Height="24"
-                                                   Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                                                   Style="{StaticResource IconStyle}"/>
                             <TextBlock Text="{Binding TotalRevenue, StringFormat=₱{0:N2}}" 
                                      Style="{StaticResource StatisticValue}"/>
                             <TextBlock Text="Total Revenue" 
@@ -99,9 +190,7 @@
                     <materialDesign:Card Grid.Column="1" Style="{StaticResource DashboardCard}">
                         <StackPanel>
                             <materialDesign:PackIcon Kind="AccountMultiple" 
-                                                   Width="24" 
-                                                   Height="24"
-                                                   Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                                                   Style="{StaticResource IconStyle}"/>
                             <TextBlock Text="{Binding TotalCustomers}" 
                                      Style="{StaticResource StatisticValue}"/>
                             <TextBlock Text="Total Customers" 
@@ -113,9 +202,7 @@
                     <materialDesign:Card Grid.Column="2" Style="{StaticResource DashboardCard}">
                         <StackPanel>
                             <materialDesign:PackIcon Kind="FileDocument" 
-                                                   Width="24" 
-                                                   Height="24"
-                                                   Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                                                   Style="{StaticResource IconStyle}"/>
                             <TextBlock Text="{Binding PendingBills}" 
                                      Style="{StaticResource StatisticValue}"/>
                             <TextBlock Text="Pending Bills" 
@@ -127,9 +214,7 @@
                     <materialDesign:Card Grid.Column="3" Style="{StaticResource DashboardCard}">
                         <StackPanel>
                             <materialDesign:PackIcon Kind="AlertCircle" 
-                                                   Width="24" 
-                                                   Height="24"
-                                                   Foreground="{DynamicResource SecondaryHueMidBrush}"/>
+                                                   Style="{StaticResource IconStyle}"/>
                             <TextBlock Text="{Binding OverduePayments}" 
                                      Style="{StaticResource StatisticValue}"/>
                             <TextBlock Text="Overdue Payments" 
@@ -139,7 +224,7 @@
                 </Grid>
 
                 <!-- Recent Activity Section -->
-                <Grid Grid.Row="1" Margin="0,16,0,0">
+                <Grid Grid.Row="2" Margin="0,32,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
@@ -150,13 +235,13 @@
                         <DockPanel>
                             <TextBlock Text="Recent Bills" 
                                      DockPanel.Dock="Top"
-                                     Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                                     Margin="0,0,0,16"/>
+                                     Style="{StaticResource SectionTitle}"/>
                             <ListView ItemsSource="{Binding RecentBills}"
-                                    ScrollViewer.VerticalScrollBarVisibility="Hidden">
+                                    Style="{StaticResource ListViewStyle}"
+                                    ItemContainerStyle="{StaticResource ListItemStyle}">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid Margin="0,8">
+                                        <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
@@ -166,16 +251,21 @@
                                                                    Width="24" 
                                                                    Height="24"
                                                                    Margin="0,0,16,0"
-                                                                   VerticalAlignment="Center"/>
+                                                                   VerticalAlignment="Center"
+                                                                   Foreground="{DynamicResource PrimaryHueMidBrush}"/>
                                             <StackPanel Grid.Column="1">
                                                 <TextBlock Text="{Binding Customer.Name}" 
-                                                         FontWeight="Medium"/>
+                                                         FontWeight="Medium"
+                                                         FontSize="14"/>
                                                 <TextBlock Text="{Binding BillNumber}"
-                                                         Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+                                                         Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                                         FontSize="12"
+                                                         Margin="0,4,0,0"/>
                                             </StackPanel>
                                             <TextBlock Grid.Column="2" 
                                                      Text="{Binding TotalAmount, StringFormat=₱{0:N2}}"
                                                      FontWeight="Medium"
+                                                     Foreground="{DynamicResource PrimaryHueMidBrush}"
                                                      VerticalAlignment="Center"/>
                                         </Grid>
                                     </DataTemplate>
@@ -189,13 +279,13 @@
                         <DockPanel>
                             <TextBlock Text="Recent Payments" 
                                      DockPanel.Dock="Top"
-                                     Style="{StaticResource MaterialDesignHeadline6TextBlock}"
-                                     Margin="0,0,0,16"/>
+                                     Style="{StaticResource SectionTitle}"/>
                             <ListView ItemsSource="{Binding RecentPayments}"
-                                    ScrollViewer.VerticalScrollBarVisibility="Hidden">
+                                    Style="{StaticResource ListViewStyle}"
+                                    ItemContainerStyle="{StaticResource ListItemStyle}">
                                 <ListView.ItemTemplate>
                                     <DataTemplate>
-                                        <Grid Margin="0,8">
+                                        <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
@@ -205,16 +295,21 @@
                                                                    Width="24" 
                                                                    Height="24"
                                                                    Margin="0,0,16,0"
-                                                                   VerticalAlignment="Center"/>
+                                                                   VerticalAlignment="Center"
+                                                                   Foreground="{DynamicResource SecondaryAccentBrush}"/>
                                             <StackPanel Grid.Column="1">
                                                 <TextBlock Text="{Binding Bill.Customer.Name}" 
-                                                         FontWeight="Medium"/>
+                                                         FontWeight="Medium"
+                                                         FontSize="14"/>
                                                 <TextBlock Text="{Binding ReferenceNumber}"
-                                                         Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+                                                         Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                                         FontSize="12"
+                                                         Margin="0,4,0,0"/>
                                             </StackPanel>
                                             <TextBlock Grid.Column="2" 
                                                      Text="{Binding Amount, StringFormat=₱{0:N2}}"
                                                      FontWeight="Medium"
+                                                     Foreground="{DynamicResource SecondaryAccentBrush}"
                                                      VerticalAlignment="Center"/>
                                         </Grid>
                                     </DataTemplate>

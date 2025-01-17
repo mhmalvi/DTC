@@ -122,9 +122,11 @@ namespace DTCBillingSystem.UI.ViewModels
                 ErrorMessage = string.Empty;
 
                 // Load total revenue (sum of all paid bills)
-                TotalRevenue = await _context.MonthlyBills
+                var paidBills = await _context.MonthlyBills
                     .Where(b => b.Status == BillStatus.Paid)
-                    .SumAsync(b => b.TotalAmount);
+                    .Select(b => b.TotalAmount)
+                    .ToListAsync();
+                TotalRevenue = paidBills.Sum();
 
                 // Load total customers
                 TotalCustomers = await _context.Customers
