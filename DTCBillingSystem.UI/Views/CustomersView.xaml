@@ -112,6 +112,46 @@
                         <SolidColorBrush Color="#242937" Opacity="0.3"/>
                     </Setter.Value>
                 </Setter>
+                <Setter Property="Foreground" Value="#FFFFFF"/>
+                <Setter Property="ColumnHeaderStyle">
+                    <Setter.Value>
+                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}">
+                            <Setter Property="Foreground" Value="#FFFFFF"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="CellStyle">
+                    <Setter.Value>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Foreground" Value="#FFFFFF"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                                        <Border Padding="8">
+                                            <ContentPresenter />
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Action Button Style -->
+            <Style x:Key="ActionButton" TargetType="Button" BasedOn="{StaticResource MaterialDesignIconButton}">
+                <Setter Property="Width" Value="40"/>
+                <Setter Property="Height" Value="40"/>
+                <Setter Property="Margin" Value="4,0"/>
+                <Setter Property="Foreground" Value="#00ffff"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect BlurRadius="15" ShadowDepth="0" Opacity="0.3" Color="#00ffff"/>
+                    </Setter.Value>
+                </Setter>
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -264,7 +304,7 @@
                             <TextBlock Text="Customers"
                                      Style="{StaticResource MaterialDesignHeadline4TextBlock}"
                                      FontWeight="Bold"
-                                     Foreground="#00ffff">
+                                     Foreground="#FFFFFF">
                                 <TextBlock.Effect>
                                     <DropShadowEffect BlurRadius="20"
                                                     ShadowDepth="0"
@@ -275,26 +315,22 @@
                             <TextBlock Text="Manage your customer base."
                                      Style="{StaticResource MaterialDesignBody1TextBlock}"
                                      Margin="0,8,0,0"
-                                     Foreground="#a0aec0"/>
+                                     Foreground="#FFFFFF"/>
                         </StackPanel>
 
                         <!-- Action Buttons -->
-                        <StackPanel Grid.Column="2" 
+                        <StackPanel Grid.Column="1" 
                                   Orientation="Horizontal" 
                                   HorizontalAlignment="Right">
-                            <Button Style="{StaticResource MaterialDesignFlatButton}"
-                                    Command="{Binding RefreshCommand}"
-                                    Margin="8,0"
-                                    ToolTip="Refresh">
+                            <Button Style="{StaticResource ActionButton}"
+                                    Command="{Binding RefreshCommand}">
                                 <materialDesign:PackIcon Kind="Refresh" 
                                                        Width="24" 
                                                        Height="24"/>
                             </Button>
-                            <Button Style="{StaticResource MaterialDesignFlatButton}"
-                                    Command="{Binding AddCustomerCommand}"
-                                    Margin="8,0"
-                                    ToolTip="Add Customer">
-                                <materialDesign:PackIcon Kind="Plus" 
+                            <Button Style="{StaticResource ActionButton}"
+                                    Command="{Binding AddCustomerCommand}">
+                                <materialDesign:PackIcon Kind="AccountPlus" 
                                                        Width="24" 
                                                        Height="24"/>
                             </Button>
@@ -315,15 +351,24 @@
                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
                                 materialDesign:HintAssist.Hint="Search customers..."
+                                materialDesign:TextFieldAssist.UnderlineBrush="#00ffff"
+                                materialDesign:HintAssist.Foreground="#FFFFFF"
+                                Foreground="#FFFFFF"
+                                CaretBrush="#FFFFFF"
+                                BorderBrush="#00ffff"
                                 Margin="0,0,16,0"/>
 
                         <!-- Type Filter -->
                         <ComboBox Grid.Column="1"
                                  ItemsSource="{Binding Source={StaticResource CustomerTypes}}"
-                                 SelectedItem="{Binding SelectedCustomerType}"
+                                 SelectedItem="{Binding SelectedType}"
                                  Style="{StaticResource MaterialDesignOutlinedComboBox}"
                                  materialDesign:HintAssist.Hint="Type"
-                                 Width="120"
+                                 materialDesign:TextFieldAssist.UnderlineBrush="#00ffff"
+                                 materialDesign:HintAssist.Foreground="#FFFFFF"
+                                 Foreground="#FFFFFF"
+                                 BorderBrush="#00ffff"
+                                 Width="150"
                                  Margin="0,0,16,0"/>
 
                         <!-- Sort By -->
@@ -331,8 +376,12 @@
                                  ItemsSource="{Binding Source={StaticResource SortOptions}}"
                                  SelectedItem="{Binding SelectedSortOption}"
                                  Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                                 materialDesign:HintAssist.Hint="Sort by"
-                                 Width="120"
+                                 materialDesign:HintAssist.Hint="Sort By"
+                                 materialDesign:TextFieldAssist.UnderlineBrush="#00ffff"
+                                 materialDesign:HintAssist.Foreground="#FFFFFF"
+                                 Foreground="#FFFFFF"
+                                 BorderBrush="#00ffff"
+                                 Width="150"
                                  Margin="0,0,16,0"/>
 
                         <!-- Active Only Toggle -->
