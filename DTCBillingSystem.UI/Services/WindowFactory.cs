@@ -23,18 +23,12 @@ namespace DTCBillingSystem.UI.Services
 
         public LoginWindow CreateLoginWindow()
         {
-            var viewModel = _serviceProvider.GetRequiredService<LoginViewModel>();
-            var window = new LoginWindow(viewModel);
-            return window;
+            return new LoginWindow(_serviceProvider);
         }
 
         public MainWindow CreateMainWindow()
         {
-            var navigationService = _serviceProvider.GetRequiredService<INavigationService>();
-            var dialogService = _serviceProvider.GetRequiredService<IDialogService>();
-            var mainViewModel = _serviceProvider.GetRequiredService<MainViewModel>();
-            var window = new MainWindow(navigationService, dialogService, mainViewModel);
-            return window;
+            return new MainWindow(_serviceProvider);
         }
     }
 } 

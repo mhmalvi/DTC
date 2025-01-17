@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using DTCBillingSystem.UI.Views;
 using DTCBillingSystem.UI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics;
 
 namespace DTCBillingSystem.UI.Services
 {
@@ -18,7 +19,6 @@ namespace DTCBillingSystem.UI.Services
         public NavigationService(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _isInitialized = false;
         }
 
         public bool CanNavigateBack => _mainFrame?.CanGoBack ?? false;
@@ -32,9 +32,10 @@ namespace DTCBillingSystem.UI.Services
 
         private void EnsureInitialized()
         {
-            if (!_isInitialized || _mainFrame == null)
+            if (!_isInitialized || _mainFrame == null || _mainWindow == null)
             {
-                throw new InvalidOperationException("NavigationService not initialized. Call Initialize first.");
+                Debug.WriteLine("NavigationService not initialized");
+                throw new InvalidOperationException("NavigationService must be initialized before use");
             }
         }
 
@@ -119,7 +120,7 @@ namespace DTCBillingSystem.UI.Services
         {
             try
             {
-                var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+                var mainWindow = new MainWindow(_serviceProvider);
                 Application.Current.MainWindow = mainWindow;
                 mainWindow.Show();
 
@@ -159,10 +160,13 @@ namespace DTCBillingSystem.UI.Services
 
                 EnsureInitialized();
 
-                // Then navigate to dashboard
-                var dashboardViewModel = _serviceProvider.GetRequiredService<DashboardViewModel>();
-                var dashboardView = new DashboardView(dashboardViewModel);
-                _mainFrame!.Navigate(dashboardView);
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    // Then navigate to dashboard
+                    var dashboardViewModel = scope.ServiceProvider.GetRequiredService<DashboardViewModel>();
+                    var dashboardView = new DashboardView(dashboardViewModel);
+                    _mainFrame!.Navigate(dashboardView);
+                }
             }
             catch (Exception ex)
             {
@@ -183,6 +187,35 @@ namespace DTCBillingSystem.UI.Services
         {
             _mainFrame = frame ?? throw new ArgumentNullException(nameof(frame));
             _isInitialized = _mainWindow != null;
+        }
+
+        public void NavigateToCustomers()
+        {
+            try
+            {
+                Debug.WriteLine("NavigateToCustomers called");
+                EnsureInitialized();
+
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var viewModel = scope.ServiceProvider.GetRequiredService<CustomersViewModel>();
+                    var view = scope.ServiceProvider.GetRequiredService<CustomersView>();
+                    view.DataContext = viewModel;
+
+                    Debug.WriteLine("Navigating to CustomersView");
+                    _mainFrame!.Navigate(view);
+                    Debug.WriteLine("Navigation completed successfully");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error in NavigateToCustomers: {ex}");
+                MessageBox.Show($"Navigation failed: {ex.Message}\n\nDetails: {ex}", 
+                              "Navigation Error", 
+                              MessageBoxButton.OK, 
+                              MessageBoxImage.Error);
+                throw; // Rethrow to allow higher-level error handling
+            }
         }
     }
 } 

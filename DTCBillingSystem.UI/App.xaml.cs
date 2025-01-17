@@ -101,7 +101,7 @@ namespace DTCBillingSystem.UI
                 options.UseSqlite(connectionString);
                 options.EnableSensitiveDataLogging();
                 options.EnableDetailedErrors();
-            });
+            }, ServiceLifetime.Transient);
 
             // Configure and register TokenService first
             var jwtSettings = _configuration.GetSection("JwtSettings");
@@ -112,48 +112,49 @@ namespace DTCBillingSystem.UI
             services.AddSingleton<ITokenService>(new Core.Services.TokenService(secretKey, issuer, audience));
 
             // Register repositories
-            services.AddScoped<IUnitOfWork, Infrastructure.Repositories.UnitOfWork>();
+            services.AddTransient<IUnitOfWork, Infrastructure.Repositories.UnitOfWork>();
 
             // Register core services in dependency order
-            services.AddScoped<IPasswordHasher, Core.Services.PasswordHasher>();
-            services.AddScoped<IPrintService, Core.Services.PrintService>();
-            services.AddScoped<ICustomerService, Core.Services.CustomerService>();
-            services.AddScoped<IBillingService, Core.Services.BillingService>();
-            services.AddScoped<IUserService, Core.Services.UserService>();
-            services.AddScoped<IAuditService, Core.Services.AuditService>();
-            services.AddScoped<IReportService, Core.Services.ReportService>();
+            services.AddTransient<IPasswordHasher, Core.Services.PasswordHasher>();
+            services.AddTransient<IPrintService, Core.Services.PrintService>();
+            services.AddTransient<ICustomerService, Core.Services.CustomerService>();
+            services.AddTransient<IBillingService, Core.Services.BillingService>();
+            services.AddTransient<IUserService, Core.Services.UserService>();
+            services.AddTransient<IAuditService, Core.Services.AuditService>();
+            services.AddTransient<IReportService, Core.Services.ReportService>();
 
             // Register infrastructure services
-            services.AddScoped<ICurrentUserService, Infrastructure.Services.CurrentUserService>();
-            services.AddScoped<IAuthenticationService, Infrastructure.Services.AuthenticationService>();
+            services.AddTransient<ICurrentUserService, Infrastructure.Services.CurrentUserService>();
+            services.AddTransient<IAuthenticationService, Infrastructure.Services.AuthenticationService>();
 
             // Add DatabaseSeeder
-            services.AddScoped<DatabaseSeeder>();
+            services.AddTransient<DatabaseSeeder>();
 
             // Register UI services as singletons to maintain state
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddSingleton<IDialogService, DialogService>();
+            services.AddSingleton<IViewLocator, ViewLocator>();
+            services.AddSingleton<IWindowFactory, WindowFactory>();
 
-            // Register ViewModels as transient since they should be created new each time
-            services.AddTransient<LoginViewModel>();
-            services.AddTransient<DashboardViewModel>();
-            services.AddTransient<CustomersViewModel>();
-            services.AddTransient<SettingsViewModel>();
-            services.AddTransient<MainViewModel>();
+            // Register ViewModels as scoped since they depend on scoped services
+            services.AddScoped<LoginViewModel>();
+            services.AddScoped<DashboardViewModel>();
+            services.AddScoped<CustomersViewModel>();
+            services.AddScoped<SettingsViewModel>();
+            services.AddScoped<MainViewModel>();
 
-            // Register Views as transient
-            services.AddTransient<LoginWindow>();
-            services.AddTransient<MainWindow>();
-            services.AddTransient<DashboardView>();
-            services.AddTransient<CustomersView>();
-            services.AddTransient<SettingsView>();
+            // Register Views as scoped to match their ViewModels
+            services.AddScoped<LoginWindow>();
+            services.AddScoped<MainWindow>();
+            services.AddScoped<DashboardView>();
+            services.AddScoped<CustomersView>();
+            services.AddScoped<SettingsView>();
 
-            // Build service provider with scope validation disabled in development
-            // This allows us to focus on the login functionality first
+            // Build service provider with scope validation enabled
             _serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions 
             { 
-                ValidateScopes = false,  // Temporarily disable scope validation
-                ValidateOnBuild = false  // Temporarily disable build validation
+                ValidateScopes = true,
+                ValidateOnBuild = true
             });
         }
 
@@ -212,7 +213,7 @@ namespace DTCBillingSystem.UI
 
             try
             {
-                var loginWindow = _serviceProvider.GetRequiredService<LoginWindow>();
+                var loginWindow = new LoginWindow(_serviceProvider);
                 loginWindow.Show();
             }
             catch (Exception ex)

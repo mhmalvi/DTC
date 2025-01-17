@@ -4,6 +4,7 @@ using System.Windows.Input;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.UI.Services;
 using DTCBillingSystem.UI.Commands;
+using System.Diagnostics;
 
 namespace DTCBillingSystem.UI.ViewModels
 {
@@ -22,9 +23,11 @@ namespace DTCBillingSystem.UI.ViewModels
             _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
             _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
             LogoutCommand = new RelayCommand(ExecuteLogout);
+            NavigateToCustomersCommand = new RelayCommand(ExecuteNavigateToCustomers);
         }
 
         public ICommand LogoutCommand { get; }
+        public ICommand NavigateToCustomersCommand { get; }
 
         public string WelcomeMessage => $"Welcome, {_currentUserService.CurrentUser?.Username ?? "Guest"}!";
 
@@ -34,21 +37,34 @@ namespace DTCBillingSystem.UI.ViewModels
             _navigationService.NavigateToMain();
         }
 
-        public void OnContentRendered()
+        private void ExecuteNavigateToCustomers()
         {
+            _navigationService.NavigateToCustomers();
+        }
+
+        public void OnClosing()
+        {
+            // Cleanup resources and save any pending changes
             try
             {
-                // Initialize any main window specific state here
-                System.Diagnostics.Debug.WriteLine("MainViewModel: Content rendered");
+                // Add any cleanup logic here
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error in MainViewModel.OnContentRendered: {ex.Message}");
-                MessageBox.Show(
-                    $"Error initializing main window: {ex.Message}",
-                    "Initialization Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                Debug.WriteLine($"Error during cleanup: {ex}");
+            }
+        }
+
+        public void OnContentRendered()
+        {
+            // Initialize any resources needed after the window is rendered
+            try
+            {
+                // Add any initialization logic here
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error during initialization: {ex}");
             }
         }
     }

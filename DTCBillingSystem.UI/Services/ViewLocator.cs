@@ -158,8 +158,7 @@ namespace DTCBillingSystem.UI.Services
         {
             try
             {
-                var viewModel = _serviceProvider.GetRequiredService<LoginViewModel>();
-                return new LoginWindow(viewModel);
+                return new LoginWindow(_serviceProvider);
             }
             catch (Exception ex)
             {
@@ -169,17 +168,7 @@ namespace DTCBillingSystem.UI.Services
 
         public MainWindow CreateMainWindow()
         {
-            try
-            {
-                var navigationService = _serviceProvider.GetRequiredService<INavigationService>();
-                var dialogService = _serviceProvider.GetRequiredService<IDialogService>();
-                var viewModel = _serviceProvider.GetRequiredService<MainViewModel>();
-                return new MainWindow(navigationService, dialogService, viewModel);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Failed to create main window", ex);
-            }
+            return new MainWindow(_serviceProvider);
         }
 
         private object CreateViewForViewModel(object viewModel)

@@ -8,12 +8,14 @@ using DTCBillingSystem.Core.Models.Enums;
 using DTCBillingSystem.Infrastructure.Data;
 using DTCBillingSystem.UI.Commands;
 using Microsoft.EntityFrameworkCore;
+using DTCBillingSystem.UI.Services;
 
 namespace DTCBillingSystem.UI.ViewModels
 {
     public class DashboardViewModel : ViewModelBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly INavigationService _navigationService;
         private bool _isLoading;
         private string _errorMessage = string.Empty;
         private decimal _totalRevenue;
@@ -23,12 +25,14 @@ namespace DTCBillingSystem.UI.ViewModels
         private ObservableCollection<MonthlyBill> _recentBills;
         private ObservableCollection<PaymentRecord> _recentPayments;
 
-        public DashboardViewModel(ApplicationDbContext context)
+        public DashboardViewModel(ApplicationDbContext context, INavigationService navigationService)
         {
             _context = context;
+            _navigationService = navigationService;
             _recentBills = new ObservableCollection<MonthlyBill>();
             _recentPayments = new ObservableCollection<PaymentRecord>();
             LoadDashboardDataCommand = new RelayCommand(async () => await LoadDashboardDataAsync());
+            NavigateToCustomersCommand = new RelayCommand(() => _navigationService.NavigateToCustomers());
             _ = LoadDashboardDataAsync(); // Load data when the view model is created
         }
 
@@ -113,6 +117,7 @@ namespace DTCBillingSystem.UI.ViewModels
         }
 
         public ICommand LoadDashboardDataCommand { get; }
+        public ICommand NavigateToCustomersCommand { get; }
 
         private async Task LoadDashboardDataAsync()
         {

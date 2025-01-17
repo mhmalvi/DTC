@@ -20,5 +20,6 @@ namespace DTCBillingSystem.UI.Services
         void SetFrame(Frame frame);
         void NavigateToDashboard();
         Task NavigateToDashboardAsync();
+        void NavigateToCustomers();
     }
 } 

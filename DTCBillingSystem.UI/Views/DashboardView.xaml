@@ -253,7 +253,8 @@
                     <Button Style="{StaticResource MaterialDesignFlatButton}" 
                             Height="48" 
                             Margin="12,4"
-                            Foreground="#a0aec0">
+                            Command="{Binding NavigateToCustomersCommand}"
+                            Foreground="#00ffff">
                         <StackPanel Orientation="Horizontal">
                             <materialDesign:PackIcon Kind="AccountMultiple" 
                                                    Width="24" 

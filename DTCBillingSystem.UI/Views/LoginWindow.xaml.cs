@@ -1,18 +1,20 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using DTCBillingSystem.UI.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace DTCBillingSystem.UI.Views
 {
-    public partial class LoginWindow : Window
+    public partial class LoginWindow : ScopedWindow
     {
         private readonly LoginViewModel _viewModel;
 
-        public LoginWindow(LoginViewModel viewModel)
+        public LoginWindow(IServiceProvider serviceProvider) : base(serviceProvider)
         {
             InitializeComponent();
-            _viewModel = viewModel;
+            _viewModel = ServiceScope.ServiceProvider.GetRequiredService<LoginViewModel>();
             DataContext = _viewModel;
 
             // Handle password changes
@@ -37,7 +39,7 @@ namespace DTCBillingSystem.UI.Views
             }
         }
 
-        private void ViewModel_LoginSuccessful(object? sender, System.EventArgs e)
+        private void ViewModel_LoginSuccessful(object? sender, EventArgs e)
         {
             Close();
         }
