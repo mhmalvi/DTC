@@ -22,6 +22,7 @@ namespace DTCBillingSystem.UI.ViewModels
 
         public LoginViewModel(IAuthenticationService authenticationService, INavigationService navigationService, IAuditService auditService)
         {
+            MessageBox.Show("LoginViewModel constructor called", "Debug Info");
             _authenticationService = authenticationService;
             _navigationService = navigationService;
             _auditService = auditService;
@@ -72,6 +73,11 @@ namespace DTCBillingSystem.UI.ViewModels
         public ICommand LoginCommand => _loginCommand ??= new AsyncRelayCommand(LoginAsync, () => CanLogin);
         public ICommand ExitCommand { get; }
 
+        private void Exit()
+        {
+            Application.Current.Shutdown();
+        }
+
         private void ClearError()
         {
             ErrorMessage = string.Empty;
@@ -81,6 +87,7 @@ namespace DTCBillingSystem.UI.ViewModels
         {
             try
             {
+                MessageBox.Show("Login attempt started", "Debug Info");
                 IsLoading = true;
                 ClearError();
 
@@ -90,96 +97,34 @@ namespace DTCBillingSystem.UI.ViewModels
                     return;
                 }
 
+                MessageBox.Show($"Attempting login with username: {Username}", "Debug Info");
+                
                 // Log the attempt
                 await _auditService.LogAsync("User", "System", 1, "Debug", $"Login attempt for user: {Username}");
                 
                 var success = await _authenticationService.LoginAsync(Username.Trim(), Password.Trim());
                 await _auditService.LogAsync("User", "System", 1, "Debug", "Authentication attempt completed");
-                
-                if (!success)
+
+                if (success)
                 {
-                    await _auditService.LogAsync("User", "0", 1, "LoginFailed", $"Failed login attempt for user '{Username}'");
+                    MessageBox.Show("Login successful", "Debug Info");
+                    await _navigationService.NavigateToDashboardAsync();
+                }
+                else
+                {
+                    MessageBox.Show("Login failed", "Debug Info");
                     ErrorMessage = "Invalid username or password";
-                    return;
                 }
-
-                var user = await _authenticationService.GetCurrentUserAsync();
-                await _auditService.LogAsync("User", "System", 1, "Debug", "GetCurrentUser completed");
-
-                if (user == null)
-                {
-                    await _auditService.LogAsync("User", "0", 1, "LoginError", "User is null after successful login");
-                    ErrorMessage = "Authentication error: User not found";
-                    return;
-                }
-
-                await _auditService.LogAsync("User", user.Id.ToString(), user.Id, "Login");
-                
-                // Create a TaskCompletionSource to track the navigation
-                var navigationComplete = new TaskCompletionSource<bool>();
-
-                // Use dispatcher to ensure UI updates happen on the UI thread
-                await Application.Current.Dispatcher.InvokeAsync(async () =>
-                {
-                    try
-                    {
-                        // Attempt to navigate
-                        _navigationService.NavigateToMain();
-                        navigationComplete.SetResult(true);
-
-                        // Log successful navigation
-                        await _auditService.LogAsync("User", user.Id.ToString(), user.Id, "Navigation", "Successfully navigated to main window");
-                    }
-                    catch (Exception ex)
-                    {
-                        var errorDetails = $"Navigation Error: {ex.Message}\nStack Trace: {ex.StackTrace}";
-                        await _auditService.LogAsync("User", user.Id.ToString(), user.Id, "NavigationError", errorDetails);
-                        
-                        // Force logout since navigation failed
-                        await _authenticationService.LogoutAsync();
-                        
-                        ErrorMessage = "Failed to open main window. Please try logging in again.";
-                        MessageBox.Show(
-                            $"Failed to open main window. Error: {ex.Message}",
-                            "Navigation Error",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Error);
-                            
-                        navigationComplete.SetException(ex);
-                    }
-                });
-
-                // Wait for navigation to complete with a timeout
-                var timeoutTask = Task.Delay(TimeSpan.FromSeconds(5));
-                var completedTask = await Task.WhenAny(navigationComplete.Task, timeoutTask);
-
-                if (completedTask == timeoutTask)
-                {
-                    // Navigation timed out
-                    await _auditService.LogAsync("User", user.Id.ToString(), user.Id, "NavigationError", "Navigation to main window timed out");
-                    await _authenticationService.LogoutAsync();
-                    
-                    ErrorMessage = "Failed to open main window (timeout). Please try logging in again.";
-                    throw new TimeoutException("Navigation to main window timed out");
-                }
-
-                // If we get here, navigation was successful
-                await _auditService.LogAsync("User", user.Id.ToString(), user.Id, "Navigation", "Login and navigation completed successfully");
             }
             catch (Exception ex)
             {
-                await _auditService.LogAsync("User", "0", 1, "LoginError", $"Error during login: {ex.Message}");
-                ErrorMessage = $"An error occurred during login: {ex.Message}";
+                MessageBox.Show($"Login error: {ex.Message}\n\nDetails: {ex.InnerException?.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                ErrorMessage = "An error occurred during login. Please try again.";
             }
             finally
             {
                 IsLoading = false;
             }
-        }
-
-        private void Exit()
-        {
-            Application.Current.Shutdown();
         }
     }
 } 

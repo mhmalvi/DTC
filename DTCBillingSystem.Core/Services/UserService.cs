@@ -4,6 +4,7 @@ using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models.Authentication;
 using DTCBillingSystem.Core.Models.Entities;
 using DTCBillingSystem.Core.Models.Enums;
+using System.Diagnostics;
 
 namespace DTCBillingSystem.Core.Services
 {
@@ -25,19 +26,30 @@ namespace DTCBillingSystem.Core.Services
 
         public async Task<AuthenticationResponse> AuthenticateAsync(string username, string password)
         {
+            Debug.WriteLine($"Attempting to authenticate user: {username}");
+            
             var user = await _unitOfWork.Users.GetByUsernameAsync(username);
             if (user == null)
             {
+                Debug.WriteLine("User not found in database");
                 return new AuthenticationResponse { Success = false, Message = "Invalid username or password" };
             }
 
+            Debug.WriteLine($"Found user: {user.Username}, IsActive: {user.IsActive}");
+
             if (!user.IsActive)
             {
+                Debug.WriteLine("User account is deactivated");
                 return new AuthenticationResponse { Success = false, Message = "Account is deactivated" };
             }
 
             var (storedHash, storedSalt) = (user.PasswordHash, user.PasswordSalt);
-            if (!_passwordHasher.VerifyPassword(password, storedHash, storedSalt))
+            Debug.WriteLine($"Stored hash length: {storedHash?.Length}, Salt length: {storedSalt?.Length}");
+            
+            var isPasswordValid = _passwordHasher.VerifyPassword(password, storedHash, storedSalt);
+            Debug.WriteLine($"Password verification result: {isPasswordValid}");
+
+            if (!isPasswordValid)
             {
                 return new AuthenticationResponse { Success = false, Message = "Invalid username or password" };
             }
@@ -45,7 +57,7 @@ namespace DTCBillingSystem.Core.Services
             user.LastLoginAt = DateTime.UtcNow;
             await _unitOfWork.SaveChangesAsync();
             
-            await _auditService.LogAsync("User", user.Id.ToString(), user.Id, AuditAction.Login.ToString());
+            await _auditService.LogAsync("User", user.Id.ToString(), user.Id, "Login");
 
             return new AuthenticationResponse
             {

@@ -40,32 +40,44 @@ namespace DTCBillingSystem.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            
+            // Apply entity configurations from assembly
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
-            // Create a password hasher instance
-            var passwordHasher = new PasswordHasher();
+            // Configure relationships and constraints
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Username)
+                .IsUnique();
 
-            // Hash the default admin password using PBKDF2
-            var password = "123";
-            var (hash, salt) = passwordHasher.HashPassword(password);
+            modelBuilder.Entity<User>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
 
-            modelBuilder.Entity<User>().HasData(new User
-            {
-                Id = 1,
-                Username = "ad",
-                Email = "admin@dtcbilling.com",
-                FirstName = "System",
-                LastName = "Administrator",
-                PasswordHash = hash,
-                PasswordSalt = salt,
-                Role = UserRole.Administrator,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                LastModifiedAt = DateTime.UtcNow,
-                CreatedBy = "system",
-                LastModifiedBy = "system",
-                RequirePasswordChange = false
-            });
+            modelBuilder.Entity<Customer>()
+                .HasIndex(c => c.Email)
+                .IsUnique();
+
+            modelBuilder.Entity<Customer>()
+                .HasIndex(c => c.PhoneNumber)
+                .IsUnique();
+
+            modelBuilder.Entity<MonthlyBill>()
+                .HasOne(b => b.Customer)
+                .WithMany(c => c.MonthlyBills)
+                .HasForeignKey(b => b.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PaymentRecord>()
+                .HasOne(p => p.Customer)
+                .WithMany()
+                .HasForeignKey(p => p.CustomerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PaymentRecord>()
+                .HasOne(p => p.MonthlyBill)
+                .WithMany()
+                .HasForeignKey(p => p.MonthlyBillId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 } 

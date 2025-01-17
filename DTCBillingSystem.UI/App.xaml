@@ -1,56 +1,17 @@
 ﻿<Application x:Class="DTCBillingSystem.UI.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:DTCBillingSystem.UI"
-             xmlns:conv="clr-namespace:DTCBillingSystem.UI.Converters"
-             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             xmlns:sys="clr-namespace:System;assembly=mscorlib"
-             xmlns:enums="clr-namespace:DTCBillingSystem.Core.Models.Enums;assembly=DTCBillingSystem.Core">
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="DeepPurple" SecondaryColor="Lime" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Button.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.TextBox.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.PasswordBox.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Card.xaml" />
             </ResourceDictionary.MergedDictionaries>
-
-            <!-- Theme Settings -->
-            <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="{DynamicResource Primary500}" />
-            <SolidColorBrush x:Key="PrimaryHueDarkBrush" Color="{DynamicResource Primary700}" />
-            <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="{DynamicResource Primary300}" />
-            <SolidColorBrush x:Key="SecondaryAccentBrush" Color="{DynamicResource Secondary500}" />
-            <SolidColorBrush x:Key="SecondaryAccentForegroundBrush" Color="{DynamicResource Secondary500Foreground}" />
-
-            <!-- Converters -->
-            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-            <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-            <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
-            <conv:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
-            <conv:StringNotEmptyToBooleanConverter x:Key="StringNotEmptyToBooleanConverter"/>
-            <conv:BoolToStatusConverter x:Key="BoolToStatusConverter"/>
-            <conv:BoolToActionTextConverter x:Key="BoolToActionTextConverter"/>
-            <conv:BooleanToActiveStatusConverter x:Key="BooleanToActiveStatusConverter"/>
-            <conv:BooleanToStatusColorConverter x:Key="BooleanToStatusColorConverter"/>
-            <conv:BooleanToStatusIconConverter x:Key="BooleanToStatusIconConverter"/>
-            <conv:NullToCollapsedConverter x:Key="NullToCollapsedConverter"/>
-
-            <!-- Customer Types -->
-            <ObjectDataProvider x:Key="CustomerTypes" 
-                              MethodName="GetValues" 
-                              ObjectType="{x:Type enums:CustomerType}">
-                <ObjectDataProvider.MethodParameters>
-                    <x:Type TypeName="enums:CustomerType"/>
-                </ObjectDataProvider.MethodParameters>
-            </ObjectDataProvider>
-
-            <!-- Sort Options -->
-            <x:Array x:Key="SortOptions" Type="{x:Type sys:String}">
-                <sys:String>Name</sys:String>
-                <sys:String>AccountNumber</sys:String>
-                <sys:String>Type</sys:String>
-                <sys:String>Zone</sys:String>
-                <sys:String>Balance</sys:String>
-                <sys:String>LastBillingDate</sys:String>
-            </x:Array>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

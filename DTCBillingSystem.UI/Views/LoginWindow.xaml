@@ -4,239 +4,61 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        xmlns:conv="clr-namespace:DTCBillingSystem.UI.Converters"
-        xmlns:system="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="DTC Billing System - Login" 
-        Height="600" Width="1000"
+        Height="450" Width="800"
         WindowStartupLocation="CenterScreen"
-        WindowStyle="None"
-        AllowsTransparency="True"
-        Background="Transparent"
-        MouseDown="Window_MouseDown"
-        KeyDown="Window_KeyDown">
-
-    <Window.Resources>
-        <Style x:Key="LoginTextBox" TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
-            <Setter Property="Margin" Value="0,8"/>
-            <Setter Property="Height" Value="56"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#2A3547"/>
-            <Setter Property="materialDesign:TextFieldAssist.UnderlineBrush" Value="#1E88E5"/>
-            <Setter Property="materialDesign:HintAssist.Foreground" Value="#1E88E5"/>
-            <Setter Property="materialDesign:HintAssist.FloatingScale" Value="0.8"/>
-            <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="8"/>
-        </Style>
-        <Style x:Key="LoginPasswordBox" TargetType="PasswordBox" BasedOn="{StaticResource MaterialDesignOutlinedPasswordBox}">
-            <Setter Property="Margin" Value="0,8"/>
-            <Setter Property="Height" Value="56"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Background" Value="White"/>
-            <Setter Property="Foreground" Value="#2A3547"/>
-            <Setter Property="materialDesign:TextFieldAssist.UnderlineBrush" Value="#1E88E5"/>
-            <Setter Property="materialDesign:HintAssist.Foreground" Value="#1E88E5"/>
-            <Setter Property="materialDesign:HintAssist.FloatingScale" Value="0.8"/>
-            <Setter Property="materialDesign:TextFieldAssist.TextFieldCornerRadius" Value="8"/>
-        </Style>
-    </Window.Resources>
-
-    <materialDesign:Card UniformCornerRadius="24" 
-                        Background="Transparent"
-                        Margin="25"
-                        materialDesign:ElevationAssist.Elevation="Dp4">
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="400"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- Left Side - Decorative Panel -->
-            <Border Grid.Column="0" Background="#1E88E5" CornerRadius="24,0,0,24">
-                <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- Logo and Title -->
-                <StackPanel Grid.Row="0" Margin="40,60,40,0">
-                    <materialDesign:PackIcon Kind="Water"
-                                           Width="80" Height="80"
-                                           Foreground="White"/>
-                    <TextBlock Text="DTC BILLING SYSTEM"
-                             FontSize="32"
-                             FontWeight="Bold"
-                             Foreground="White"
-                             Margin="0,20,0,0"/>
-                    <TextBlock Text="Manage your utility billing efficiently"
-                             FontSize="16"
-                             Foreground="White"
-                             Opacity="0.9"
-                             Margin="0,10,0,0"/>
-                </StackPanel>
-
-                <!-- Decorative Elements -->
-                <ItemsControl Grid.Row="1" Margin="40,40,40,0">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" 
-                                      Margin="0,20,0,0">
-                                <materialDesign:PackIcon Kind="CheckCircleOutline"
-                                                       Width="24" Height="24"
-                                                       Foreground="White"
-                                                       VerticalAlignment="Center"/>
-                                <TextBlock Text="{Binding}"
-                                         Margin="16,0,0,0"
-                                         FontSize="14"
-                                         Foreground="White"
-                                         VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                    <system:String>Efficient Customer Management</system:String>
-                    <system:String>Automated Billing Process</system:String>
-                    <system:String>Real-time Payment Tracking</system:String>
-                    <system:String>Comprehensive Reporting</system:String>
-                </ItemsControl>
-
-                <!-- Version Info -->
-                <TextBlock Grid.Row="2"
-                         Text="Version 1.0"
-                         Foreground="White"
-                         Opacity="0.7"
-                         Margin="40,0,0,20"/>
-                </Grid>
-            </Border>
-
-            <!-- Right Side - Login Form -->
-            <Border Grid.Column="1" Background="White" CornerRadius="0,24,24,0">
-                <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <!-- Close Button -->
-                <Button Grid.Row="0"
-                        Command="{Binding ExitCommand}"
-                        Style="{StaticResource MaterialDesignIconButton}"
-                        Width="32" Height="32"
-                        Padding="0"
-                        HorizontalAlignment="Right"
-                        Margin="0,16,16,0"
-                        Foreground="#2A3547"
-                        ToolTip="Close">
-                    <materialDesign:PackIcon Kind="Close" Width="20" Height="20"/>
-                </Button>
-
-                <!-- Login Form -->
-                <StackPanel Grid.Row="1" 
-                          Margin="40,0">
-                    <TextBlock Text="Welcome Back"
-                             FontSize="24"
-                             FontWeight="Bold"
-                             Foreground="#2A3547"
-                             Margin="0,0,0,8"/>
-                    
-                    <TextBlock Text="Please sign in to continue"
-                             FontSize="14"
-                             Foreground="#607D8B"
-                             Margin="0,0,0,32"/>
-
-                    <!-- Username -->
-                    <TextBox x:Name="usernameTextBox"
-                             Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
-                             Style="{StaticResource LoginTextBox}"
-                             materialDesign:HintAssist.Hint="Username"/>
-
-                    <!-- Password -->
-                    <Grid Margin="0,8">
-                        <PasswordBox x:Name="passwordBox"
-                                   Style="{StaticResource LoginPasswordBox}"
-                                   materialDesign:HintAssist.Hint="Password"
-                                   materialDesign:TextFieldAssist.HasClearButton="True"
-                                   PasswordChanged="PasswordBox_PasswordChanged"/>
-                        
-                        <TextBox x:Name="textBox"
-                                Style="{StaticResource LoginTextBox}"
-                                materialDesign:HintAssist.Hint="Password"
-                                materialDesign:TextFieldAssist.HasClearButton="True"
-                                TextChanged="TextBox_TextChanged"
-                                Visibility="Collapsed"/>
-                        
-                        <ToggleButton x:Name="ShowPasswordButton"
-                                    Style="{StaticResource MaterialDesignActionToggleButton}"
-                                    Height="24" Width="24"
-                                    ToolTip="Show/Hide Password"
-                                    HorizontalAlignment="Right"
-                                    VerticalAlignment="Center"
-                                    Margin="0,0,8,0"
-                                    Foreground="#607D8B"
-                                    Checked="ShowPasswordButton_Checked"
-                                    Unchecked="ShowPasswordButton_Unchecked">
-                            <ToggleButton.Content>
-                                <materialDesign:PackIcon Kind="EyeOutline"/>
-                            </ToggleButton.Content>
-                            <materialDesign:ToggleButtonAssist.OnContent>
-                                <materialDesign:PackIcon Kind="EyeOffOutline"/>
-                            </materialDesign:ToggleButtonAssist.OnContent>
-                        </ToggleButton>
-                    </Grid>
-
-                    <!-- Error Message -->
-                    <materialDesign:Card Margin="0,16"
-                                       Background="#FFEBEE"
-                                       UniformCornerRadius="4"
-                                       Padding="16,8"
-                                       Visibility="{Binding ErrorMessage, Converter={StaticResource StringToVisibilityConverter}}">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="AlertCircleOutline" 
-                                                   Foreground="#B71C1C"
-                                                   Width="20" Height="20"
-                                                   VerticalAlignment="Center"/>
-                            <TextBlock Text="{Binding ErrorMessage}"
-                                     Margin="12,0,0,0"
-                                     Foreground="#B71C1C"
-                                     TextWrapping="Wrap"
-                                     VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </materialDesign:Card>
-
-                    <!-- Login Button -->
-                    <Button Command="{Binding LoginCommand}"
-                            Style="{StaticResource MaterialDesignRaisedButton}"
-                            Height="48"
-                            materialDesign:ButtonAssist.CornerRadius="24"
-                            Background="#1E88E5"
-                            BorderBrush="#1E88E5"
-                            Foreground="White"
-                            FontSize="14"
-                            FontWeight="Bold"
-                            Margin="0,16,0,0"
-                            IsEnabled="{Binding CanLogin, UpdateSourceTrigger=PropertyChanged}">
-                        <Grid>
-                            <TextBlock Text="SIGN IN"
-                                     Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVisibilityConverter}}"/>
-                            <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
-                                       Value="0"
-                                       IsIndeterminate="True"
-                                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}"
-                                       Width="20" Height="20"/>
-                        </Grid>
-                    </Button>
-                </StackPanel>
-
-                <!-- Footer -->
-                <TextBlock Grid.Row="2"
-                         Text="Aethon © 2024 DTC Billing System"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        Background="{DynamicResource MaterialDesignPaper}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        FontFamily="{materialDesign:MaterialDesignFont}">
+    
+    <Grid Background="{DynamicResource MaterialDesignPaper}">
+        <materialDesign:Card Padding="32" Margin="16" MaxWidth="400" 
+                            Background="White" 
+                            materialDesign:ElevationAssist.Elevation="Dp4">
+            <StackPanel>
+                <TextBlock Text="DTC Billing System"
+                         Style="{StaticResource MaterialDesignHeadline4TextBlock}"
+                         Foreground="{DynamicResource PrimaryHueMidBrush}"
                          HorizontalAlignment="Center"
-                         Margin="0,0,0,20"
-                         Foreground="#607D8B"/>
-                </Grid>
-            </Border>
-        </Grid>
-    </materialDesign:Card>
+                         FontWeight="Bold"
+                         Margin="0,0,0,32"/>
+
+                <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Username"
+                         materialDesign:TextFieldAssist.HasClearButton="True"
+                         Style="{StaticResource MaterialDesignFilledTextBox}"
+                         Margin="0,16,0,0"
+                         FontSize="14"/>
+
+                <PasswordBox x:Name="PasswordBox"
+                           materialDesign:HintAssist.Hint="Password"
+                           materialDesign:TextFieldAssist.HasClearButton="True"
+                           Style="{StaticResource MaterialDesignFilledPasswordBox}"
+                           Margin="0,16,0,0"
+                           FontSize="14"/>
+
+                <Button Content="LOGIN"
+                        Command="{Binding LoginCommand}"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        Background="{DynamicResource PrimaryHueMidBrush}"
+                        Foreground="White"
+                        materialDesign:ButtonAssist.CornerRadius="5"
+                        Height="45"
+                        FontSize="16"
+                        FontWeight="Bold"
+                        Margin="0,32,0,0"/>
+
+                <TextBlock Text="{Binding ErrorMessage}"
+                         Foreground="Red"
+                         TextWrapping="Wrap"
+                         HorizontalAlignment="Center"
+                         Margin="0,16,0,0"/>
+            </StackPanel>
+        </materialDesign:Card>
+    </Grid>
 </Window> 
