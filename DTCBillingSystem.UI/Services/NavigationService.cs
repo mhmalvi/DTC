@@ -106,8 +106,7 @@ namespace DTCBillingSystem.UI.Services
         }
 
         public void NavigateToMain()
-        {
-            try
+        {            try
             {
                 var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
                 Application.Current.MainWindow = mainWindow;

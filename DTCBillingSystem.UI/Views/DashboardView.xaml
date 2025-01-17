@@ -10,8 +10,9 @@
     
     <UserControl.Background>
         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Color="#f3f4f6" Offset="0"/>
-            <GradientStop Color="#ffffff" Offset="1"/>
+            <GradientStop Color="#1a1f2e" Offset="0"/>
+            <GradientStop Color="#242937" Offset="0.5"/>
+            <GradientStop Color="#1e2433" Offset="1"/>
         </LinearGradientBrush>
     </UserControl.Background>
 
@@ -24,86 +25,177 @@
             <conv:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
             <conv:StringNotEmptyToBooleanConverter x:Key="StringNotEmptyToBooleanConverter"/>
             
-            <Style x:Key="DashboardCard" TargetType="materialDesign:Card">
+            <!-- Glassmorphism Card Style -->
+            <Style x:Key="GlassmorphismCard" TargetType="materialDesign:Card">
                 <Setter Property="Margin" Value="12"/>
-                <Setter Property="Padding" Value="24"/>
-                <Setter Property="UniformCornerRadius" Value="16"/>
-                <Setter Property="Background" Value="White"/>
-                <Setter Property="materialDesign:ElevationAssist.Elevation" Value="Dp1"/>
+                <Setter Property="Padding" Value="28"/>
+                <Setter Property="UniformCornerRadius" Value="24"/>
+                <Setter Property="materialDesign:ElevationAssist.Elevation" Value="Dp0"/>
                 <Setter Property="materialDesign:TransitionAssist.DisableTransitions" Value="False"/>
+                <Setter Property="Background">
+                    <Setter.Value>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1" Opacity="0.15">
+                            <GradientStop Color="#ffffff" Offset="0"/>
+                            <GradientStop Color="#242937" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Setter.Value>
+                </Setter>
                 <Setter Property="Effect">
                     <Setter.Value>
-                        <DropShadowEffect BlurRadius="20" 
+                        <DropShadowEffect BlurRadius="30" 
                                         ShadowDepth="0" 
-                                        Opacity="0.1" 
-                                        Color="#000000"/>
+                                        Opacity="0.3" 
+                                        Color="#00ffff"/>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="BorderBrush">
+                    <Setter.Value>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1" Opacity="0.2">
+                            <GradientStop Color="#ffffff" Offset="0"/>
+                            <GradientStop Color="#00ffff" Offset="1"/>
+                        </LinearGradientBrush>
                     </Setter.Value>
                 </Setter>
                 <Style.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="materialDesign:ElevationAssist.Elevation" Value="Dp3"/>
                         <Setter Property="Effect">
                             <Setter.Value>
-                                <DropShadowEffect BlurRadius="30" 
+                                <DropShadowEffect BlurRadius="40" 
                                                 ShadowDepth="0" 
-                                                Opacity="0.15" 
-                                                Color="#000000"/>
+                                                Opacity="0.4" 
+                                                Color="#00ffff"/>
+                            </Setter.Value>
+                        </Setter>
+                        <Setter Property="Background">
+                            <Setter.Value>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1" Opacity="0.2">
+                                    <GradientStop Color="#ffffff" Offset="0"/>
+                                    <GradientStop Color="#242937" Offset="1"/>
+                                </LinearGradientBrush>
                             </Setter.Value>
                         </Setter>
                     </Trigger>
                 </Style.Triggers>
             </Style>
-            
-            <Style x:Key="StatisticValue" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="36"/>
-                <Setter Property="FontWeight" Value="SemiBold"/>
-                <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}"/>
-                <Setter Property="Margin" Value="0,16,0,8"/>
-                <Setter Property="TextAlignment" Value="Left"/>
-            </Style>
-            
-            <Style x:Key="StatisticLabel" TargetType="TextBlock">
-                <Setter Property="FontSize" Value="14"/>
-                <Setter Property="FontWeight" Value="Medium"/>
-                <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBodyLight}"/>
-                <Setter Property="TextAlignment" Value="Left"/>
-                <Setter Property="Opacity" Value="0.8"/>
-            </Style>
 
-            <Style x:Key="IconStyle" TargetType="materialDesign:PackIcon">
-                <Setter Property="Width" Value="32"/>
-                <Setter Property="Height" Value="32"/>
-                <Setter Property="Foreground" Value="{DynamicResource SecondaryAccentBrush}"/>
+            <!-- Enhanced Statistic Value Style -->
+            <Style x:Key="StatisticValue" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="42"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="Foreground">
+                    <Setter.Value>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#00ffff" Offset="0"/>
+                            <GradientStop Color="#00cccc" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Margin" Value="0,20,0,10"/>
+                <Setter Property="TextAlignment" Value="Left"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect BlurRadius="20" 
+                                        ShadowDepth="0" 
+                                        Opacity="0.4" 
+                                        Color="#00ffff"/>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+            
+            <!-- Enhanced Statistic Label Style -->
+            <Style x:Key="StatisticLabel" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="15"/>
+                <Setter Property="FontWeight" Value="Medium"/>
+                <Setter Property="Foreground" Value="#a0aec0"/>
+                <Setter Property="TextAlignment" Value="Left"/>
                 <Setter Property="Opacity" Value="0.9"/>
             </Style>
 
-            <Style x:Key="SectionTitle" TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignHeadline6TextBlock}">
-                <Setter Property="Margin" Value="0,0,0,24"/>
-                <Setter Property="FontWeight" Value="SemiBold"/>
-                <Setter Property="FontSize" Value="20"/>
-                <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}"/>
+            <!-- Enhanced Icon Style -->
+            <Style x:Key="IconStyle" TargetType="materialDesign:PackIcon">
+                <Setter Property="Width" Value="38"/>
+                <Setter Property="Height" Value="38"/>
+                <Setter Property="Foreground">
+                    <Setter.Value>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#00ffff" Offset="0"/>
+                            <GradientStop Color="#00cccc" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Setter.Value>
+                </Setter>
+                <Setter Property="Opacity" Value="0.95"/>
+                <Setter Property="Effect">
+                    <Setter.Value>
+                        <DropShadowEffect BlurRadius="15" 
+                                        ShadowDepth="0" 
+                                        Opacity="0.4" 
+                                        Color="#00ffff"/>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
+            <!-- Enhanced Section Title Style -->
+            <Style x:Key="SectionTitle" TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignHeadline6TextBlock}">
+                <Setter Property="Margin" Value="0,0,0,28"/>
+                <Setter Property="FontWeight" Value="Bold"/>
+                <Setter Property="FontSize" Value="24"/>
+                <Setter Property="Foreground">
+                    <Setter.Value>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#00ffff" Offset="0"/>
+                            <GradientStop Color="#00cccc" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+
+            <!-- Glassmorphism List Item Style -->
             <Style x:Key="ListItemStyle" TargetType="ListViewItem">
-                <Setter Property="Padding" Value="16,12"/>
+                <Setter Property="Padding" Value="20,16"/>
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="BorderThickness" Value="0"/>
-                <Setter Property="Margin" Value="0,4"/>
-                <Style.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background">
-                            <Setter.Value>
-                                <SolidColorBrush Color="{DynamicResource Primary100}" Opacity="0.1"/>
-                            </Setter.Value>
-                        </Setter>
-                    </Trigger>
-                </Style.Triggers>
+                <Setter Property="Margin" Value="0,8"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ListViewItem">
+                            <Border x:Name="Border"
+                                    Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="16">
+                                <ContentPresenter/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Border" Property="Background">
+                                        <Setter.Value>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1" Opacity="0.15">
+                                                <GradientStop Color="#ffffff" Offset="0"/>
+                                                <GradientStop Color="#00ffff" Offset="1"/>
+                                            </LinearGradientBrush>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter TargetName="Border" Property="Effect">
+                                        <Setter.Value>
+                                            <DropShadowEffect BlurRadius="20" 
+                                                            ShadowDepth="0" 
+                                                            Opacity="0.2" 
+                                                            Color="#00ffff"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
             </Style>
 
+            <!-- Enhanced List View Style -->
             <Style x:Key="ListViewStyle" TargetType="ListView">
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="BorderThickness" Value="0"/>
-                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Hidden"/>
+                <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
                 <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
                 <Setter Property="Margin" Value="0"/>
                 <Setter Property="Padding" Value="0"/>
@@ -117,25 +209,27 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Loading Overlay with Fade Animation -->
+        <!-- Enhanced Loading Overlay -->
         <Grid Grid.RowSpan="2" 
-              Background="#80FFFFFF" 
+              Background="#E6FFFFFF" 
               Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                 <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" 
                             Value="0" 
                             IsIndeterminate="True" 
-                            Width="56" 
-                            Height="56"
-                            Foreground="{DynamicResource SecondaryAccentBrush}"/>
+                            Width="64" 
+                            Height="64"
+                            Foreground="#00ffff"/>
                 <TextBlock Text="Loading..." 
-                         Margin="0,16,0,0"
+                         Margin="0,20,0,0"
                          Style="{StaticResource MaterialDesignBody1TextBlock}"
-                         Foreground="{DynamicResource MaterialDesignBody}"/>
+                         FontSize="16"
+                         FontWeight="Medium"
+                         Foreground="#00ffff"/>
             </StackPanel>
         </Grid>
 
-        <!-- Error Message -->
+        <!-- Enhanced Error Message -->
         <materialDesign:Snackbar Grid.Row="0"
                                 IsActive="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyToBooleanConverter}}"
                                 Message="{Binding ErrorMessage}"
@@ -143,7 +237,7 @@
                                 ActionButtonStyle="{StaticResource MaterialDesignFlatButton}"/>
 
         <!-- Main Content -->
-        <ScrollViewer Grid.Row="1" Margin="32" 
+        <ScrollViewer Grid.Row="1" Margin="40" 
                      VerticalScrollBarVisibility="Auto"
                      Template="{StaticResource MaterialDesignScrollViewerTemplate}">
             <Grid>
@@ -153,16 +247,26 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Welcome Message -->
-                <StackPanel Grid.Row="0" Margin="0,0,0,32">
+                <!-- Enhanced Welcome Message -->
+                <StackPanel Grid.Row="0" Margin="0,0,0,40">
                     <TextBlock Text="Welcome back!" 
                              Style="{StaticResource MaterialDesignHeadline4TextBlock}"
                              FontWeight="Bold"
-                             Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                             FontSize="42"
+                             Foreground="#00ffff">
+                        <TextBlock.Effect>
+                            <DropShadowEffect BlurRadius="20" 
+                                            ShadowDepth="0" 
+                                            Opacity="0.4" 
+                                            Color="#00ffff"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
                     <TextBlock Text="Here's what's happening with your billing system today."
                              Style="{StaticResource MaterialDesignBody1TextBlock}"
-                             Margin="0,8,0,0"
-                             Opacity="0.7"/>
+                             FontSize="16"
+                             Margin="0,12,0,0"
+                             Foreground="#a0aec0"
+                             Opacity="0.9"/>
                 </StackPanel>
 
                 <!-- Statistics Cards -->
@@ -175,7 +279,10 @@
                     </Grid.ColumnDefinitions>
 
                     <!-- Total Revenue -->
-                    <materialDesign:Card Grid.Column="0" Style="{StaticResource DashboardCard}">
+                    <materialDesign:Card Grid.Column="0" Style="{StaticResource GlassmorphismCard}">
+                        <materialDesign:Card.RenderTransform>
+                            <TranslateTransform/>
+                        </materialDesign:Card.RenderTransform>
                         <StackPanel>
                             <materialDesign:PackIcon Kind="CurrencyUsd" 
                                                    Style="{StaticResource IconStyle}"/>
@@ -187,7 +294,10 @@
                     </materialDesign:Card>
 
                     <!-- Total Customers -->
-                    <materialDesign:Card Grid.Column="1" Style="{StaticResource DashboardCard}">
+                    <materialDesign:Card Grid.Column="1" Style="{StaticResource GlassmorphismCard}">
+                        <materialDesign:Card.RenderTransform>
+                            <TranslateTransform/>
+                        </materialDesign:Card.RenderTransform>
                         <StackPanel>
                             <materialDesign:PackIcon Kind="AccountMultiple" 
                                                    Style="{StaticResource IconStyle}"/>
@@ -199,7 +309,10 @@
                     </materialDesign:Card>
 
                     <!-- Pending Bills -->
-                    <materialDesign:Card Grid.Column="2" Style="{StaticResource DashboardCard}">
+                    <materialDesign:Card Grid.Column="2" Style="{StaticResource GlassmorphismCard}">
+                        <materialDesign:Card.RenderTransform>
+                            <TranslateTransform/>
+                        </materialDesign:Card.RenderTransform>
                         <StackPanel>
                             <materialDesign:PackIcon Kind="FileDocument" 
                                                    Style="{StaticResource IconStyle}"/>
@@ -211,7 +324,10 @@
                     </materialDesign:Card>
 
                     <!-- Overdue Payments -->
-                    <materialDesign:Card Grid.Column="3" Style="{StaticResource DashboardCard}">
+                    <materialDesign:Card Grid.Column="3" Style="{StaticResource GlassmorphismCard}">
+                        <materialDesign:Card.RenderTransform>
+                            <TranslateTransform/>
+                        </materialDesign:Card.RenderTransform>
                         <StackPanel>
                             <materialDesign:PackIcon Kind="AlertCircle" 
                                                    Style="{StaticResource IconStyle}"/>
@@ -224,14 +340,17 @@
                 </Grid>
 
                 <!-- Recent Activity Section -->
-                <Grid Grid.Row="2" Margin="0,32,0,0">
+                <Grid Grid.Row="2" Margin="0,40,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
                     <!-- Recent Bills -->
-                    <materialDesign:Card Grid.Column="0" Style="{StaticResource DashboardCard}">
+                    <materialDesign:Card Grid.Column="0" Style="{StaticResource GlassmorphismCard}">
+                        <materialDesign:Card.RenderTransform>
+                            <TranslateTransform/>
+                        </materialDesign:Card.RenderTransform>
                         <DockPanel>
                             <TextBlock Text="Recent Bills" 
                                      DockPanel.Dock="Top"
@@ -251,66 +370,26 @@
                                                                    Width="24" 
                                                                    Height="24"
                                                                    Margin="0,0,16,0"
-                                                                   VerticalAlignment="Center"
-                                                                   Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                                            <StackPanel Grid.Column="1">
-                                                <TextBlock Text="{Binding Customer.Name}" 
-                                                         FontWeight="Medium"
-                                                         FontSize="14"/>
-                                                <TextBlock Text="{Binding BillNumber}"
-                                                         Foreground="{DynamicResource MaterialDesignBodyLight}"
+                                                                   Foreground="#00ffff"
+                                                                   VerticalAlignment="Center"/>
+                                            <StackPanel Grid.Column="1" 
+                                                      Margin="0,0,16,0">
+                                                <TextBlock Text="{Binding CustomerName}" 
+                                                         FontWeight="SemiBold"
+                                                         FontSize="14"
+                                                         Foreground="#e2e8f0"/>
+                                                <TextBlock Text="{Binding Date, StringFormat={}{0:MMM dd, yyyy}}"
+                                                         Opacity="0.7"
                                                          FontSize="12"
-                                                         Margin="0,4,0,0"/>
-                                            </StackPanel>
-                                            <TextBlock Grid.Column="2" 
-                                                     Text="{Binding TotalAmount, StringFormat=₱{0:N2}}"
-                                                     FontWeight="Medium"
-                                                     Foreground="{DynamicResource PrimaryHueMidBrush}"
-                                                     VerticalAlignment="Center"/>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-                        </DockPanel>
-                    </materialDesign:Card>
-
-                    <!-- Recent Payments -->
-                    <materialDesign:Card Grid.Column="1" Style="{StaticResource DashboardCard}">
-                        <DockPanel>
-                            <TextBlock Text="Recent Payments" 
-                                     DockPanel.Dock="Top"
-                                     Style="{StaticResource SectionTitle}"/>
-                            <ListView ItemsSource="{Binding RecentPayments}"
-                                    Style="{StaticResource ListViewStyle}"
-                                    ItemContainerStyle="{StaticResource ListItemStyle}">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <materialDesign:PackIcon Kind="CashCheck" 
-                                                                   Width="24" 
-                                                                   Height="24"
-                                                                   Margin="0,0,16,0"
-                                                                   VerticalAlignment="Center"
-                                                                   Foreground="{DynamicResource SecondaryAccentBrush}"/>
-                                            <StackPanel Grid.Column="1">
-                                                <TextBlock Text="{Binding Bill.Customer.Name}" 
-                                                         FontWeight="Medium"
-                                                         FontSize="14"/>
-                                                <TextBlock Text="{Binding ReferenceNumber}"
-                                                         Foreground="{DynamicResource MaterialDesignBodyLight}"
-                                                         FontSize="12"
+                                                         Foreground="#a0aec0"
                                                          Margin="0,4,0,0"/>
                                             </StackPanel>
                                             <TextBlock Grid.Column="2" 
                                                      Text="{Binding Amount, StringFormat=₱{0:N2}}"
-                                                     FontWeight="Medium"
-                                                     Foreground="{DynamicResource SecondaryAccentBrush}"
-                                                     VerticalAlignment="Center"/>
+                                                     FontWeight="SemiBold"
+                                                     VerticalAlignment="Center"
+                                                     Foreground="#00ffff"
+                                                     FontSize="14"/>
                                         </Grid>
                                     </DataTemplate>
                                 </ListView.ItemTemplate>
