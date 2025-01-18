@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using DTCBillingSystem.Core.Models.Entities;
 
@@ -5,9 +6,9 @@ namespace DTCBillingSystem.Core.Interfaces
 {
     public interface IPrintService
     {
-        Task<PrintJob> CreatePrintJobAsync(PrintJob printJob, int userId);
-        Task<PrintJob> UpdatePrintJobStatusAsync(int jobId, string status, int userId);
-        Task DeletePrintJobAsync(int jobId, int userId);
-        Task PrintBillAsync(MonthlyBill bill);
+        Task<bool> QueuePrintJobAsync(string documentType, string content, int userId);
+        Task<bool> CompletePrintJobAsync(int notificationId, int userId);
+        Task<IEnumerable<Notification>> GetPendingPrintJobsAsync();
+        Task<bool> CancelPrintJobAsync(int notificationId, int userId);
     }
 } 

@@ -14,6 +14,8 @@ namespace DTCBillingSystem.UI.ViewModels
         private readonly IAuthenticationService _authenticationService;
         private readonly INavigationService _navigationService;
         private readonly IAuditService _auditService;
+        private readonly IUserService _userService;
+        private readonly IDialogService _dialogService;
         private string _username = string.Empty;
         private string _password = string.Empty;
         private string _errorMessage = string.Empty;
@@ -22,11 +24,13 @@ namespace DTCBillingSystem.UI.ViewModels
 
         public event EventHandler? LoginSuccessful;
 
-        public LoginViewModel(IAuthenticationService authenticationService, INavigationService navigationService, IAuditService auditService)
+        public LoginViewModel(IAuthenticationService authenticationService, INavigationService navigationService, IAuditService auditService, IUserService userService, IDialogService dialogService)
         {
             _authenticationService = authenticationService;
             _navigationService = navigationService;
             _auditService = auditService;
+            _userService = userService;
+            _dialogService = dialogService;
             ExitCommand = new RelayCommand(Exit);
         }
 
@@ -98,26 +102,60 @@ namespace DTCBillingSystem.UI.ViewModels
                 }
 
                 // Log the attempt
-                await _auditService.LogAsync("User", "System", 1, "Debug", $"Login attempt for user: {Username}");
-                
-                var success = await _authenticationService.LoginAsync(Username.Trim(), Password.Trim());
-                await _auditService.LogAsync("User", "System", 1, "Debug", "Authentication attempt completed");
+                await _auditService.LogActivityAsync(
+                    "Authentication",
+                    "Login",
+                    0,
+                    $"Login attempt for user {Username}");
 
-                if (success)
+                var success = await _authenticationService.LoginAsync(Username.Trim(), Password.Trim());
+                var user = await _userService.GetUserByUsernameAsync(Username.Trim());
+
+                if (success && user != null)
                 {
-                    // First navigate to main window to ensure proper initialization
-                    await _navigationService.NavigateToMainWindow();
+                    await _auditService.LogActivityAsync(
+                        "Authentication",
+                        "Login",
+                        user.Id,
+                        $"User {user.Username} logged in successfully");
+
+                    // First raise the login successful event
                     LoginSuccessful?.Invoke(this, EventArgs.Empty);
+                    
+                    // Then navigate to main window
+                    try
+                    {
+                        await _navigationService.NavigateToMainWindow();
+                    }
+                    catch (Exception navEx)
+                    {
+                        ErrorMessage = "Failed to open main window. Please try again.";
+                        await _auditService.LogActivityAsync(
+                            "Authentication",
+                            "Navigation",
+                            user.Id,
+                            $"Failed to navigate to main window: {navEx.Message}");
+                        throw;
+                    }
                 }
                 else
                 {
                     ErrorMessage = "Invalid username or password";
+                    await _auditService.LogActivityAsync(
+                        "Authentication",
+                        "Login",
+                        0,
+                        $"Failed login attempt for user {Username}");
                 }
             }
             catch (Exception ex)
             {
                 ErrorMessage = "An error occurred during login. Please try again.";
-                await _auditService.LogAsync("Error", "System", 3, "Error", $"Login error: {ex.Message}");
+                await _auditService.LogActivityAsync(
+                    "Authentication",
+                    "Login",
+                    0,
+                    $"Login error: {ex.Message}");
             }
             finally
             {

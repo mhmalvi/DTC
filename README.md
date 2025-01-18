@@ -54,3 +54,4 @@ The application follows a clean architecture pattern with the following layers:
 - Infrastructure (Data Access)
 - Shared (Common Components)
 - UI (Presentation) 
+

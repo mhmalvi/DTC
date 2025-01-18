@@ -18,285 +18,106 @@ namespace DTCBillingSystem.UI.ViewModels
     public class CustomersViewModel : ViewModelBase
     {
         private readonly ICustomerService _customerService;
-        private readonly IDialogService _dialogService;
-        private readonly INavigationService _navigationService;
+        private readonly IAuditService _auditService;
         private ObservableCollection<Customer> _customers;
-        private bool _isLoading;
-        private Customer? _selectedCustomer;
-        private string _searchText = string.Empty;
-        private CustomerType? _selectedCustomerType;
-        private string _sortBy = "Name";
-        private bool _isActive = true;
+        private int _totalCustomers;
+        private int _pageSize = 10;
         private int _currentPage = 1;
-        private int _itemsPerPage = 10;
-        private int _totalItems;
-        private IEnumerable<Customer> _allCustomers;
+        private string _searchTerm = string.Empty;
+        private bool _isLoading;
 
-        public CustomersViewModel(
-            ICustomerService customerService,
-            IDialogService dialogService,
-            INavigationService navigationService)
+        public CustomersViewModel(ICustomerService customerService, IAuditService auditService)
         {
-            try
-            {
-                _customerService = customerService ?? throw new ArgumentNullException(nameof(customerService));
-                _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
-                _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
-                _customers = new ObservableCollection<Customer>();
-                _allCustomers = new List<Customer>();
-
-                AddCustomerCommand = new AsyncRelayCommand<object?>(ExecuteAddCustomerAsync);
-                EditCustomerCommand = new AsyncRelayCommand<object?>(ExecuteEditCustomerAsync, _ => SelectedCustomer != null);
-                ViewBillsCommand = new AsyncRelayCommand<object?>(ExecuteViewBillsAsync, _ => SelectedCustomer != null);
-                RefreshCommand = new AsyncRelayCommand<object?>(_ => ExecuteRefreshAsync());
-                NextPageCommand = new RelayCommand(ExecuteNextPage, () => CanGoToNextPage);
-                PreviousPageCommand = new RelayCommand(ExecutePreviousPage, () => CanGoToPreviousPage);
-                ActivateDeactivateCommand = new AsyncRelayCommand<Customer>(ExecuteActivateDeactivateAsync);
-                NavigateToDashboardCommand = new RelayCommand(ExecuteNavigateToDashboard);
-                NavigateToSettingsCommand = new RelayCommand(ExecuteNavigateToSettings);
-
-                // Load customers asynchronously
-                Application.Current.Dispatcher.BeginInvoke(new Action(async () =>
-                {
-                    try
-                    {
-                        await ExecuteRefreshAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        await _dialogService.ShowErrorAsync("Error", $"Failed to load initial customer data: {ex.Message}");
-                    }
-                }));
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error initializing CustomersViewModel: {ex.Message}",
-                    "Initialization Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
-                throw;
-            }
+            _customerService = customerService;
+            _auditService = auditService;
+            _customers = new ObservableCollection<Customer>();
+            LoadCustomersCommand = new RelayCommand(async () => await LoadCustomersAsync());
+            SearchCommand = new RelayCommand(async () => await SearchCustomersAsync());
+            NextPageCommand = new RelayCommand(async () => await LoadNextPageAsync(), CanLoadNextPage);
+            PreviousPageCommand = new RelayCommand(async () => await LoadPreviousPageAsync(), CanLoadPreviousPage);
         }
 
         public ObservableCollection<Customer> Customers
         {
             get => _customers;
-            private set => SetProperty(ref _customers, value);
-        }
-
-        public Customer? SelectedCustomer
-        {
-            get => _selectedCustomer;
             set
             {
-                if (SetProperty(ref _selectedCustomer, value))
-                {
-                    // Refresh command can-execute state
-                    (EditCustomerCommand as AsyncRelayCommand<object?>)?.RaiseCanExecuteChanged();
-                    (ViewBillsCommand as AsyncRelayCommand<object?>)?.RaiseCanExecuteChanged();
-                }
+                _customers = value;
+                OnPropertyChanged();
             }
         }
 
-        public string SearchText
+        public int TotalCustomers
         {
-            get => _searchText;
+            get => _totalCustomers;
             set
             {
-                if (SetProperty(ref _searchText, value))
-                {
-                    _ = ExecuteRefreshAsync();
-                }
+                _totalCustomers = value;
+                OnPropertyChanged();
             }
         }
 
-        public CustomerType? SelectedCustomerType
+        public int PageSize
         {
-            get => _selectedCustomerType;
+            get => _pageSize;
             set
             {
-                if (SetProperty(ref _selectedCustomerType, value))
-                {
-                    _ = ExecuteRefreshAsync();
-                }
+                _pageSize = value;
+                OnPropertyChanged();
             }
         }
 
-        public string SortBy
+        public int CurrentPage
         {
-            get => _sortBy;
+            get => _currentPage;
             set
             {
-                if (SetProperty(ref _sortBy, value))
-                {
-                    _ = ExecuteRefreshAsync();
-                }
+                _currentPage = value;
+                OnPropertyChanged();
             }
         }
 
-        public bool IsActive
+        public string SearchTerm
         {
-            get => _isActive;
+            get => _searchTerm;
             set
             {
-                if (SetProperty(ref _isActive, value))
-                {
-                    _ = ExecuteRefreshAsync();
-                }
+                _searchTerm = value;
+                OnPropertyChanged();
             }
         }
 
         public bool IsLoading
         {
             get => _isLoading;
-            private set => SetProperty(ref _isLoading, value);
-        }
-
-        public int CurrentPage
-        {
-            get => _currentPage;
-            private set => SetProperty(ref _currentPage, value);
-        }
-
-        public int ItemsPerPage
-        {
-            get => _itemsPerPage;
             set
             {
-                if (SetProperty(ref _itemsPerPage, value))
-                {
-                    _ = ExecuteRefreshAsync();
-                }
+                _isLoading = value;
+                OnPropertyChanged();
             }
         }
 
-        public int TotalPages => (_totalItems + ItemsPerPage - 1) / ItemsPerPage;
-
-        public bool CanGoToNextPage => CurrentPage < TotalPages;
-
-        public bool CanGoToPreviousPage => CurrentPage > 1;
-
-        public IEnumerable<int> PageSizes => new[] { 10, 20, 50, 100 };
-
-        public ICommand AddCustomerCommand { get; }
-        public ICommand EditCustomerCommand { get; }
-        public ICommand ViewBillsCommand { get; }
-        public ICommand RefreshCommand { get; }
+        public ICommand LoadCustomersCommand { get; }
+        public ICommand SearchCommand { get; }
         public ICommand NextPageCommand { get; }
         public ICommand PreviousPageCommand { get; }
-        public ICommand ActivateDeactivateCommand { get; private set; }
-        public ICommand NavigateToDashboardCommand { get; }
-        public ICommand NavigateToSettingsCommand { get; }
 
-        private async Task ExecuteAddCustomerAsync(object? _)
-        {
-            try
-            {
-                _navigationService.NavigateTo(typeof(CustomerDialog));
-                await ExecuteRefreshAsync(); // Refresh list after adding
-            }
-            catch (Exception ex)
-            {
-                await _dialogService.ShowErrorAsync("Error", $"Failed to open add customer dialog: {ex.Message}");
-            }
-        }
-
-        private async Task ExecuteEditCustomerAsync(object? _)
-        {
-            try
-            {
-                if (SelectedCustomer == null) return;
-                
-                _navigationService.NavigateTo(typeof(CustomerDialog), SelectedCustomer);
-                await ExecuteRefreshAsync(); // Refresh list after editing
-            }
-            catch (Exception ex)
-            {
-                await _dialogService.ShowErrorAsync("Error", $"Failed to open edit customer dialog: {ex.Message}");
-            }
-        }
-
-        private async Task ExecuteViewBillsAsync(object? _)
-        {
-            try
-            {
-                if (SelectedCustomer == null) return;
-
-                _navigationService.NavigateTo(typeof(CustomerBillsView), SelectedCustomer);
-            }
-            catch (Exception ex)
-            {
-                await _dialogService.ShowErrorAsync("Error", $"Failed to open customer bills view: {ex.Message}");
-            }
-        }
-
-        private void ExecuteNextPage()
-        {
-            if (CanGoToNextPage)
-            {
-                CurrentPage++;
-                UpdatePagedCustomers();
-            }
-        }
-
-        private void ExecutePreviousPage()
-        {
-            if (CanGoToPreviousPage)
-            {
-                CurrentPage--;
-                UpdatePagedCustomers();
-            }
-        }
-
-        private void UpdatePagedCustomers()
-        {
-            var pagedCustomers = _allCustomers
-                .Skip((CurrentPage - 1) * ItemsPerPage)
-                .Take(ItemsPerPage);
-
-            Customers = new ObservableCollection<Customer>(pagedCustomers);
-        }
-
-        private async Task ExecuteRefreshAsync()
+        private async Task LoadCustomersAsync()
         {
             try
             {
                 IsLoading = true;
-                var customers = await _customerService.GetAllCustomersAsync();
-
-                // Apply filters
-                var filteredCustomers = customers.Where(c =>
-                    (string.IsNullOrEmpty(SearchText) ||
-                     c.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                     c.AccountNumber.Contains(SearchText, StringComparison.OrdinalIgnoreCase)) &&
-                    (!IsActive || c.IsActive) &&
-                    (!SelectedCustomerType.HasValue || c.CustomerType == SelectedCustomerType.Value));
-
-                // Apply sorting
-                filteredCustomers = SortBy switch
+                TotalCustomers = await _customerService.GetTotalCustomersCountAsync();
+                var customers = await _customerService.GetCustomersAsync(CurrentPage, PageSize);
+                Customers.Clear();
+                foreach (var customer in customers)
                 {
-                    "Name" => filteredCustomers.OrderBy(c => c.Name),
-                    "Account Number" => filteredCustomers.OrderBy(c => c.AccountNumber),
-                    "Type" => filteredCustomers.OrderBy(c => c.CustomerType),
-                    "Zone" => filteredCustomers.OrderBy(c => c.ZoneCode),
-                    _ => filteredCustomers.OrderBy(c => c.Name)
-                };
-
-                _allCustomers = filteredCustomers.ToList();
-                _totalItems = _allCustomers.Count();
-
-                // Reset to first page when filters change
-                CurrentPage = 1;
-                UpdatePagedCustomers();
-
-                OnPropertyChanged(nameof(TotalPages));
-                OnPropertyChanged(nameof(CanGoToNextPage));
-                OnPropertyChanged(nameof(CanGoToPreviousPage));
+                    Customers.Add(customer);
+                }
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync("Error", $"Failed to load customers: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Error loading customers: {ex}");
+                MessageBox.Show($"Error loading customers: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
@@ -304,54 +125,48 @@ namespace DTCBillingSystem.UI.ViewModels
             }
         }
 
-        private async Task ExecuteActivateDeactivateAsync(Customer? customer)
+        private async Task SearchCustomersAsync()
         {
-            if (customer == null) return;
-
             try
             {
-                var action = customer.IsActive ? "deactivate" : "activate";
-                var result = await _dialogService.ShowConfirmationAsync(
-                    "Confirm Action",
-                    $"Are you sure you want to {action} customer {customer.Name}?");
-
-                if (result)
+                IsLoading = true;
+                var customers = await _customerService.SearchCustomersAsync(SearchTerm);
+                Customers.Clear();
+                foreach (var customer in customers)
                 {
-                    customer.IsActive = !customer.IsActive;
-                    await _customerService.UpdateCustomerAsync(customer);
-                    await ExecuteRefreshAsync();
+                    Customers.Add(customer);
                 }
             }
             catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync("Error", $"Failed to update customer status: {ex.Message}");
+                MessageBox.Show($"Error searching customers: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
-        private void ExecuteNavigateToDashboard()
+        private async Task LoadNextPageAsync()
         {
-            try
-            {
-                _navigationService.NavigateToDashboard();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Navigation to Dashboard failed: {ex}");
-                _dialogService.ShowErrorAsync("Navigation Error", "Failed to navigate to Dashboard").Wait();
-            }
+            CurrentPage++;
+            await LoadCustomersAsync();
         }
 
-        private void ExecuteNavigateToSettings()
+        private async Task LoadPreviousPageAsync()
         {
-            try
-            {
-                _navigationService.NavigateToAsync("SettingsView").Wait();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Navigation to Settings failed: {ex}");
-                _dialogService.ShowErrorAsync("Navigation Error", "Failed to navigate to Settings").Wait();
-            }
+            CurrentPage--;
+            await LoadCustomersAsync();
+        }
+
+        private bool CanLoadNextPage()
+        {
+            return CurrentPage * PageSize < TotalCustomers;
+        }
+
+        private bool CanLoadPreviousPage()
+        {
+            return CurrentPage > 1;
         }
     }
 } 

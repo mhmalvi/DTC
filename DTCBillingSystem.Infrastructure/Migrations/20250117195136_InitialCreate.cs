@@ -5,8 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DTCBillingSystem.Infrastructure.Migrations
 {
+    /// <inheritdoc />
     public partial class InitialCreate : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -130,7 +132,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         column: x => x.CustomerId,
                         principalTable: "Customers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -169,7 +171,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         column: x => x.CustomerId,
                         principalTable: "Customers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -199,7 +201,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -233,7 +235,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         column: x => x.CustomerId,
                         principalTable: "Customers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_PaymentRecords_MonthlyBills_MonthlyBillId",
                         column: x => x.MonthlyBillId,
@@ -274,11 +276,6 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.InsertData(
-                table: "Users",
-                columns: new[] { "Id", "CreatedAt", "CreatedBy", "Email", "FirstName", "IsActive", "LastLoginAt", "LastModifiedAt", "LastModifiedBy", "LastName", "PasswordHash", "PasswordSalt", "PhoneNumber", "RequirePasswordChange", "Role", "UpdatedAt", "Username" },
-                values: new object[] { 1, new DateTime(2025, 1, 17, 11, 38, 50, 558, DateTimeKind.Utc).AddTicks(2487), "system", "admin@dtcbilling.com", "System", true, null, new DateTime(2025, 1, 17, 11, 38, 50, 558, DateTimeKind.Utc).AddTicks(2490), "system", "Administrator", new byte[] { 54, 195, 218, 156, 201, 167, 150, 110, 216, 154, 191, 64, 33, 128, 249, 87, 17, 93, 83, 24, 0, 125, 94, 209, 164, 22, 191, 13, 246, 81, 39, 40 }, new byte[] { 86, 126, 46, 95, 41, 169, 1, 96, 189, 181, 104, 90, 155, 63, 19, 127 }, null, false, 0, null, "ad" });
-
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLogs_UserId",
                 table: "AuditLogs",
@@ -288,6 +285,12 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                 name: "IX_BillingRates_CustomerType_IsActive",
                 table: "BillingRates",
                 columns: new[] { "CustomerType", "IsActive" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Customers_AccountNumber",
+                table: "Customers",
+                column: "AccountNumber",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_MeterReadings_CustomerId",
@@ -327,6 +330,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                 unique: true);
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(

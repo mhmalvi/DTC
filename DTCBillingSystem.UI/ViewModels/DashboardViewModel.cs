@@ -1,89 +1,44 @@
 using System;
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DTCBillingSystem.Core.Interfaces;
-using DTCBillingSystem.Core.Models.Entities;
-using DTCBillingSystem.Core.Services;
-using DTCBillingSystem.UI.Commands;
+using DTCBillingSystem.Core.Models.DTOs;
 using DTCBillingSystem.UI.Services;
+using DTCBillingSystem.UI.Commands;
 
 namespace DTCBillingSystem.UI.ViewModels
 {
     public class DashboardViewModel : ViewModelBase
     {
         private readonly IDashboardService _dashboardService;
+        private readonly IDialogService _dialogService;
         private readonly INavigationService _navigationService;
-        private ObservableCollection<MonthlyBill> _recentBills;
-        private ObservableCollection<PaymentRecord> _recentPayments;
-        private int _totalCustomers;
-        private decimal _totalRevenue;
-        private int _pendingBills;
+        private DashboardStatisticsDto? _statistics;
         private bool _isLoading;
-        private string _errorMessage = string.Empty;
 
         public DashboardViewModel(
             IDashboardService dashboardService,
+            IDialogService dialogService,
             INavigationService navigationService)
         {
-            _dashboardService = dashboardService ?? throw new ArgumentNullException(nameof(dashboardService));
-            _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
-            
-            _recentBills = new ObservableCollection<MonthlyBill>();
-            _recentPayments = new ObservableCollection<PaymentRecord>();
-            
-            LoadDashboardDataCommand = new RelayCommand(async () => await LoadDashboardDataAsync());
+            _dashboardService = dashboardService;
+            _dialogService = dialogService;
+            _navigationService = navigationService;
+
+            RefreshCommand = new RelayCommand(async () => await LoadDashboardDataAsync());
             NavigateToCustomersCommand = new RelayCommand(() => _navigationService.NavigateToCustomers());
-            
-            _ = LoadDashboardDataAsync(); // Load data when the view model is created
+            NavigateToBillGenerationCommand = new RelayCommand(async () => await _navigationService.NavigateToAsync("BillGeneration"));
+            NavigateToSettingsCommand = new RelayCommand(async () => await _navigationService.NavigateToAsync("Settings"));
+
+            _ = LoadDashboardDataAsync();
         }
 
-        public ObservableCollection<MonthlyBill> RecentBills
+        public DashboardStatisticsDto? Statistics
         {
-            get => _recentBills;
+            get => _statistics;
             set
             {
-                _recentBills = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public ObservableCollection<PaymentRecord> RecentPayments
-        {
-            get => _recentPayments;
-            set
-            {
-                _recentPayments = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public int TotalCustomers
-        {
-            get => _totalCustomers;
-            set
-            {
-                _totalCustomers = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public decimal TotalRevenue
-        {
-            get => _totalRevenue;
-            set
-            {
-                _totalRevenue = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public int PendingBills
-        {
-            get => _pendingBills;
-            set
-            {
-                _pendingBills = value;
+                _statistics = value;
                 OnPropertyChanged();
             }
         }
@@ -98,38 +53,21 @@ namespace DTCBillingSystem.UI.ViewModels
             }
         }
 
-        public string ErrorMessage
-        {
-            get => _errorMessage;
-            set
-            {
-                _errorMessage = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public ICommand LoadDashboardDataCommand { get; }
+        public ICommand RefreshCommand { get; }
         public ICommand NavigateToCustomersCommand { get; }
+        public ICommand NavigateToBillGenerationCommand { get; }
+        public ICommand NavigateToSettingsCommand { get; }
 
         private async Task LoadDashboardDataAsync()
         {
             try
             {
                 IsLoading = true;
-                ErrorMessage = string.Empty;
-
-                var (recentBills, recentPayments, totalCustomers, totalRevenue, pendingBills) = 
-                    await _dashboardService.GetDashboardDataAsync();
-
-                RecentBills = new ObservableCollection<MonthlyBill>(recentBills);
-                RecentPayments = new ObservableCollection<PaymentRecord>(recentPayments);
-                TotalCustomers = totalCustomers;
-                TotalRevenue = totalRevenue;
-                PendingBills = pendingBills;
+                Statistics = await _dashboardService.GetDashboardStatisticsAsync();
             }
             catch (Exception ex)
             {
-                ErrorMessage = $"Failed to load dashboard data: {ex.Message}";
+                _dialogService.ShowError("Error", $"Failed to load dashboard data: {ex.Message}");
             }
             finally
             {

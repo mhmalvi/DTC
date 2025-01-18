@@ -5,6 +5,8 @@ namespace DTCBillingSystem.Core.Interfaces
 {
     public interface ICurrentUserService
     {
+        string UserId { get; }
+        string? Username { get; }
         bool IsAuthenticated { get; }
         Models.Entities.User? CurrentUser { get; }
         void SetCurrentUser(Models.Entities.User? user);

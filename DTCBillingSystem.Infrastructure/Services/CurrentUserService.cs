@@ -1,51 +1,31 @@
 using System.Threading.Tasks;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models.Entities;
-using System;
 
 namespace DTCBillingSystem.Infrastructure.Services
 {
     public class CurrentUserService : ICurrentUserService
     {
-        private readonly ITokenService _tokenService;
-        private User? _cachedUser;
-        private string? _currentToken;
+        private User? _currentUser;
 
-        public CurrentUserService(ITokenService tokenService)
-        {
-            _tokenService = tokenService;
-        }
-
-        public bool IsAuthenticated => !string.IsNullOrEmpty(_currentToken) && !_tokenService.IsTokenExpired(_currentToken);
-
-        public User? CurrentUser => _cachedUser;
+        public string UserId => CurrentUser?.Id.ToString() ?? string.Empty;
+        public string? Username => CurrentUser?.Username;
+        public bool IsAuthenticated => CurrentUser != null;
+        public User? CurrentUser => _currentUser;
 
         public void SetCurrentUser(User? user)
         {
-            _cachedUser = user;
-            if (user != null)
-            {
-                _currentToken = _tokenService.GenerateToken(user);
-            }
-            else
-            {
-                _currentToken = null;
-            }
+            _currentUser = user;
         }
 
         public Task<User?> GetCurrentUserAsync()
         {
-            return Task.FromResult(_cachedUser);
+            return Task.FromResult(_currentUser);
         }
 
         public void ClearCurrentUser()
         {
-            if (_currentToken != null)
-            {
-                _tokenService.RevokeToken(_currentToken);
-                _currentToken = null;
-            }
-            _cachedUser = null;
+            _currentUser = null;
         }
     }
 } 

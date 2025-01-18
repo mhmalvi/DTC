@@ -158,10 +158,43 @@ namespace DTCBillingSystem.UI.Services
 
         public async Task NavigateToMainWindow()
         {
-            await Task.Run(() => Application.Current.Dispatcher.Invoke(() =>
+            try
             {
-                NavigateToMain();
-            }));
+                Debug.WriteLine("NavigateToMainWindow called");
+                await Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    // Create and show the main window
+                    var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+                    mainWindow.Show();
+                    
+                    // Set as the main application window
+                    Application.Current.MainWindow = mainWindow;
+
+                    // Close the login window if it exists
+                    foreach (Window window in Application.Current.Windows)
+                    {
+                        if (window is LoginWindow)
+                        {
+                            window.Close();
+                            break;
+                        }
+                    }
+
+                    // Update the current window reference
+                    _mainWindow = mainWindow;
+                });
+                
+                Debug.WriteLine("Main window navigation completed");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error in NavigateToMainWindow: {ex}");
+                MessageBox.Show($"Error navigating to main window: {ex.Message}\n\nDetails: {ex}",
+                              "Navigation Error",
+                              MessageBoxButton.OK,
+                              MessageBoxImage.Error);
+                throw;
+            }
         }
 
         public void NavigateToDashboard()

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models.Entities;
 using DTCBillingSystem.Core.Models.Enums;
@@ -10,113 +9,113 @@ namespace DTCBillingSystem.Infrastructure.Services
 {
     public class PaymentService : IPaymentService
     {
-        private readonly IPaymentRecordRepository _paymentRepository;
-        private readonly IMonthlyBillRepository _billRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IAuditService _auditService;
 
-        public PaymentService(
-            IPaymentRecordRepository paymentRepository,
-            IMonthlyBillRepository billRepository,
-            IAuditService auditService)
+        public PaymentService(IUnitOfWork unitOfWork, IAuditService auditService)
         {
-            _paymentRepository = paymentRepository;
-            _billRepository = billRepository;
-            _auditService = auditService;
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _auditService = auditService ?? throw new ArgumentNullException(nameof(auditService));
         }
 
-        public async Task<PaymentRecord> RecordPaymentAsync(PaymentRecord payment)
+        public async Task<Payment> RecordPaymentAsync(Payment payment)
         {
-            var bill = await _billRepository.GetByIdAsync(payment.MonthlyBillId);
-            if (bill == null)
-                throw new ArgumentException("Bill not found", nameof(payment.MonthlyBillId));
+            if (payment == null)
+                throw new ArgumentNullException(nameof(payment));
 
-            if (bill.Status == BillStatus.Paid)
-                throw new InvalidOperationException("Bill is already paid");
+            var invoice = await _unitOfWork.Invoices.GetByIdAsync(payment.InvoiceId);
+            if (invoice == null)
+                throw new ArgumentException("Invoice not found", nameof(payment.InvoiceId));
 
-            payment.PaymentDate = DateTime.UtcNow;
-            payment.Status = PaymentStatus.Completed;
+            if (invoice.Status == BillStatus.Paid)
+                throw new InvalidOperationException("Invoice is already paid");
+
             payment.CreatedAt = DateTime.UtcNow;
             payment.LastModifiedAt = DateTime.UtcNow;
+            payment.Status = BillStatus.Paid;
 
-            await _paymentRepository.AddAsync(payment);
-            await _auditService.LogActionAsync("Payment", payment.Id, "Record", $"Recorded payment for bill {payment.MonthlyBillId}");
+            await _unitOfWork.Payments.AddAsync(payment);
 
-            bill.Status = BillStatus.Paid;
-            bill.PaidDate = payment.PaymentDate;
-            bill.LastModifiedAt = DateTime.UtcNow;
-            await _billRepository.UpdateAsync(bill);
+            invoice.Status = BillStatus.Paid;
+            invoice.PaymentReference = payment.ReferenceNumber;
+            invoice.PaidDate = payment.PaymentDate;
+            invoice.LastModifiedAt = DateTime.UtcNow;
+            invoice.LastModifiedBy = payment.CreatedBy;
+
+            await _unitOfWork.SaveChangesAsync();
+
+            await _auditService.LogActivityAsync(
+                "Payment",
+                "Create",
+                payment.CreatedBy,
+                $"Recorded payment of {payment.Amount:C} for invoice {invoice.InvoiceNumber}"
+            );
 
             return payment;
         }
 
-        public async Task<PaymentRecord?> GetPaymentByIdAsync(int id)
+        public async Task<Payment?> GetPaymentByIdAsync(int id)
         {
-            return await _paymentRepository.GetByIdAsync(id);
+            return await _unitOfWork.Payments.GetByIdAsync(id);
         }
 
-        public async Task<IEnumerable<PaymentRecord>> GetPaymentsByCustomerAsync(int customerId)
+        public async Task<IEnumerable<Payment>> GetPaymentsByCustomerAsync(int customerId)
         {
-            return await _paymentRepository.GetPaymentsByCustomerIdAsync(customerId);
+            return await _unitOfWork.Payments.FindAsync(p => p.CustomerId == customerId);
         }
 
-        public async Task<IEnumerable<PaymentRecord>> GetPaymentsByBillAsync(int billId)
+        public async Task<IEnumerable<Payment>> GetPaymentsByInvoiceAsync(int invoiceId)
         {
-            return await _paymentRepository.GetPaymentsByBillIdAsync(billId);
+            return await _unitOfWork.Payments.FindAsync(p => p.InvoiceId == invoiceId);
         }
 
-        public async Task<IEnumerable<PaymentRecord>> GetPaymentsByDateRangeAsync(DateTime startDate, DateTime endDate)
+        public async Task<bool> VoidPaymentAsync(int paymentId, int userId, string reason)
         {
-            return await _paymentRepository.GetPaymentsByDateRangeAsync(startDate, endDate);
-        }
-
-        public async Task<decimal> GetTotalPaymentsForBillAsync(int billId)
-        {
-            return await _paymentRepository.GetTotalPaymentsForBillAsync(billId);
-        }
-
-        public async Task<bool> CancelPaymentAsync(int paymentId)
-        {
-            var payment = await _paymentRepository.GetByIdAsync(paymentId);
-            if (payment == null)
-                return false;
-
-            if (payment.Status != PaymentStatus.Completed)
-                return false;
-
-            payment.Status = PaymentStatus.Cancelled;
-            payment.LastModifiedAt = DateTime.UtcNow;
-
-            var bill = await _billRepository.GetByIdAsync(payment.MonthlyBillId);
-            if (bill != null)
+            try
             {
-                bill.Status = BillStatus.Pending;
-                bill.LastModifiedAt = DateTime.UtcNow;
-                await _billRepository.UpdateAsync(bill);
+                var payment = await _unitOfWork.Payments.GetByIdAsync(paymentId);
+                if (payment == null)
+                    return false;
+
+                if (payment.IsVoid)
+                    return false;
+
+                var invoice = await _unitOfWork.Invoices.GetByIdAsync(payment.InvoiceId);
+                if (invoice == null)
+                    return false;
+
+                payment.IsVoid = true;
+                payment.VoidReason = reason;
+                payment.LastModifiedAt = DateTime.UtcNow;
+                payment.LastModifiedBy = userId;
+
+                invoice.Status = BillStatus.Pending;
+                invoice.PaymentReference = null;
+                invoice.PaidDate = null;
+                invoice.LastModifiedAt = DateTime.UtcNow;
+                invoice.LastModifiedBy = userId;
+
+                await _unitOfWork.SaveChangesAsync();
+
+                await _auditService.LogActivityAsync(
+                    "Payment",
+                    "Void",
+                    userId,
+                    $"Voided payment {payment.ReferenceNumber} for invoice {invoice.InvoiceNumber}. Reason: {reason}"
+                );
+
+                return true;
             }
-
-            await _paymentRepository.UpdateAsync(payment);
-            await _auditService.LogActionAsync("Payment", paymentId, "Cancel", $"Cancelled payment {paymentId}");
-
-            return true;
-        }
-
-        public async Task<bool> RefundPaymentAsync(int paymentId, decimal amount, string reason)
-        {
-            var payment = await _paymentRepository.GetByIdAsync(paymentId);
-            if (payment == null)
+            catch (Exception ex)
+            {
+                await _auditService.LogActivityAsync(
+                    "Payment",
+                    "Error",
+                    userId,
+                    $"Failed to void payment {paymentId}: {ex.Message}"
+                );
                 return false;
-
-            if (payment.Status != PaymentStatus.Completed || amount > payment.Amount)
-                return false;
-
-            payment.Status = PaymentStatus.Refunded;
-            payment.LastModifiedAt = DateTime.UtcNow;
-            payment.Notes = $"Refunded: {reason}";
-
-            await _paymentRepository.UpdateAsync(payment);
-            await _auditService.LogActionAsync("Payment", paymentId, "Refund", $"Refunded payment {paymentId} - Amount: {amount}, Reason: {reason}");
-
-            return true;
+            }
         }
     }
 } 

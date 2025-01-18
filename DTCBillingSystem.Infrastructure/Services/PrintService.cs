@@ -9,77 +9,130 @@ namespace DTCBillingSystem.Infrastructure.Services
 {
     public class PrintService : IPrintService
     {
-        private readonly IPrintJobRepository _printJobRepository;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IAuditService _auditService;
 
-        public PrintService(IPrintJobRepository printJobRepository, IAuditService auditService)
+        public PrintService(IUnitOfWork unitOfWork, IAuditService auditService)
         {
-            _printJobRepository = printJobRepository;
-            _auditService = auditService;
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _auditService = auditService ?? throw new ArgumentNullException(nameof(auditService));
         }
 
-        public async Task<PrintJob> CreatePrintJobAsync(PrintJob printJob, int userId)
+        public async Task<bool> QueuePrintJobAsync(string documentType, string content, int userId)
         {
-            printJob.Status = PrintJobStatus.Pending;
-            printJob.CreatedAt = DateTime.UtcNow;
-            printJob.CreatedBy = userId.ToString();
-            printJob.LastModifiedAt = DateTime.UtcNow;
-            printJob.LastModifiedBy = userId.ToString();
-
-            await _printJobRepository.AddAsync(printJob);
-            await _auditService.LogActionAsync("PrintJob", printJob.Id, "Create", $"Created print job for {printJob.DocumentType}");
-
-            return printJob;
-        }
-
-        public async Task<PrintJob> UpdatePrintJobStatusAsync(int jobId, string status, int userId)
-        {
-            var printJob = await _printJobRepository.GetByIdAsync(jobId);
-            if (printJob == null)
-                throw new ArgumentException($"Print job with ID {jobId} not found");
-
-            if (Enum.TryParse<PrintJobStatus>(status, true, out var printJobStatus))
+            try
             {
-                printJob.Status = printJobStatus;
+                var notification = new Notification
+                {
+                    Type = NotificationType.PrintJob,
+                    Title = $"Print Job - {documentType}",
+                    Message = content,
+                    Status = NotificationStatus.Pending,
+                    CreatedAt = DateTime.UtcNow,
+                    LastModifiedAt = DateTime.UtcNow,
+                    CreatedBy = userId,
+                    LastModifiedBy = userId
+                };
+
+                await _unitOfWork.Notifications.AddAsync(notification);
+                await _unitOfWork.SaveChangesAsync();
+
+                await _auditService.LogActivityAsync(
+                    "PrintJob",
+                    "Queue",
+                    userId,
+                    $"Queued print job for {documentType}"
+                );
+
+                return true;
             }
-            else
+            catch (Exception ex)
             {
-                throw new ArgumentException($"Invalid print job status: {status}");
+                await _auditService.LogActivityAsync(
+                    "PrintJob",
+                    "Error",
+                    userId,
+                    $"Failed to queue print job: {ex.Message}"
+                );
+                return false;
             }
-
-            printJob.LastModifiedAt = DateTime.UtcNow;
-            printJob.LastModifiedBy = userId.ToString();
-
-            await _printJobRepository.UpdateAsync(printJob);
-            await _auditService.LogActionAsync("PrintJob", jobId, "StatusUpdate", $"Updated print job status to {status}");
-
-            return printJob;
         }
 
-        public async Task DeletePrintJobAsync(int jobId, int userId)
+        public async Task<bool> CompletePrintJobAsync(int notificationId, int userId)
         {
-            var printJob = await _printJobRepository.GetByIdAsync(jobId);
-            if (printJob == null)
-                throw new ArgumentException($"Print job with ID {jobId} not found");
-
-            await _printJobRepository.RemoveAsync(printJob);
-            await _auditService.LogActionAsync("PrintJob", jobId, "Delete", $"Deleted print job by user {userId}");
-        }
-
-        public async Task PrintBillAsync(MonthlyBill bill)
-        {
-            var printJob = new PrintJob
+            try
             {
-                DocumentType = "Bill",
-                DocumentId = bill.Id.ToString(),
-                BillId = bill.Id,
-                Title = $"Bill - {bill.BillingMonth:MMM yyyy}",
-                Status = PrintJobStatus.Pending,
-                ScheduledDate = DateTime.UtcNow
-            };
+                var notification = await _unitOfWork.Notifications.GetByIdAsync(notificationId);
+                if (notification == null || notification.Type != NotificationType.PrintJob)
+                    return false;
 
-            await CreatePrintJobAsync(printJob, 1); // TODO: Get actual user ID from context
-            await _auditService.LogActionAsync("PrintJob", printJob.Id, "Print", $"Queued bill {bill.Id} for printing");
+                notification.Status = NotificationStatus.Completed;
+                notification.LastModifiedAt = DateTime.UtcNow;
+                notification.LastModifiedBy = userId;
+
+                await _unitOfWork.SaveChangesAsync();
+
+                await _auditService.LogActivityAsync(
+                    "PrintJob",
+                    "Complete",
+                    userId,
+                    $"Completed print job {notificationId}"
+                );
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await _auditService.LogActivityAsync(
+                    "PrintJob",
+                    "Error",
+                    userId,
+                    $"Failed to complete print job {notificationId}: {ex.Message}"
+                );
+                return false;
+            }
+        }
+
+        public async Task<IEnumerable<Notification>> GetPendingPrintJobsAsync()
+        {
+            return await _unitOfWork.Notifications.FindAsync(n => 
+                n.Type == NotificationType.PrintJob && 
+                n.Status == NotificationStatus.Pending);
+        }
+
+        public async Task<bool> CancelPrintJobAsync(int notificationId, int userId)
+        {
+            try
+            {
+                var notification = await _unitOfWork.Notifications.GetByIdAsync(notificationId);
+                if (notification == null || notification.Type != NotificationType.PrintJob)
+                    return false;
+
+                notification.Status = NotificationStatus.Cancelled;
+                notification.LastModifiedAt = DateTime.UtcNow;
+                notification.LastModifiedBy = userId;
+
+                await _unitOfWork.SaveChangesAsync();
+
+                await _auditService.LogActivityAsync(
+                    "PrintJob",
+                    "Cancel",
+                    userId,
+                    $"Cancelled print job {notificationId}"
+                );
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await _auditService.LogActivityAsync(
+                    "PrintJob",
+                    "Error",
+                    userId,
+                    $"Failed to cancel print job {notificationId}: {ex.Message}"
+                );
+                return false;
+            }
         }
     }
 } 

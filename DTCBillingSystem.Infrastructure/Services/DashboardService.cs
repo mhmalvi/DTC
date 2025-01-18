@@ -6,45 +6,40 @@ using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models.Entities;
 using DTCBillingSystem.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using DTCBillingSystem.Core.Models.DTOs;
 
 namespace DTCBillingSystem.Infrastructure.Services
 {
     public class DashboardService : IDashboardService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public DashboardService(ApplicationDbContext context)
+        public DashboardService(IUnitOfWork unitOfWork)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _unitOfWork = unitOfWork;
         }
 
-        public async Task<(IEnumerable<MonthlyBill> RecentBills, IEnumerable<PaymentRecord> RecentPayments, 
-            int TotalCustomers, decimal TotalRevenue, int PendingBills)> GetDashboardDataAsync()
+        public async Task<DashboardStatisticsDto> GetDashboardStatisticsAsync()
         {
-            try
+            var totalCustomers = await _unitOfWork.Customers.CountAsync();
+            var totalActiveCustomers = await _unitOfWork.Customers.CountAsync(c => c.Status == Core.Models.Enums.CustomerStatus.Active);
+
+            var currentMonth = DateTime.Now.Date.AddDays(1 - DateTime.Now.Day);
+            var monthlyBills = await _unitOfWork.MonthlyBills.GetAllAsync();
+            var billsThisMonth = monthlyBills.Where(b => b.BillingDate.Year == currentMonth.Year && b.BillingDate.Month == currentMonth.Month);
+
+            var totalBillsThisMonth = billsThisMonth.Count();
+            var totalPaidBillsThisMonth = billsThisMonth.Count(b => b.IsPaid);
+            var totalCollectionThisMonth = billsThisMonth.Where(b => b.IsPaid).Sum(b => b.Amount);
+
+            return new DashboardStatisticsDto
             {
-                var recentBills = await _context.MonthlyBills
-                    .Include(b => b.Customer)
-                    .OrderByDescending(b => b.BillingMonth)
-                    .Take(5)
-                    .ToListAsync();
-
-                var recentPayments = await _context.PaymentRecords
-                    .Include(p => p.Customer)
-                    .OrderByDescending(p => p.PaymentDate)
-                    .Take(5)
-                    .ToListAsync();
-
-                var totalCustomers = await _context.Customers.CountAsync();
-                var totalRevenue = await _context.PaymentRecords.SumAsync(p => p.AmountPaid);
-                var pendingBills = await _context.MonthlyBills.CountAsync(b => b.Status == Core.Models.Enums.BillStatus.Pending);
-
-                return (recentBills, recentPayments, totalCustomers, totalRevenue, pendingBills);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Failed to load dashboard data", ex);
-            }
+                TotalCustomers = totalCustomers,
+                ActiveCustomers = totalActiveCustomers,
+                TotalBillsThisMonth = totalBillsThisMonth,
+                PaidBillsThisMonth = totalPaidBillsThisMonth,
+                TotalCollectionThisMonth = totalCollectionThisMonth
+            };
         }
     }
 } 

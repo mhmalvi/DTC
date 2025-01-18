@@ -198,13 +198,12 @@ namespace DTCBillingSystem.UI.ViewModels
 
                 if (result)
                 {
-                    await _customerService.DeactivateCustomerAsync(_selectedCustomer.Id);
-                    await _auditService.LogAsync(
+                    await _customerService.DeactivateCustomerAsync(_selectedCustomer.Id, SYSTEM_USER_ID);
+                    await _auditService.LogActivityAsync(
                         "Customer",
-                        _selectedCustomer.Id.ToString(),
+                        "Deactivate",
                         SYSTEM_USER_ID,
-                        AuditAction.Deactivated.ToString(),
-                        $"Customer {_selectedCustomer.Name} deactivated");
+                        $"Deactivated customer {_selectedCustomer.AccountNumber}");
                     await LoadCustomersAsync();
                 }
             }
@@ -230,13 +229,12 @@ namespace DTCBillingSystem.UI.ViewModels
 
                 if (result)
                 {
-                    await _customerService.ActivateCustomerAsync(_selectedCustomer.Id);
-                    await _auditService.LogAsync(
+                    await _customerService.ActivateCustomerAsync(_selectedCustomer.Id, SYSTEM_USER_ID);
+                    await _auditService.LogActivityAsync(
                         "Customer",
-                        _selectedCustomer.Id.ToString(),
+                        "Activate",
                         SYSTEM_USER_ID,
-                        AuditAction.Activated.ToString(),
-                        $"Customer {_selectedCustomer.Name} activated");
+                        $"Activated customer {_selectedCustomer.AccountNumber}");
                     await LoadCustomersAsync();
                 }
             }
@@ -262,13 +260,12 @@ namespace DTCBillingSystem.UI.ViewModels
 
                 if (result)
                 {
-                    await _customerService.DeleteCustomerAsync(_selectedCustomer.Id);
-                    await _auditService.LogAsync(
+                    await _customerService.DeleteCustomerAsync(_selectedCustomer.Id, SYSTEM_USER_ID);
+                    await _auditService.LogActivityAsync(
                         "Customer",
-                        _selectedCustomer.Id.ToString(),
+                        "Delete",
                         SYSTEM_USER_ID,
-                        AuditAction.Delete.ToString(),
-                        $"Customer {_selectedCustomer.Name} deleted");
+                        $"Deleted customer {_selectedCustomer.AccountNumber}");
                     await LoadCustomersAsync();
                 }
             }

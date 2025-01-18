@@ -1,261 +1,181 @@
 using System;
-using System.Threading.Tasks;
 using System.IO;
-using System.Collections.Generic;
-using System.Text.Json;
-using System.Linq;
-using Microsoft.Extensions.Configuration;
-using DTCBillingSystem.Core.Models;
-using DTCBillingSystem.Core.Models.Enums;
+using System.Threading.Tasks;
 using DTCBillingSystem.Core.Interfaces;
-using BackupInfoModel = DTCBillingSystem.Core.Models.BackupInfo;
-using BackupInfoEntity = DTCBillingSystem.Core.Models.Entities.BackupInfo;
-using BackupScheduleModel = DTCBillingSystem.Core.Models.BackupSchedule;
-using BackupScheduleEntity = DTCBillingSystem.Core.Models.Entities.BackupSchedule;
+using DTCBillingSystem.Core.Models.Entities;
+using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Services
 {
     public class BackupService : IBackupService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IConfiguration _configuration;
+        private readonly IAuditService _auditService;
+        private readonly string _backupDirectory;
 
-        public BackupService(
-            IUnitOfWork unitOfWork,
-            IConfiguration configuration)
+        public BackupService(IUnitOfWork unitOfWork, IAuditService auditService, string backupDirectory)
         {
             _unitOfWork = unitOfWork;
-            _configuration = configuration;
+            _auditService = auditService;
+            _backupDirectory = backupDirectory;
         }
 
-        private BackupInfoModel ConvertToBackupInfo(BackupInfoEntity entityBackup)
-        {
-            return new BackupInfoModel
-            {
-                Id = entityBackup.Id,
-                Name = entityBackup.Name,
-                Type = entityBackup.Type,
-                FilePath = entityBackup.FilePath,
-                Status = entityBackup.Status,
-                StartTime = entityBackup.StartTime,
-                EndTime = entityBackup.EndTime,
-                IsCompressed = entityBackup.IsCompressed,
-                IncludesTransactionLogs = entityBackup.IncludesTransactionLogs,
-                ErrorMessage = entityBackup.ErrorMessage,
-                FileSize = entityBackup.FileSize,
-                DatabaseVersion = entityBackup.DatabaseVersion,
-                IsVerified = entityBackup.IsVerified,
-                CreatedAt = entityBackup.CreatedAt,
-                CreatedBy = entityBackup.CreatedBy,
-                LastModifiedAt = entityBackup.LastModifiedAt,
-                LastModifiedBy = entityBackup.LastModifiedBy
-            };
-        }
-
-        private BackupInfoEntity ConvertToEntityBackup(BackupInfoModel backup)
-        {
-            return new BackupInfoEntity
-            {
-                Id = backup.Id,
-                Name = backup.Name,
-                Type = backup.Type,
-                FilePath = backup.FilePath,
-                Status = backup.Status,
-                StartTime = backup.StartTime,
-                EndTime = backup.EndTime,
-                IsCompressed = backup.IsCompressed,
-                IncludesTransactionLogs = backup.IncludesTransactionLogs,
-                ErrorMessage = backup.ErrorMessage,
-                FileSize = backup.FileSize,
-                DatabaseVersion = backup.DatabaseVersion,
-                IsVerified = backup.IsVerified,
-                CreatedAt = backup.CreatedAt,
-                CreatedBy = backup.CreatedBy,
-                LastModifiedAt = backup.LastModifiedAt,
-                LastModifiedBy = backup.LastModifiedBy
-            };
-        }
-
-        private BackupScheduleModel ConvertToBackupSchedule(BackupScheduleEntity entitySchedule)
-        {
-            return new BackupScheduleModel
-            {
-                Id = entitySchedule.Id,
-                Name = entitySchedule.Name,
-                Type = entitySchedule.Type,
-                CronExpression = entitySchedule.CronExpression,
-                IsEnabled = entitySchedule.IsEnabled,
-                LastRunTime = entitySchedule.LastRunTime,
-                NextRunTime = entitySchedule.NextRunTime,
-                BackupPath = entitySchedule.BackupPath,
-                RetainTransactionLogs = entitySchedule.RetainTransactionLogs,
-                RetentionDays = entitySchedule.RetentionDays,
-                UseCompression = entitySchedule.UseCompression,
-                CreatedAt = entitySchedule.CreatedAt,
-                CreatedBy = entitySchedule.CreatedBy,
-                LastModifiedAt = entitySchedule.LastModifiedAt,
-                LastModifiedBy = entitySchedule.LastModifiedBy
-            };
-        }
-
-        private BackupScheduleEntity ConvertToEntitySchedule(BackupScheduleModel schedule)
-        {
-            return new BackupScheduleEntity
-            {
-                Id = schedule.Id,
-                Name = schedule.Name,
-                Type = schedule.Type,
-                CronExpression = schedule.CronExpression,
-                IsEnabled = schedule.IsEnabled,
-                LastRunTime = schedule.LastRunTime,
-                NextRunTime = schedule.NextRunTime,
-                BackupPath = schedule.BackupPath,
-                RetainTransactionLogs = schedule.RetainTransactionLogs,
-                RetentionDays = schedule.RetentionDays,
-                UseCompression = schedule.UseCompression,
-                CreatedAt = schedule.CreatedAt,
-                CreatedBy = schedule.CreatedBy,
-                LastModifiedAt = schedule.LastModifiedAt,
-                LastModifiedBy = schedule.LastModifiedBy
-            };
-        }
-
-        public async Task<BackupInfoModel> CreateFullBackupAsync(string backupPath)
-        {
-            var backup = new BackupInfoModel
-            {
-                Name = $"FullBackup_{DateTime.UtcNow:yyyyMMddHHmmss}",
-                Type = BackupType.Full.ToString(),
-                FilePath = Path.Combine(backupPath, $"full_backup_{DateTime.UtcNow:yyyyMMddHHmmss}.bak"),
-                Status = BackupStatus.Pending,
-                StartTime = DateTime.UtcNow,
-                IsCompressed = true,
-                IncludesTransactionLogs = true,
-                CreatedAt = DateTime.UtcNow,
-                LastModifiedAt = DateTime.UtcNow
-            };
-
-            var entityBackup = ConvertToEntityBackup(backup);
-            await _unitOfWork.BackupInfos.AddAsync(entityBackup);
-            await _unitOfWork.SaveChangesAsync();
-
-            return ConvertToBackupInfo(entityBackup);
-        }
-
-        public async Task<BackupInfoModel> CreateDifferentialBackupAsync(string backupPath)
-        {
-            var backup = new BackupInfoModel
-            {
-                Name = $"DiffBackup_{DateTime.UtcNow:yyyyMMddHHmmss}",
-                Type = BackupType.Differential.ToString(),
-                FilePath = Path.Combine(backupPath, $"diff_backup_{DateTime.UtcNow:yyyyMMddHHmmss}.bak"),
-                Status = BackupStatus.Pending,
-                StartTime = DateTime.UtcNow,
-                IsCompressed = true,
-                IncludesTransactionLogs = false,
-                CreatedAt = DateTime.UtcNow,
-                LastModifiedAt = DateTime.UtcNow
-            };
-
-            var entityBackup = ConvertToEntityBackup(backup);
-            await _unitOfWork.BackupInfos.AddAsync(entityBackup);
-            await _unitOfWork.SaveChangesAsync();
-
-            return ConvertToBackupInfo(entityBackup);
-        }
-
-        public async Task<bool> RestoreFromBackupAsync(string backupPath)
-        {
-            if (!File.Exists(backupPath))
-                throw new FileNotFoundException("Backup file not found", backupPath);
-
-            // Implementation for database restore
-            await Task.Run(() => {
-                // Add your database restore logic here
-                // For example: await _databaseProvider.RestoreAsync(backupPath);
-            });
-            
-            return true;
-        }
-
-        public async Task<IEnumerable<BackupInfoModel>> GetBackupListAsync()
-        {
-            var backups = await _unitOfWork.BackupInfos.GetAllAsync();
-            return backups.Select(ConvertToBackupInfo);
-        }
-
-        public async Task<bool> VerifyBackupAsync(string backupPath)
-        {
-            if (!File.Exists(backupPath))
-                throw new FileNotFoundException("Backup file not found", backupPath);
-
-            // Implementation for backup verification
-            await Task.Run(() => {
-                // Add your backup verification logic here
-                // For example: await _backupVerifier.VerifyAsync(backupPath);
-            });
-            
-            return true;
-        }
-
-        public async Task ScheduleAutomatedBackupAsync(BackupScheduleModel schedule)
-        {
-            var entitySchedule = ConvertToEntitySchedule(schedule);
-            await _unitOfWork.BackupSchedules.AddAsync(entitySchedule);
-            await _unitOfWork.SaveChangesAsync();
-        }
-
-        public async Task<string> ExportToJsonAsync()
-        {
-            var data = new
-            {
-                Customers = await _unitOfWork.Customers.GetAllAsync(),
-                MonthlyBills = await _unitOfWork.MonthlyBills.GetAllAsync(),
-                PaymentRecords = await _unitOfWork.PaymentRecords.GetAllAsync()
-            };
-
-            return JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
-        }
-
-        public async Task<bool> ImportFromJsonAsync(string jsonData)
+        public async Task<bool> CreateBackupAsync()
         {
             try
             {
-                // Implementation for importing data from JSON
-                await Task.Run(() => {
-                    // Add your JSON import logic here
-                    // For example: await _importService.ImportDataAsync(jsonData);
-                });
-                
-                return true;
+                var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                var backupFileName = $"backup_{timestamp}.bak";
+                var backupPath = Path.Combine(_backupDirectory, backupFileName);
+
+                Directory.CreateDirectory(_backupDirectory);
+
+                var backup = new Backup
+                {
+                    FilePath = backupPath,
+                    CreatedAt = DateTime.UtcNow,
+                    Status = BackupStatus.InProgress
+                };
+
+                await _unitOfWork.Backups.AddAsync(backup);
+                await _unitOfWork.SaveChangesAsync();
+
+                try
+                {
+                    // Perform backup operation here
+                    // For now, just create an empty file
+                    File.Create(backupPath).Dispose();
+
+                    backup.Status = BackupStatus.Completed;
+                    backup.LastModifiedAt = DateTime.UtcNow;
+                    await _unitOfWork.SaveChangesAsync();
+
+                    await _auditService.LogActivityAsync(
+                        "Backup",
+                        "Create",
+                        backup.CreatedBy,
+                        $"Created backup at {backup.FilePath}"
+                    );
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    backup.Status = BackupStatus.Failed;
+                    backup.ErrorMessage = ex.Message;
+                    backup.LastModifiedAt = DateTime.UtcNow;
+                    await _unitOfWork.SaveChangesAsync();
+
+                    await _auditService.LogActivityAsync(
+                        "Backup",
+                        "Create",
+                        0,
+                        $"Backup failed: {ex.Message}"
+                    );
+
+                    return false;
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                await _auditService.LogActivityAsync(
+                    "Backup",
+                    "Create",
+                    0,
+                    $"Backup initialization failed: {ex.Message}"
+                );
                 return false;
             }
         }
 
-        public async Task<IEnumerable<BackupInfoModel>> GetBackupHistoryAsync()
+        public async Task<IEnumerable<Backup>> GetBackupHistoryAsync()
         {
-            var backups = await _unitOfWork.BackupInfos.GetAllAsync();
-            return backups.OrderByDescending(b => b.CreatedAt).Select(ConvertToBackupInfo);
+            return await _unitOfWork.Backups.GetAllAsync();
         }
 
-        private async Task UpdateBackupStatusAsync(int backupId, BackupStatus status, string userId)
+        public async Task<bool> RestoreFromBackupAsync(string backupPath)
         {
-            var backup = await _unitOfWork.BackupInfos.GetByIdAsync(backupId)
-                ?? throw new ArgumentException($"Backup with ID {backupId} not found.");
-
-            backup.Status = status;
-            backup.LastModifiedAt = DateTime.UtcNow;
-            backup.LastModifiedBy = userId;
-
-            if (status == BackupStatus.Completed || status == BackupStatus.Failed)
+            try
             {
-                backup.EndTime = DateTime.UtcNow;
-            }
+                if (!File.Exists(backupPath))
+                {
+                    throw new FileNotFoundException("Backup file not found", backupPath);
+                }
 
-            await _unitOfWork.SaveChangesAsync();
+                // Perform restore operation here
+                // For now, just verify the file exists
+
+                await _auditService.LogActivityAsync(
+                    "Backup",
+                    "Restore",
+                    0,
+                    $"Restored from backup {backupPath}"
+                );
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await _auditService.LogActivityAsync(
+                    "Backup",
+                    "Restore",
+                    0,
+                    $"Database restore failed: {ex.Message}"
+                );
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteBackupAsync(int backupId)
+        {
+            try
+            {
+                var backup = await _unitOfWork.Backups.GetByIdAsync(backupId);
+                if (backup == null)
+                {
+                    return false;
+                }
+
+                try
+                {
+                    if (File.Exists(backup.FilePath))
+                    {
+                        File.Delete(backup.FilePath);
+                    }
+
+                    await _unitOfWork.Backups.RemoveAsync(backup);
+                    await _unitOfWork.SaveChangesAsync();
+
+                    await _auditService.LogActivityAsync(
+                        "Backup",
+                        "Delete",
+                        0,
+                        $"Deleted backup {backup.FilePath}"
+                    );
+
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    await _auditService.LogActivityAsync(
+                        "Backup",
+                        "Delete",
+                        0,
+                        $"Failed to delete backup: {ex.Message}"
+                    );
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                await _auditService.LogActivityAsync(
+                    "Backup",
+                    "Delete",
+                    0,
+                    $"Failed to delete backup: {ex.Message}"
+                );
+                return false;
+            }
         }
     }
 } 

@@ -5,98 +5,73 @@ using System.Windows.Input;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models.Entities;
 using DTCBillingSystem.UI.Commands;
+using System.Windows;
+using System.Threading.Tasks;
 
 namespace DTCBillingSystem.UI.ViewModels
 {
     public class BillGenerationViewModel : ViewModelBase
     {
         private readonly IBillingService _billingService;
-        private readonly ICustomerService _customerService;
-        private ObservableCollection<Customer> _customers;
-        private string _searchText = string.Empty;
-        private DateTime _selectedDate = DateTime.Now;
+        private string _startCustomerId = string.Empty;
+        private string _endCustomerId = string.Empty;
+        private bool _isLoading;
 
-        public BillGenerationViewModel(
-            IBillingService billingService,
-            ICustomerService customerService)
+        public BillGenerationViewModel(IBillingService billingService)
         {
             _billingService = billingService;
-            _customerService = customerService;
-            _customers = new ObservableCollection<Customer>();
-
-            GenerateBillsCommand = new RelayCommand<object>(ExecuteGenerateBills);
-            SearchCommand = new RelayCommand<object>(ExecuteSearch);
+            GenerateBillsCommand = new RelayCommand(async () => await GenerateBillsAsync());
         }
 
-        public ObservableCollection<Customer> Customers
+        public string StartCustomerId
         {
-            get => _customers;
-            set => SetProperty(ref _customers, value);
+            get => _startCustomerId;
+            set
+            {
+                _startCustomerId = value;
+                OnPropertyChanged();
+            }
         }
 
-        public string SearchText
+        public string EndCustomerId
         {
-            get => _searchText;
-            set => SetProperty(ref _searchText, value);
+            get => _endCustomerId;
+            set
+            {
+                _endCustomerId = value;
+                OnPropertyChanged();
+            }
         }
 
-        public DateTime SelectedDate
+        public bool IsLoading
         {
-            get => _selectedDate;
-            set => SetProperty(ref _selectedDate, value);
+            get => _isLoading;
+            set
+            {
+                _isLoading = value;
+                OnPropertyChanged();
+            }
         }
 
         public ICommand GenerateBillsCommand { get; }
-        public ICommand SearchCommand { get; }
 
-        private async void ExecuteSearch(object? parameter)
+        private async Task GenerateBillsAsync()
         {
             try
             {
-                var customers = await _customerService.GetCustomersAsync(1, 100);
-                var filteredCustomers = customers.Where(c => 
-                    string.IsNullOrEmpty(SearchText) ||
-                    c.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                    c.AccountNumber.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
-                
-                Customers = new ObservableCollection<Customer>(filteredCustomers);
+                IsLoading = true;
+                var startId = int.Parse(StartCustomerId);
+                var endId = int.Parse(EndCustomerId);
+                await _billingService.GenerateBillsAsync(startId, endId);
+                MessageBox.Show("Bills generated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Handle error
+                MessageBox.Show($"Error generating bills: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }
-
-        private async void ExecuteGenerateBills(object? parameter)
-        {
-            try
+            finally
             {
-                if (!Customers.Any())
-                {
-                    // Show error message - no customers selected
-                    return;
-                }
-
-                foreach (var customer in Customers)
-                {
-                    var bill = new MonthlyBill
-                    {
-                        CustomerId = customer.Id,
-                        BillingMonth = SelectedDate,
-                        CreatedBy = "System",
-                        CreatedAt = DateTime.UtcNow,
-                        LastModifiedBy = "System",
-                        LastModifiedAt = DateTime.UtcNow
-                    };
-
-                    await _billingService.GenerateBillAsync(bill);
-                }
-
-                // Show success message
-            }
-            catch (Exception)
-            {
-                // Handle error
+                IsLoading = false;
             }
         }
     }

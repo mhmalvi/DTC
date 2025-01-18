@@ -5,17 +5,12 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <materialDesign:BundledTheme BaseTheme="Dark" 
-                                           PrimaryColor="Cyan" 
-                                           SecondaryColor="Teal" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Dark.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.Cyan.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Accent/MaterialDesignColor.Teal.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- Override MaterialDesign Colors -->
-            <SolidColorBrush x:Key="PrimaryHueDarkBrush" Color="#FF1C1F26"/>
-            <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="#FF262A35"/>
-            <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="#FF2D3039"/>
-            
             <!-- Custom Colors -->
             <Color x:Key="CustomCyanColor">#00FFF0</Color>
             <SolidColorBrush x:Key="CustomCyanBrush" Color="{StaticResource CustomCyanColor}"/>

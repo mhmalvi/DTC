@@ -7,6 +7,7 @@ namespace DTCBillingSystem.Core.Models.Authentication
     {
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
+        public int UserId { get; set; }
         public string Username { get; set; } = string.Empty;
         public UserRole Role { get; set; }
         public bool RequirePasswordChange { get; set; }
@@ -17,18 +18,25 @@ namespace DTCBillingSystem.Core.Models.Authentication
     {
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
-        public string? Username { get; set; }
+        public int UserId { get; set; }
+        public string Username { get; set; } = string.Empty;
     }
 
     public class PasswordChangeResult
     {
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
-        public string NewPassword { get; set; } = string.Empty;
+    }
+
+    public class PasswordResetResult
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public string? TemporaryPassword { get; set; }
     }
 
     public class AuthenticationResponse : AuthenticationResult { }
     public class RegistrationResponse : RegistrationResult { }
     public class PasswordChangeResponse : PasswordChangeResult { }
-    public class PasswordResetResponse : PasswordChangeResult { }
+    public class PasswordResetResponse : PasswordResetResult { }
 } 

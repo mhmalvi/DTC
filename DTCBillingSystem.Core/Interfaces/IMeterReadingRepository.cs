@@ -7,7 +7,8 @@ namespace DTCBillingSystem.Core.Interfaces
     public interface IMeterReadingRepository : IRepository<MeterReading>
     {
         Task<MeterReading?> GetLatestReadingForCustomerAsync(int customerId);
-        Task<IQueryable<MeterReading>> GetReadingsForCustomerAsync(int customerId);
+        Task<MeterReading?> GetPreviousReadingForCustomerAsync(int customerId);
+        Task<IEnumerable<MeterReading>> GetReadingsForCustomerAsync(int customerId);
         new Task UpdateAsync(MeterReading reading);
         new Task RemoveAsync(MeterReading reading);
     }

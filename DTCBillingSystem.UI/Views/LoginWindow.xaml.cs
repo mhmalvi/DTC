@@ -13,18 +13,26 @@ namespace DTCBillingSystem.UI.Views
 
         public LoginWindow(IServiceProvider serviceProvider) : base(serviceProvider)
         {
-            InitializeComponent();
-            _viewModel = ServiceScope.ServiceProvider.GetRequiredService<LoginViewModel>();
-            DataContext = _viewModel;
+            try
+            {
+                InitializeComponent();
+                _viewModel = ServiceScope.ServiceProvider.GetRequiredService<LoginViewModel>();
+                DataContext = _viewModel;
 
-            // Handle password changes
-            PasswordBox.PasswordChanged += PasswordBox_PasswordChanged;
-            
-            // Enable window dragging
-            MouseDown += Window_MouseDown;
+                // Handle password changes
+                PasswordBox.PasswordChanged += PasswordBox_PasswordChanged;
+                
+                // Enable window dragging
+                MouseDown += Window_MouseDown;
 
-            // Subscribe to login success
-            _viewModel.LoginSuccessful += ViewModel_LoginSuccessful;
+                // Subscribe to login success
+                _viewModel.LoginSuccessful += ViewModel_LoginSuccessful;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to initialize login window: {ex.Message}\n\nDetails: {ex}", "Initialization Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                throw;
+            }
         }
 
         private void LoginInput_KeyDown(object sender, KeyEventArgs e)

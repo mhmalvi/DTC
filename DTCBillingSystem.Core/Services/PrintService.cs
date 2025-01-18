@@ -1,7 +1,8 @@
 using System;
 using System.Threading.Tasks;
-using DTCBillingSystem.Core.Models.Entities;
+using System.Collections.Generic;
 using DTCBillingSystem.Core.Interfaces;
+using DTCBillingSystem.Core.Models.Entities;
 using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Core.Services
@@ -9,72 +10,128 @@ namespace DTCBillingSystem.Core.Services
     public class PrintService : IPrintService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IAuditService _auditService;
 
-        public PrintService(IUnitOfWork unitOfWork)
+        public PrintService(IUnitOfWork unitOfWork, IAuditService auditService)
         {
             _unitOfWork = unitOfWork;
+            _auditService = auditService;
         }
 
-        public async Task<PrintJob> CreatePrintJobAsync(PrintJob printJob, int userId)
+        public async Task<bool> QueuePrintJobAsync(string documentType, string content, int userId)
         {
-            printJob.CreatedBy = userId.ToString();
-            printJob.CreatedAt = DateTime.UtcNow;
-            printJob.Status = PrintJobStatus.Pending;
-
-            await _unitOfWork.PrintJobs.AddAsync(printJob);
-            await _unitOfWork.SaveChangesAsync();
-
-            return printJob;
-        }
-
-        public async Task<PrintJob> UpdatePrintJobStatusAsync(int jobId, string status, int userId)
-        {
-            var printJob = await _unitOfWork.PrintJobs.GetByIdAsync(jobId)
-                ?? throw new InvalidOperationException($"Print job with ID {jobId} not found.");
-
-            if (Enum.TryParse<PrintJobStatus>(status, true, out var printJobStatus))
+            try
             {
-                printJob.Status = printJobStatus;
+                var notification = new Notification
+                {
+                    Title = $"Print Job - {documentType}",
+                    Message = content,
+                    Type = NotificationType.PrintJob,
+                    IsRead = false,
+                    UserId = userId,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _unitOfWork.Notifications.AddAsync(notification);
+                await _unitOfWork.SaveChangesAsync();
+
+                await _auditService.LogActivityAsync(
+                    "PrintJob",
+                    "Queue",
+                    userId,
+                    $"Queued print job for {documentType}"
+                );
+
+                return true;
             }
-            else
+            catch (Exception ex)
             {
-                throw new ArgumentException($"Invalid print job status: {status}");
+                await _auditService.LogActivityAsync(
+                    "PrintJob",
+                    "Queue",
+                    userId,
+                    $"Failed to queue print job: {ex.Message}"
+                );
+                return false;
             }
-
-            printJob.LastModifiedBy = userId.ToString();
-            printJob.LastModifiedAt = DateTime.UtcNow;
-
-            await _unitOfWork.PrintJobs.UpdateAsync(printJob);
-            await _unitOfWork.SaveChangesAsync();
-
-            return printJob;
         }
 
-        public async Task DeletePrintJobAsync(int jobId, int userId)
+        public async Task<bool> CompletePrintJobAsync(int notificationId, int userId)
         {
-            var printJob = await _unitOfWork.PrintJobs.GetByIdAsync(jobId)
-                ?? throw new InvalidOperationException($"Print job with ID {jobId} not found.");
-
-            await _unitOfWork.PrintJobs.RemoveAsync(printJob);
-            await _unitOfWork.SaveChangesAsync();
-        }
-
-        public async Task PrintBillAsync(MonthlyBill bill)
-        {
-            var customer = await _unitOfWork.Customers.GetByIdAsync(bill.CustomerId)
-                ?? throw new InvalidOperationException($"Customer with ID {bill.CustomerId} not found.");
-
-            var printJob = new PrintJob
+            try
             {
-                DocumentType = "Bill",
-                DocumentId = bill.Id.ToString(),
-                Title = $"Bill - {customer.ShopNo} - {bill.BillingMonth:MMM yyyy}",
-                Status = PrintJobStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
-                CreatedBy = "system" // TODO: Get current user ID
-            };
+                var notification = await _unitOfWork.Notifications.GetByIdAsync(notificationId);
+                if (notification == null || notification.Type != NotificationType.PrintJob)
+                {
+                    return false;
+                }
 
-            await CreatePrintJobAsync(printJob, 0); // TODO: Pass current user ID
+                notification.IsRead = true;
+                notification.LastModifiedAt = DateTime.UtcNow;
+                await _unitOfWork.SaveChangesAsync();
+
+                await _auditService.LogActivityAsync(
+                    "PrintJob",
+                    "Complete",
+                    userId,
+                    $"Completed print job {notification.Id}"
+                );
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await _auditService.LogActivityAsync(
+                    "PrintJob",
+                    "Complete",
+                    userId,
+                    $"Failed to complete print job: {ex.Message}"
+                );
+                return false;
+            }
+        }
+
+        public async Task<IEnumerable<Notification>> GetPendingPrintJobsAsync()
+        {
+            return await _unitOfWork.Notifications.FindAsync(n => 
+                n.Type == NotificationType.PrintJob && 
+                !n.IsRead
+            );
+        }
+
+        public async Task<bool> CancelPrintJobAsync(int notificationId, int userId)
+        {
+            var notification = await _unitOfWork.Notifications.GetByIdAsync(notificationId);
+            if (notification == null)
+                return false;
+
+            if (notification.Type != NotificationType.PrintJob)
+                return false;
+
+            try
+            {
+                await _unitOfWork.Notifications.RemoveAsync(notification);
+                await _unitOfWork.SaveChangesAsync();
+
+                await _auditService.LogActivityAsync(
+                    "PrintJob",
+                    "Cancel",
+                    userId,
+                    $"Cancelled print job {notification.Id}"
+                );
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await _auditService.LogActivityAsync(
+                    "PrintJob",
+                    "Cancel",
+                    userId,
+                    $"Failed to cancel print job {notification.Id}: {ex.Message}"
+                );
+                return false;
+            }
         }
     }
 }

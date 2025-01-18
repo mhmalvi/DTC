@@ -163,19 +163,19 @@ namespace DTCBillingSystem.UI.ViewModels
                 if (IsEditMode)
                 {
                     await _customerService.UpdateCustomerAsync(Customer);
-                    await _auditService.LogActionAsync(
+                    await _auditService.LogActivityAsync(
                         "Customer",
-                        Customer.Id,
-                        "Updated",
+                        "Update",
+                        Customer.LastModifiedBy,
                         $"Updated customer {Customer.ShopNo}");
                 }
                 else
                 {
                     await _customerService.AddCustomerAsync(Customer);
-                    await _auditService.LogActionAsync(
+                    await _auditService.LogActivityAsync(
                         "Customer",
-                        Customer.Id,
-                        "Created",
+                        "Create",
+                        Customer.CreatedBy,
                         $"Created new customer {Customer.ShopNo}");
                 }
 

@@ -15,112 +15,137 @@ namespace DTCBillingSystem.UI.ViewModels
         private readonly IBillingService _billingService;
         private readonly IDialogService _dialogService;
         private readonly INavigationService _navigationService;
-        private readonly Customer _customer;
-        private ObservableCollection<MonthlyBill> _bills = new();
-        private MonthlyBill? _selectedBill;
-        private DateTime _startDate = DateTime.Now.AddMonths(-6);
-        private DateTime _endDate = DateTime.Now;
+        private ObservableCollection<MonthlyBill> _bills;
+        private Customer? _selectedCustomer;
+        private bool _isLoading;
 
         public CustomerBillsViewModel(
             IBillingService billingService,
             IDialogService dialogService,
-            INavigationService navigationService,
-            Customer customer)
+            INavigationService navigationService)
         {
             _billingService = billingService;
             _dialogService = dialogService;
             _navigationService = navigationService;
-            _customer = customer;
+            _bills = new ObservableCollection<MonthlyBill>();
 
-            ViewBillDetailsCommand = new RelayCommand<object>(_ => ExecuteViewBillDetails(_selectedBill));
-            BackCommand = new RelayCommand<object>(_ => ExecuteBack());
-            RefreshCommand = new RelayCommand<object>(_ => ExecuteRefresh());
-
-            _ = LoadBillsAsync(); // Fire and forget intentionally for constructor
+            GenerateBillCommand = new RelayCommand(async () => await GenerateBillAsync(), () => SelectedCustomer != null);
+            PayBillCommand = new RelayCommand(async () => await PayBillAsync(), () => SelectedBill != null && !SelectedBill.IsPaid);
         }
 
         public ObservableCollection<MonthlyBill> Bills
         {
             get => _bills;
-            set => SetProperty(ref _bills, value);
+            set
+            {
+                _bills = value;
+                OnPropertyChanged();
+            }
         }
 
+        public Customer? SelectedCustomer
+        {
+            get => _selectedCustomer;
+            set
+            {
+                _selectedCustomer = value;
+                OnPropertyChanged();
+                LoadBillsAsync().ConfigureAwait(false);
+            }
+        }
+
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set
+            {
+                _isLoading = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ICommand GenerateBillCommand { get; }
+        public ICommand PayBillCommand { get; }
+
+        private MonthlyBill? _selectedBill;
         public MonthlyBill? SelectedBill
         {
             get => _selectedBill;
-            set => SetProperty(ref _selectedBill, value);
-        }
-
-        public DateTime StartDate
-        {
-            get => _startDate;
             set
             {
-                if (SetProperty(ref _startDate, value))
-                {
-                    _ = LoadBillsAsync();
-                }
+                _selectedBill = value;
+                OnPropertyChanged();
             }
         }
 
-        public DateTime EndDate
+        public async Task LoadBillsAsync()
         {
-            get => _endDate;
-            set
-            {
-                if (SetProperty(ref _endDate, value))
-                {
-                    _ = LoadBillsAsync();
-                }
-            }
-        }
-
-        public ICommand ViewBillDetailsCommand { get; }
-        public ICommand BackCommand { get; }
-        public ICommand RefreshCommand { get; }
-
-        private async Task LoadBillsAsync()
-        {
-            try
-            {
-                var bills = await _billingService.GetCustomerBillsAsync(_customer.Id);
-                var filteredBills = bills.Where(b => 
-                    b.BillingMonth >= StartDate && 
-                    b.BillingMonth <= EndDate);
-                Bills = new ObservableCollection<MonthlyBill>(filteredBills);
-            }
-            catch (Exception)
-            {
-                await _dialogService.ShowErrorAsync("Error", "Failed to load bills");
-            }
-        }
-
-        private async void ExecuteViewBillDetails(MonthlyBill? bill)
-        {
-            if (bill == null)
-            {
-                await _dialogService.ShowWarningAsync("Warning", "Please select a bill to view");
+            if (SelectedCustomer == null)
                 return;
-            }
 
             try
             {
-                await _dialogService.ShowBillDetailsAsync(bill);
+                IsLoading = true;
+                var bills = await _billingService.GetCustomerBillsAsync(SelectedCustomer.Id);
+                Bills.Clear();
+                foreach (var bill in bills)
+                {
+                    Bills.Add(bill);
+                }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                await _dialogService.ShowErrorAsync("Error", "Failed to show bill details");
+                _dialogService.ShowError("Error", $"Failed to load bills: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
-        private void ExecuteBack()
+        private async Task GenerateBillAsync()
         {
-            _navigationService.NavigateBack();
+            if (SelectedCustomer == null)
+                return;
+
+            try
+            {
+                IsLoading = true;
+                await _billingService.GenerateBillsAsync(SelectedCustomer.Id, SelectedCustomer.Id);
+                await LoadBillsAsync();
+                _dialogService.ShowInformation("Success", "Bill generated successfully.");
+            }
+            catch (Exception ex)
+            {
+                _dialogService.ShowError("Error", $"Failed to generate bill: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
 
-        private async void ExecuteRefresh()
+        private async Task PayBillAsync()
         {
-            await LoadBillsAsync();
+            if (SelectedBill == null)
+                return;
+
+            try
+            {
+                IsLoading = true;
+                SelectedBill.IsPaid = true;
+                await _billingService.GenerateBillAsync(SelectedBill);
+                await LoadBillsAsync();
+                _dialogService.ShowInformation("Success", "Payment recorded successfully.");
+            }
+            catch (Exception ex)
+            {
+                _dialogService.ShowError("Error", $"Failed to record payment: {ex.Message}");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
         }
     }
 } 

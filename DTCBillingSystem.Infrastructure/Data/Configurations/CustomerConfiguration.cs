@@ -9,7 +9,12 @@ namespace DTCBillingSystem.Infrastructure.Data.Configurations
         public void Configure(EntityTypeBuilder<Customer> builder)
         {
             builder.HasKey(c => c.Id);
-            builder.Property(c => c.Name).IsRequired().HasMaxLength(100);
+            
+            // Ignore computed Name property as it's handled in code
+            builder.Ignore(c => c.Name);
+            
+            builder.Property(c => c.FirstName).IsRequired().HasMaxLength(50);
+            builder.Property(c => c.LastName).IsRequired().HasMaxLength(50);
             builder.Property(c => c.ShopNo).IsRequired().HasMaxLength(20);
             builder.Property(c => c.Floor).IsRequired().HasMaxLength(10);
             builder.Property(c => c.PhoneNumber).HasMaxLength(15);

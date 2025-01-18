@@ -57,11 +57,17 @@ namespace DTCBillingSystem.Infrastructure.Data
                 .HasForeignKey(m => m.CustomerId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<MonthlyBill>()
-                .HasOne(b => b.Customer)
-                .WithMany()
-                .HasForeignKey(b => b.CustomerId)
-                .OnDelete(DeleteBehavior.Cascade);
+            // Fix MonthlyBill relationship
+            modelBuilder.Entity<MonthlyBill>(entity =>
+            {
+                entity.HasOne(b => b.Customer)
+                    .WithMany(c => c.MonthlyBills)
+                    .HasForeignKey(b => b.CustomerId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.Property(b => b.CustomerId)
+                    .IsRequired();
+            });
 
             modelBuilder.Entity<PaymentRecord>()
                 .HasOne(p => p.Customer)

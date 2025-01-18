@@ -1,145 +1,78 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using System.Linq;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models.Entities;
-using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Infrastructure.Services
 {
     public class BillingService : IBillingService
     {
-        private readonly IMonthlyBillRepository _billRepository;
-        private readonly IMeterReadingRepository _meterReadingRepository;
-        private readonly ICustomerRepository _customerRepository;
-        private readonly IAuditService _auditService;
-        private readonly IPrintService _printService;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public BillingService(
-            IMonthlyBillRepository billRepository,
-            IMeterReadingRepository meterReadingRepository,
-            ICustomerRepository customerRepository,
-            IAuditService auditService,
-            IPrintService printService)
+        public BillingService(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
         {
-            _billRepository = billRepository;
-            _meterReadingRepository = meterReadingRepository;
-            _customerRepository = customerRepository;
-            _auditService = auditService;
-            _printService = printService;
-        }
-
-        public async Task<MonthlyBill> GenerateBillAsync(MonthlyBill bill)
-        {
-            var customer = await _customerRepository.GetByIdAsync(bill.CustomerId);
-            if (customer == null)
-                throw new ArgumentException("Customer not found", nameof(bill.CustomerId));
-
-            var latestReading = await _meterReadingRepository.GetLatestReadingForCustomerAsync(bill.CustomerId);
-            if (latestReading == null)
-                throw new InvalidOperationException("No meter reading found for customer");
-
-            bill.Status = BillStatus.Pending;
-            bill.CreatedAt = DateTime.UtcNow;
-            bill.LastModifiedAt = DateTime.UtcNow;
-
-            await _billRepository.AddAsync(bill);
-            await _auditService.LogActionAsync("Billing", bill.Id, "Generate", $"Generated bill for customer {bill.CustomerId}");
-
-            return bill;
-        }
-
-        public async Task<MonthlyBill?> GetBillByIdAsync(int id)
-        {
-            return await _billRepository.GetByIdAsync(id);
-        }
-
-        public async Task<IEnumerable<MonthlyBill>> GetBillsByCustomerAsync(int customerId)
-        {
-            return await _billRepository.GetBillsByCustomerIdAsync(customerId);
-        }
-
-        public async Task<MonthlyBill> UpdateBillAsync(MonthlyBill bill)
-        {
-            var existingBill = await _billRepository.GetByIdAsync(bill.Id);
-            if (existingBill == null)
-                throw new ArgumentException("Bill not found", nameof(bill.Id));
-
-            await _billRepository.UpdateAsync(bill);
-            await _auditService.LogActionAsync("Billing", bill.Id, "Update", $"Updated bill {bill.Id}");
-
-            return bill;
-        }
-
-        public async Task<bool> DeleteBillAsync(int id)
-        {
-            var bill = await _billRepository.GetByIdAsync(id);
-            if (bill == null)
-                return false;
-
-            await _billRepository.DeleteAsync(id);
-            await _auditService.LogActionAsync("Billing", id, "Delete", $"Deleted bill {id}");
-            return true;
-        }
-
-        public async Task<bool> MarkBillAsPaidAsync(int id, string paymentReference)
-        {
-            var bill = await _billRepository.GetByIdAsync(id);
-            if (bill == null)
-                return false;
-
-            if (bill.Status == BillStatus.Paid)
-                return false;
-
-            bill.Status = BillStatus.Paid;
-            bill.PaymentReference = paymentReference;
-            bill.PaidDate = DateTime.UtcNow;
-            bill.LastModifiedAt = DateTime.UtcNow;
-
-            await _billRepository.UpdateAsync(bill);
-            await _auditService.LogActionAsync("Billing", id, "Payment", $"Marked bill as paid with reference {paymentReference}");
-            return true;
+            _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
         }
 
         public async Task<IEnumerable<MonthlyBill>> GetCustomerBillsAsync(int customerId)
         {
-            return await _billRepository.GetCustomerBillsAsync(customerId);
+            return await _unitOfWork.MonthlyBills.GetByCustomerIdAsync(customerId);
         }
 
-        public async Task<MonthlyBill?> GetBillDetailsAsync(int billId)
+        public async Task GenerateBillsAsync(int startCustomerId, int endCustomerId)
         {
-            return await _billRepository.GetByIdAsync(billId);
+            for (int customerId = startCustomerId; customerId <= endCustomerId; customerId++)
+            {
+                var customer = await _unitOfWork.Customers.GetByIdAsync(customerId);
+                if (customer.Status != Core.Models.Enums.CustomerStatus.Active)
+                    continue;
+
+                var latestReading = await _unitOfWork.MeterReadings.GetLatestReadingForCustomerAsync(customerId);
+                if (latestReading == null)
+                    continue;
+
+                var previousReading = await _unitOfWork.MeterReadings.GetPreviousReadingForCustomerAsync(customerId);
+                if (previousReading == null)
+                    continue;
+
+                var bill = new MonthlyBill
+                {
+                    CustomerId = customerId,
+                    BillingDate = DateTime.Now,
+                    PreviousReading = previousReading.Reading,
+                    CurrentReading = latestReading.Reading,
+                    Consumption = latestReading.Reading - previousReading.Reading,
+                    Amount = await CalculateBillAmountAsync(customerId, latestReading.Reading, previousReading.Reading),
+                    IsPaid = false,
+                    CreatedBy = int.Parse(_currentUserService.UserId),
+                    LastModifiedBy = int.Parse(_currentUserService.UserId)
+                };
+
+                await _unitOfWork.MonthlyBills.AddAsync(bill);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<bool> PrintBillAsync(int billId)
+        public async Task<MonthlyBill> GenerateBillAsync(MonthlyBill bill)
         {
-            var bill = await GetBillDetailsAsync(billId);
-            if (bill == null)
-                return false;
-
-            await _printService.PrintBillAsync(bill);
-            return true;
+            bill.CreatedBy = int.Parse(_currentUserService.UserId);
+            bill.LastModifiedBy = int.Parse(_currentUserService.UserId);
+            await _unitOfWork.MonthlyBills.AddAsync(bill);
+            await _unitOfWork.SaveChangesAsync();
+            return bill;
         }
 
-        public async Task<int> GetTotalCustomersAsync()
+        public async Task<decimal> CalculateBillAmountAsync(int customerId, decimal currentReading, decimal previousReading)
         {
-            return await _customerRepository.CountAsync();
-        }
+            var consumption = currentReading - previousReading;
+            var customer = await _unitOfWork.Customers.GetByIdAsync(customerId);
 
-        public async Task<decimal> GetMonthlyRevenueAsync(DateTime month)
-        {
-            var startDate = new DateTime(month.Year, month.Month, 1);
-            var endDate = startDate.AddMonths(1).AddDays(-1);
-
-            var bills = await _billRepository.GetBillsByDateRangeAsync(startDate, endDate);
-            return bills.Where(b => b.Status == BillStatus.Paid).Sum(b => b.Amount);
-        }
-
-        public async Task<decimal> GetTotalOutstandingAmountAsync()
-        {
-            var bills = await _billRepository.GetOutstandingBillsAsync(DateTime.UtcNow);
-            return bills.Sum(b => b.Amount);
+            // Apply any customer-specific discounts or rates here
+            decimal rate = customer.Status == Core.Models.Enums.CustomerStatus.Active ? 10.0m : 12.0m;
+            return consumption * rate;
         }
     }
 } 

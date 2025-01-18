@@ -38,9 +38,6 @@ namespace DTCBillingSystem.UI.Views
                 // Subscribe to window events
                 ContentRendered += MainWindow_ContentRendered;
                 Closing += MainWindow_Closing;
-
-                // Navigate to dashboard after initialization
-                _navigationService.NavigateToDashboard();
             }
             catch (Exception ex)
             {
@@ -57,6 +54,8 @@ namespace DTCBillingSystem.UI.Views
             try
             {
                 _viewModel.OnContentRendered();
+                // Navigate to dashboard after window is fully rendered
+                _navigationService.NavigateToDashboard();
             }
             catch (Exception ex)
             {

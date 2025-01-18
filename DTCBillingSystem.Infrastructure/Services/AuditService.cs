@@ -2,46 +2,32 @@ using System;
 using System.Threading.Tasks;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models.Entities;
-using DTCBillingSystem.Core.Models.Enums;
 
 namespace DTCBillingSystem.Infrastructure.Services
 {
     public class AuditService : IAuditService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public AuditService(IUnitOfWork unitOfWork)
+        public AuditService(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
         {
-            _unitOfWork = unitOfWork;
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _currentUserService = currentUserService ?? throw new ArgumentNullException(nameof(currentUserService));
         }
 
-        public async Task LogActionAsync(string entityType, object? entityId, string action, string details)
+        public async Task LogActivityAsync(string entityType, string action, int userId, string details)
         {
             var auditLog = new AuditLog
             {
                 EntityType = entityType,
-                EntityId = entityId?.ToString() ?? "0",
                 Action = action,
-                Details = details,
-                Timestamp = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await _unitOfWork.AuditLogs.AddAsync(auditLog);
-            await _unitOfWork.SaveChangesAsync();
-        }
-
-        public async Task LogAsync(string entityType, string entityId, int userId, string action, string? details = null)
-        {
-            var auditLog = new AuditLog
-            {
-                EntityType = entityType,
-                EntityId = entityId,
                 UserId = userId,
-                Action = action,
-                Details = details ?? string.Empty,
-                Timestamp = DateTime.UtcNow,
-                CreatedAt = DateTime.UtcNow
+                Details = details,
+                CreatedAt = DateTime.UtcNow,
+                LastModifiedAt = DateTime.UtcNow,
+                CreatedBy = int.Parse(_currentUserService.UserId),
+                LastModifiedBy = int.Parse(_currentUserService.UserId)
             };
 
             await _unitOfWork.AuditLogs.AddAsync(auditLog);

@@ -15,7 +15,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.0");
+            modelBuilder.HasAnnotation("ProductVersion", "7.0.0");
 
             modelBuilder.Entity("DTCBillingSystem.Core.Models.Entities.AuditLog", b =>
                 {
@@ -233,6 +233,9 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AccountNumber")
+                        .IsUnique();
 
                     b.ToTable("Customers");
                 });
@@ -614,25 +617,6 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2025, 1, 17, 11, 38, 50, 558, DateTimeKind.Utc).AddTicks(2487),
-                            CreatedBy = "system",
-                            Email = "admin@dtcbilling.com",
-                            FirstName = "System",
-                            IsActive = true,
-                            LastModifiedAt = new DateTime(2025, 1, 17, 11, 38, 50, 558, DateTimeKind.Utc).AddTicks(2490),
-                            LastModifiedBy = "system",
-                            LastName = "Administrator",
-                            PasswordHash = new byte[] { 54, 195, 218, 156, 201, 167, 150, 110, 216, 154, 191, 64, 33, 128, 249, 87, 17, 93, 83, 24, 0, 125, 94, 209, 164, 22, 191, 13, 246, 81, 39, 40 },
-                            PasswordSalt = new byte[] { 86, 126, 46, 95, 41, 169, 1, 96, 189, 181, 104, 90, 155, 63, 19, 127 },
-                            RequirePasswordChange = false,
-                            Role = 0,
-                            Username = "ad"
-                        });
                 });
 
             modelBuilder.Entity("DTCBillingSystem.Core.Models.Entities.AuditLog", b =>
@@ -640,7 +624,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                     b.HasOne("DTCBillingSystem.Core.Models.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -651,7 +635,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                     b.HasOne("DTCBillingSystem.Core.Models.Entities.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Customer");
@@ -662,7 +646,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                     b.HasOne("DTCBillingSystem.Core.Models.Entities.Customer", "Customer")
                         .WithMany("MonthlyBills")
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Customer");
@@ -673,7 +657,7 @@ namespace DTCBillingSystem.Infrastructure.Migrations
                     b.HasOne("DTCBillingSystem.Core.Models.Entities.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("DTCBillingSystem.Core.Models.Entities.MonthlyBill", "MonthlyBill")

@@ -1,34 +1,38 @@
-using DTCBillingSystem.Core.Interfaces;
-using DTCBillingSystem.Infrastructure.Data;
-using DTCBillingSystem.Infrastructure.Repositories;
-using DTCBillingSystem.Infrastructure.Services;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using DTCBillingSystem.Core.Interfaces;
+using DTCBillingSystem.Infrastructure.Services;
+using DTCBillingSystem.Infrastructure.Repositories;
 
-namespace DTCBillingSystem.Infrastructure;
-
-public static class DependencyInjection
+namespace DTCBillingSystem.Infrastructure
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static class DependencyInjection
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
-        if (string.IsNullOrEmpty(connectionString))
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
-            throw new InvalidOperationException("Connection string 'DefaultConnection' not found in configuration.");
+            // Register repositories
+            services.AddScoped<ICustomerRepository, CustomerRepository>();
+            services.AddScoped<IMeterReadingRepository, MeterReadingRepository>();
+            services.AddScoped<IBillingPeriodRepository, BillingPeriodRepository>();
+            services.AddScoped<IMeterReadingScheduleRepository, MeterReadingScheduleRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+            services.AddScoped<IInvoiceItemRepository, InvoiceItemRepository>();
+            services.AddScoped<IPaymentRepository, PaymentRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<IBackupRepository, BackupRepository>();
+            services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+            services.AddScoped<IMonthlyBillRepository, MonthlyBillRepository>();
+
+            // Register UnitOfWork
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // Register services
+            services.AddScoped<IBillingService, BillingService>();
+            services.AddScoped<ICustomerService, CustomerService>();
+            services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<IAuditService, AuditService>();
+
+            return services;
         }
-
-        // Register database context
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlite(connectionString));
-
-        // Register repositories
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-        // Register infrastructure-specific services
-        services.AddScoped<ICurrentUserService, CurrentUserService>();
-        services.AddScoped<IAuthenticationService, AuthenticationService>();
-
-        return services;
     }
 } 

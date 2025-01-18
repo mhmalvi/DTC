@@ -5,15 +5,18 @@ namespace DTCBillingSystem.Core.Interfaces
 {
     public interface IUnitOfWork : IDisposable
     {
-        IUserRepository Users { get; }
         ICustomerRepository Customers { get; }
         IMeterReadingRepository MeterReadings { get; }
-        IPrintJobRepository PrintJobs { get; }
-        IMonthlyBillRepository MonthlyBills { get; }
-        IPaymentRecordRepository PaymentRecords { get; }
+        IBillingPeriodRepository BillingPeriods { get; }
+        IMeterReadingScheduleRepository MeterReadingSchedules { get; }
+        IUserRepository Users { get; }
+        IInvoiceRepository Invoices { get; }
+        IInvoiceItemRepository InvoiceItems { get; }
+        IPaymentRepository Payments { get; }
+        INotificationRepository Notifications { get; }
+        IBackupRepository Backups { get; }
         IAuditLogRepository AuditLogs { get; }
-        IBackupInfoRepository BackupInfos { get; }
-        IBackupScheduleRepository BackupSchedules { get; }
+        IMonthlyBillRepository MonthlyBills { get; }
         
         Task<int> SaveChangesAsync();
         Task BeginTransactionAsync();
