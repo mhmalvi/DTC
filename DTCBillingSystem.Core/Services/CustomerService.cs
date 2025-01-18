@@ -1,7 +1,7 @@
 using System;
+using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models.Entities;
 using DTCBillingSystem.Core.Models.Enums;
@@ -10,206 +10,155 @@ namespace DTCBillingSystem.Core.Services
 {
     public class CustomerService : ICustomerService
     {
+        private readonly ICustomerRepository _customerRepository;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IAuditService _auditService;
-        private const int SYSTEM_USER_ID = 1;
 
-        public CustomerService(IUnitOfWork unitOfWork, IAuditService auditService)
+        public CustomerService(IUnitOfWork unitOfWork)
         {
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _auditService = auditService ?? throw new ArgumentNullException(nameof(auditService));
-        }
-
-        public async Task<IEnumerable<Customer>> GetCustomersAsync(
-            int pageNumber,
-            int pageSize,
-            string? searchText = null,
-            CustomerType? customerType = null,
-            bool? isActive = null,
-            string? sortBy = null)
-        {
-            return await _unitOfWork.Customers.GetCustomersAsync(
-                pageNumber,
-                pageSize,
-                searchText,
-                customerType,
-                isActive,
-                sortBy);
-        }
-
-        public async Task<IEnumerable<Customer>> GetAllCustomersAsync()
-        {
-            // Get all customers by using GetCustomersAsync with max values
-            return await GetCustomersAsync(1, int.MaxValue);
-        }
-
-        public async Task<int> GetTotalCustomersCountAsync(
-            string? searchText = null,
-            CustomerType? customerType = null,
-            bool? isActive = null)
-        {
-            return await _unitOfWork.Customers.GetTotalCountAsync(searchText, customerType, isActive);
-        }
-
-        public async Task<Customer?> GetCustomerByIdAsync(int id)
-        {
-            return await _unitOfWork.Customers.GetByIdAsync(id);
+            _unitOfWork = unitOfWork;
+            _customerRepository = unitOfWork.Customers;
         }
 
         public async Task<Customer> CreateCustomerAsync(Customer customer)
         {
-            if (customer == null)
-                throw new ArgumentNullException(nameof(customer));
+            // Validate unique constraints
+            if (await IsAccountNumberTakenAsync(customer.AccountNumber))
+                throw new InvalidOperationException("Account number is already taken.");
 
-            if (!await IsAccountNumberUniqueAsync(customer.AccountNumber))
-                throw new InvalidOperationException("Account number already exists");
+            if (await IsMeterNumberTakenAsync(customer.MeterNumber))
+                throw new InvalidOperationException("Meter number is already taken.");
 
-            customer.CreatedAt = DateTime.UtcNow;
-            customer.LastModifiedAt = DateTime.UtcNow;
-            customer.IsActive = true;
-
-            await _unitOfWork.Customers.AddAsync(customer);
+            await _customerRepository.AddAsync(customer);
             await _unitOfWork.SaveChangesAsync();
-
-            await _auditService.LogAsync(
-                "Customer",
-                customer.Id.ToString(),
-                int.TryParse(customer.CreatedBy, out int userId) ? userId : SYSTEM_USER_ID,
-                AuditAction.Create.ToString(),
-                "Customer created");
-
             return customer;
+        }
+
+        public async Task<Customer?> GetCustomerByIdAsync(int id)
+        {
+            return await _customerRepository.GetByIdAsync(id);
         }
 
         public async Task<Customer> UpdateCustomerAsync(Customer customer)
         {
-            if (customer == null)
-                throw new ArgumentNullException(nameof(customer));
+            var existingCustomer = await _customerRepository.GetByIdAsync(customer.Id)
+                ?? throw new InvalidOperationException("Customer not found.");
 
-            customer.LastModifiedAt = DateTime.UtcNow;
+            // Check if account number is taken by another customer
+            if (customer.AccountNumber != existingCustomer.AccountNumber &&
+                await IsAccountNumberTakenAsync(customer.AccountNumber))
+                throw new InvalidOperationException("Account number is already taken.");
 
-            await _unitOfWork.Customers.UpdateAsync(customer);
+            // Check if meter number is taken by another customer
+            if (customer.MeterNumber != existingCustomer.MeterNumber &&
+                await IsMeterNumberTakenAsync(customer.MeterNumber))
+                throw new InvalidOperationException("Meter number is already taken.");
+
+            await _customerRepository.UpdateAsync(customer);
             await _unitOfWork.SaveChangesAsync();
-
-            int userId = int.TryParse(customer.LastModifiedBy, out int id) ? id : SYSTEM_USER_ID;
-
-            await _auditService.LogAsync(
-                "Customer",
-                customer.Id.ToString(),
-                userId,
-                AuditAction.Update.ToString());
-
             return customer;
         }
 
         public async Task<bool> DeleteCustomerAsync(int id)
         {
-            var customer = await _unitOfWork.Customers.GetByIdAsync(id);
+            var customer = await _customerRepository.GetByIdAsync(id);
             if (customer == null)
                 return false;
 
-            // Check if customer has any bills or payments
-            if (await _unitOfWork.MonthlyBills.HasBillsForCustomerAsync(id) ||
-                await _unitOfWork.PaymentRecords.HasPaymentsForCustomerAsync(id))
-            {
-                throw new InvalidOperationException("Cannot delete customer with existing bills or payments");
-            }
+            if (await HasBillsAsync(id))
+                throw new InvalidOperationException("Cannot delete customer with existing bills.");
 
-            await _unitOfWork.Customers.DeleteAsync(id);
+            await _customerRepository.DeleteAsync(id);
             await _unitOfWork.SaveChangesAsync();
-
-            await _auditService.LogAsync(
-                "Customer",
-                id.ToString(),
-                SYSTEM_USER_ID,
-                AuditAction.Delete.ToString());
-
             return true;
+        }
+
+        private async Task<bool> IsAccountNumberTakenAsync(string accountNumber)
+        {
+            var customers = await _customerRepository.GetAllAsync();
+            return customers.Any(c => c.AccountNumber == accountNumber);
+        }
+
+        private async Task<bool> IsMeterNumberTakenAsync(string meterNumber)
+        {
+            var customers = await _customerRepository.GetAllAsync();
+            return customers.Any(c => c.MeterNumber == meterNumber);
+        }
+
+        private async Task<bool> HasBillsAsync(int customerId)
+        {
+            var bills = await _unitOfWork.MonthlyBills.GetAllAsync();
+            return bills.Any(b => b.CustomerId == customerId);
+        }
+
+        public async Task<IEnumerable<Customer>> GetAllCustomersAsync()
+        {
+            return await _customerRepository.GetAllAsync();
+        }
+
+        public async Task<IEnumerable<Customer>> GetActiveCustomersAsync()
+        {
+            var customers = await _customerRepository.GetAllAsync();
+            return customers.Where(c => c.IsActive);
+        }
+
+        public async Task<IEnumerable<Customer>> GetCustomersByTypeAsync(CustomerType type)
+        {
+            var customers = await _customerRepository.GetAllAsync();
+            return customers.Where(c => c.CustomerType == type);
+        }
+
+        public async Task<IEnumerable<Customer>> GetCustomersByZoneAsync(string zoneCode)
+        {
+            var customers = await _customerRepository.GetAllAsync();
+            return customers.Where(c => c.ZoneCode == zoneCode);
+        }
+
+        public async Task<Customer?> GetCustomerByAccountNumberAsync(string accountNumber)
+        {
+            var customers = await _customerRepository.GetAllAsync();
+            return customers.FirstOrDefault(c => c.AccountNumber == accountNumber);
+        }
+
+        public async Task<Customer?> GetCustomerByMeterNumberAsync(string meterNumber)
+        {
+            var customers = await _customerRepository.GetAllAsync();
+            return customers.FirstOrDefault(c => c.MeterNumber == meterNumber);
+        }
+
+        public async Task<IEnumerable<Customer>> GetCustomersAsync(int pageNumber, int pageSize, string? searchText = null, CustomerType? customerType = null, bool? isActive = null, string? sortBy = null)
+        {
+            return await _customerRepository.GetCustomersAsync(pageNumber, pageSize, searchText, customerType, isActive, sortBy);
+        }
+
+        public async Task<int> GetTotalCustomersCountAsync(string? searchText = null, CustomerType? customerType = null, bool? isActive = null)
+        {
+            return await _customerRepository.GetTotalCountAsync(searchText, customerType, isActive);
         }
 
         public async Task<bool> DeactivateCustomerAsync(int id)
         {
-            var customer = await _unitOfWork.Customers.GetByIdAsync(id);
-            if (customer == null)
+            var customer = await _customerRepository.GetByIdAsync(id);
+            if (customer == null || !customer.IsActive)
                 return false;
 
             customer.IsActive = false;
             customer.LastModifiedAt = DateTime.UtcNow;
-
+            await _customerRepository.UpdateAsync(customer);
             await _unitOfWork.SaveChangesAsync();
-
-            int userId = int.TryParse(customer.LastModifiedBy, out int parsedId) ? parsedId : SYSTEM_USER_ID;
-
-            await _auditService.LogAsync(
-                "Customer",
-                id.ToString(),
-                userId,
-                AuditAction.Update.ToString(),
-                "Customer deactivated");
-
             return true;
         }
 
         public async Task<bool> ActivateCustomerAsync(int id)
         {
-            var customer = await _unitOfWork.Customers.GetByIdAsync(id);
-            if (customer == null)
+            var customer = await _customerRepository.GetByIdAsync(id);
+            if (customer == null || customer.IsActive)
                 return false;
 
             customer.IsActive = true;
             customer.LastModifiedAt = DateTime.UtcNow;
-
+            await _customerRepository.UpdateAsync(customer);
             await _unitOfWork.SaveChangesAsync();
-
-            int userId = int.TryParse(customer.LastModifiedBy, out int parsedId) ? parsedId : SYSTEM_USER_ID;
-
-            await _auditService.LogAsync(
-                "Customer",
-                id.ToString(),
-                userId,
-                AuditAction.Update.ToString(),
-                "Customer activated");
-
             return true;
-        }
-
-        public async Task<bool> IsAccountNumberUniqueAsync(string accountNumber, int? excludeCustomerId = null)
-        {
-            return await _unitOfWork.Customers.IsAccountNumberUniqueAsync(accountNumber, excludeCustomerId);
-        }
-
-        public async Task<IEnumerable<Customer>> GetCustomersByZoneAsync(string zoneCode)
-        {
-            return await _unitOfWork.Customers.GetCustomersByZoneAsync(zoneCode);
-        }
-
-        public async Task<IEnumerable<Customer>> GetActiveCustomersAsync()
-        {
-            return await _unitOfWork.Customers.FindAsync(c => c.IsActive);
-        }
-
-        public async Task<Customer> AddCustomerAsync(Customer customer)
-        {
-            if (customer == null)
-                throw new ArgumentNullException(nameof(customer));
-
-            if (!await IsAccountNumberUniqueAsync(customer.AccountNumber))
-                throw new InvalidOperationException("Account number must be unique");
-
-            customer.CreatedAt = DateTime.UtcNow;
-            customer.IsActive = true;
-
-            await _unitOfWork.Customers.AddAsync(customer);
-            await _unitOfWork.SaveChangesAsync();
-
-            await _auditService.LogAsync(
-                "Customer",
-                customer.Id.ToString(),
-                int.TryParse(customer.CreatedBy, out int userId) ? userId : SYSTEM_USER_ID,
-                AuditAction.Create.ToString(),
-                "Customer created");
-
-            return customer;
         }
     }
 } 

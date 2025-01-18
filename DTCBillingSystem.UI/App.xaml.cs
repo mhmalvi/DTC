@@ -4,6 +4,7 @@ using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Services;
 using DTCBillingSystem.Infrastructure.Data;
 using DTCBillingSystem.Infrastructure.Services;
+using DTCBillingSystem.Infrastructure;
 using DTCBillingSystem.UI.ViewModels;
 using DTCBillingSystem.UI.Views;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,8 @@ namespace DTCBillingSystem.UI
     {
         private IServiceProvider? _serviceProvider;
         private IConfiguration? _configuration;
+
+        public static IServiceProvider? ServiceProvider => (Current as App)?._serviceProvider;
 
         public App()
         {
@@ -70,15 +73,6 @@ namespace DTCBillingSystem.UI
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
             _configuration = builder.Build();
-
-            // Validate JWT settings
-            var jwtSettings = _configuration.GetSection("JwtSettings");
-            if (string.IsNullOrEmpty(jwtSettings["SecretKey"]) ||
-                string.IsNullOrEmpty(jwtSettings["Issuer"]) ||
-                string.IsNullOrEmpty(jwtSettings["Audience"]))
-            {
-                throw new InvalidOperationException("JWT settings are not properly configured in appsettings.json");
-            }
         }
 
         private void InitializeServices()
@@ -91,19 +85,22 @@ namespace DTCBillingSystem.UI
             // Add configuration
             services.AddSingleton<IConfiguration>(_configuration);
 
-            // Add database context with proper path handling
+            // Add database context FIRST
+            var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            var dbPath = Path.Combine(baseDirectory, "DTCBillingSystem.db");
+            var connectionString = $"Data Source={dbPath}";
+            
             services.AddDbContext<ApplicationDbContext>(options =>
             {
-                var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                var dbPath = Path.Combine(baseDirectory, "DTCBillingSystem.db");
-                var connectionString = $"Data Source={dbPath}";
-                
                 options.UseSqlite(connectionString);
                 options.EnableSensitiveDataLogging();
                 options.EnableDetailedErrors();
-            }, ServiceLifetime.Scoped);
+            });
 
-            // Configure and register TokenService first
+            // Register core services
+            services.AddTransient<IPasswordHasher, Core.Services.PasswordHasher>();
+
+            // Configure and register TokenService
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey is not configured");
             var issuer = jwtSettings["Issuer"] ?? throw new InvalidOperationException("JWT Issuer is not configured");
@@ -112,46 +109,59 @@ namespace DTCBillingSystem.UI
             services.AddSingleton<ITokenService>(new Core.Services.TokenService(secretKey, issuer, audience));
 
             // Register repositories
-            services.AddScoped<IUnitOfWork, Infrastructure.Repositories.UnitOfWork>();
+            services.AddScoped<ICustomerRepository>(sp => new Infrastructure.Repositories.CustomerRepository(sp.GetRequiredService<ApplicationDbContext>()));
+            services.AddScoped<IMonthlyBillRepository>(sp => new Infrastructure.Repositories.MonthlyBillRepository(sp.GetRequiredService<ApplicationDbContext>()));
+            services.AddScoped<IPaymentRecordRepository>(sp => new Infrastructure.Repositories.PaymentRecordRepository(sp.GetRequiredService<ApplicationDbContext>()));
+            services.AddScoped<IUserRepository>(sp => new Infrastructure.Repositories.UserRepository(sp.GetRequiredService<ApplicationDbContext>()));
+            services.AddScoped<IMeterReadingRepository>(sp => new Infrastructure.Repositories.MeterReadingRepository(sp.GetRequiredService<ApplicationDbContext>()));
+            services.AddScoped<IPrintJobRepository>(sp => new Infrastructure.Repositories.PrintJobRepository(sp.GetRequiredService<ApplicationDbContext>()));
+            services.AddScoped<IAuditLogRepository>(sp => new Infrastructure.Repositories.AuditLogRepository(sp.GetRequiredService<ApplicationDbContext>()));
+            services.AddScoped<IBackupInfoRepository>(sp => new Infrastructure.Repositories.BackupInfoRepository(sp.GetRequiredService<ApplicationDbContext>()));
+            services.AddScoped<IBackupScheduleRepository>(sp => new Infrastructure.Repositories.BackupScheduleRepository(sp.GetRequiredService<ApplicationDbContext>()));
 
-            // Register core services in dependency order
-            services.AddScoped<IPasswordHasher, Core.Services.PasswordHasher>();
-            services.AddScoped<IPrintService, Core.Services.PrintService>();
-            services.AddScoped<ICustomerService, Core.Services.CustomerService>();
-            services.AddScoped<IBillingService, Core.Services.BillingService>();
-            services.AddScoped<IUserService, Core.Services.UserService>();
-            services.AddScoped<IAuditService, Core.Services.AuditService>();
-            services.AddScoped<IReportService, Core.Services.ReportService>();
-            services.AddScoped<IDashboardService, Infrastructure.Services.DashboardService>();
+            // Register UnitOfWork
+            services.AddScoped<IUnitOfWork>(sp => new Infrastructure.Data.UnitOfWork(sp.GetRequiredService<ApplicationDbContext>()));
 
             // Register infrastructure services
+            services.AddScoped<ICustomerService, Infrastructure.Services.CustomerService>();
+            services.AddScoped<IBillingService, Infrastructure.Services.BillingService>();
+            services.AddScoped<IPaymentService, Infrastructure.Services.PaymentService>();
+            services.AddScoped<IUserService, Core.Services.UserService>();
+            services.AddScoped<IAuditService, Core.Services.AuditService>();
+            services.AddScoped<IBackupService, Core.Services.BackupService>();
+            services.AddScoped<IMeterReadingService, Core.Services.MeterReadingService>();
+            services.AddScoped<IPrintService, Core.Services.PrintService>();
+            services.AddScoped<IReportService, Core.Services.ReportService>();
             services.AddScoped<ICurrentUserService, Infrastructure.Services.CurrentUserService>();
             services.AddScoped<IAuthenticationService, Infrastructure.Services.AuthenticationService>();
+            services.AddScoped<IDashboardService, Infrastructure.Services.DashboardService>();
 
-            // Add DatabaseSeeder
-            services.AddScoped<DatabaseSeeder>();
-
-            // Register UI services as singletons to maintain state
+            // Register UI services as singletons
             services.AddSingleton<INavigationService, NavigationService>();
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<IViewLocator, ViewLocator>();
             services.AddSingleton<IWindowFactory, WindowFactory>();
 
-            // Register ViewModels as scoped since they depend on scoped services
-            services.AddScoped<LoginViewModel>();
-            services.AddScoped<DashboardViewModel>();
-            services.AddScoped<CustomersViewModel>();
-            services.AddScoped<SettingsViewModel>();
-            services.AddScoped<MainViewModel>();
+            // Register ViewModels as transient
+            services.AddTransient<LoginViewModel>();
+            services.AddTransient<DashboardViewModel>();
+            services.AddTransient<CustomersViewModel>();
+            services.AddTransient<CustomerDialogViewModel>();
+            services.AddTransient<SettingsViewModel>();
+            services.AddTransient<MainViewModel>();
 
-            // Register Views as scoped to match their ViewModels
-            services.AddScoped<LoginWindow>();
-            services.AddScoped<MainWindow>();
-            services.AddScoped<DashboardView>();
-            services.AddScoped<CustomersView>();
-            services.AddScoped<SettingsView>();
+            // Register Views as transient
+            services.AddTransient<LoginWindow>();
+            services.AddTransient<MainWindow>();
+            services.AddTransient<DashboardView>();
+            services.AddTransient<CustomersView>();
+            services.AddTransient<CustomerDialog>();
+            services.AddTransient<SettingsView>();
 
-            // Build service provider with scope validation enabled
+            // Add DatabaseSeeder
+            services.AddScoped<DatabaseSeeder>();
+
+            // Build service provider
             _serviceProvider = services.BuildServiceProvider(new ServiceProviderOptions 
             { 
                 ValidateScopes = true,
@@ -166,44 +176,23 @@ namespace DTCBillingSystem.UI
 
             try
             {
-                using (var scope = _serviceProvider.CreateScope())
-                {
-                    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                    var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
-
-                    // Drop and recreate database to ensure clean state
-                    context.Database.EnsureDeleted();
-                    
-                    // Create database with detailed error handling
-                    try
-                    {
-                        context.Database.EnsureCreated();
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new Exception($"Failed to create database: {ex.Message}", ex);
-                    }
-
-                    // Seed database with detailed error handling
-                    try
-                    {
-                        seeder.SeedAsync().Wait();
-                    }
-                    catch (Exception ex)
-                    {
-                        var innerMessage = ex.InnerException?.Message ?? ex.Message;
-                        throw new Exception($"Failed to seed database: {innerMessage}", ex);
-                    }
-                }
+                using var scope = _serviceProvider.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                
+                // Ensure database exists and is up to date
+                context.Database.EnsureCreated();
+                
+                // Only try to seed if database was just created
+                var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
+                seeder.SeedAsync().Wait();
             }
             catch (Exception ex)
             {
-                var errorMessage = $"Database initialization failed: {ex.Message}";
-                if (ex.InnerException != null)
-                {
-                    errorMessage += $"\n\nDetails: {ex.InnerException.Message}";
-                }
-                throw new Exception(errorMessage, ex);
+                MessageBox.Show($"Failed to initialize database: {ex.Message}\n\nDetails: {ex.InnerException?.Message}",
+                    "Database Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                throw;
             }
         }
 
@@ -212,25 +201,18 @@ namespace DTCBillingSystem.UI
             if (_serviceProvider == null)
                 throw new InvalidOperationException("Service provider must be initialized before showing login window");
 
-            try
-            {
-                var loginWindow = new LoginWindow(_serviceProvider);
-                loginWindow.Show();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Failed to show login window", ex);
-            }
+            var loginWindow = _serviceProvider.GetRequiredService<LoginWindow>();
+            loginWindow.Show();
         }
 
         protected override void OnExit(ExitEventArgs e)
         {
+            base.OnExit(e);
+
             if (_serviceProvider is IDisposable disposable)
             {
                 disposable.Dispose();
             }
-
-            base.OnExit(e);
         }
     }
 }

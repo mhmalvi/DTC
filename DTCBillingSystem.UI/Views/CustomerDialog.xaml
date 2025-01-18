@@ -1,111 +1,111 @@
-<Page x:Class="DTCBillingSystem.UI.Views.CustomerDialog"
-      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-      xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-      xmlns:local="clr-namespace:DTCBillingSystem.UI.Views"
-      mc:Ignorable="d" 
-      d:DesignHeight="600" d:DesignWidth="500"
-      Title="Customer">
+<Window x:Class="DTCBillingSystem.UI.Views.CustomerDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DTCBillingSystem.UI.Views"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:enums="clr-namespace:DTCBillingSystem.Core.Models.Enums;assembly=DTCBillingSystem.Core"
+        mc:Ignorable="d"
+        Title="{Binding Title}"
+        Height="600" Width="800"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="{DynamicResource MaterialDesignPaper}"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto">
 
-    <Grid Margin="16">
+    <Window.Resources>
+        <ObjectDataProvider x:Key="CustomerTypes"
+                          MethodName="GetValues"
+                          ObjectType="{x:Type enums:CustomerType}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="enums:CustomerType"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+    </Window.Resources>
+
+    <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <TextBlock Grid.Row="0" 
-                   Text="{Binding DialogTitle}"
+        <TextBlock Text="{Binding Title}"
                    Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                   Margin="0,0,0,24"/>
+                   Margin="0,0,0,20"/>
 
-        <!-- Form -->
-        <ScrollViewer Grid.Row="1" 
+        <ScrollViewer Grid.Row="1"
                       VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <!-- Shop No -->
-                <TextBox materialDesign:HintAssist.Hint="Shop No"
-                         Text="{Binding Customer.ShopNo, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="0,0,0,16"/>
-                <TextBlock Text="{Binding ShopNoError}"
-                           Foreground="{StaticResource MaterialDesignError}"
-                           Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                           Margin="0,-12,0,16"
-                           Visibility="{Binding ShopNoError, Converter={StaticResource StringToVisibilityConverter}}"/>
+                <TextBox Text="{Binding Customer.Name, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Name"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Margin="0,0,0,10"/>
 
-                <!-- Name -->
-                <TextBox materialDesign:HintAssist.Hint="Name"
-                         Text="{Binding Customer.Name, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="0,0,0,16"/>
-                <TextBlock Text="{Binding NameError}"
-                           Foreground="{StaticResource MaterialDesignError}"
-                           Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                           Margin="0,-12,0,16"
-                           Visibility="{Binding NameError, Converter={StaticResource StringToVisibilityConverter}}"/>
+                <TextBox Text="{Binding Customer.AccountNumber, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Account Number"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Margin="0,0,0,10"/>
 
-                <!-- Floor -->
-                <TextBox materialDesign:HintAssist.Hint="Floor"
-                         Text="{Binding Customer.Floor, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="0,0,0,16"/>
-                <TextBlock Text="{Binding FloorError}"
-                           Foreground="{StaticResource MaterialDesignError}"
-                           Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                           Margin="0,-12,0,16"
-                           Visibility="{Binding FloorError, Converter={StaticResource StringToVisibilityConverter}}"/>
+                <TextBox Text="{Binding Customer.MeterNumber, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Meter Number"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Margin="0,0,0,10"/>
 
-                <!-- Customer Type -->
-                <ComboBox materialDesign:HintAssist.Hint="Customer Type"
-                          ItemsSource="{Binding CustomerTypes}"
+                <TextBox Text="{Binding Customer.PhoneNumber, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Phone Number"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Margin="0,0,0,10"/>
+
+                <TextBox Text="{Binding Customer.Address, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Address"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Margin="0,0,0,10"/>
+
+                <ComboBox ItemsSource="{Binding Source={StaticResource CustomerTypes}}"
                           SelectedItem="{Binding Customer.CustomerType}"
-                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                          Margin="0,0,0,16"/>
+                          materialDesign:HintAssist.Hint="Customer Type"
+                          Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                          Margin="0,0,0,10"/>
 
-                <!-- Contact Info -->
-                <TextBox materialDesign:HintAssist.Hint="Phone Number"
-                         Text="{Binding Customer.PhoneNumber, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="0,0,0,16"/>
+                <TextBox Text="{Binding Customer.ZoneCode, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Zone Code"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Margin="0,0,0,10"/>
 
-                <TextBox materialDesign:HintAssist.Hint="Email"
-                         Text="{Binding Customer.Email, UpdateSourceTrigger=PropertyChanged}"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Margin="0,0,0,16"/>
-                <TextBlock Text="{Binding EmailError}"
-                           Foreground="{StaticResource MaterialDesignError}"
-                           Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                           Margin="0,-12,0,16"
-                           Visibility="{Binding EmailError, Converter={StaticResource StringToVisibilityConverter}}"/>
+                <TextBox Text="{Binding Customer.ShopNo, UpdateSourceTrigger=PropertyChanged}"
+                         materialDesign:HintAssist.Hint="Shop No"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Margin="0,0,0,10"/>
 
-                <!-- Additional Info -->
-                <TextBox materialDesign:HintAssist.Hint="Notes"
-                         Text="{Binding Customer.Notes}"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         Height="100"
-                         TextWrapping="Wrap"
-                         AcceptsReturn="True"
-                         VerticalScrollBarVisibility="Auto"
-                         Margin="0,0,0,16"/>
+                <DatePicker SelectedDate="{Binding Customer.RegistrationDate}"
+                           materialDesign:HintAssist.Hint="Registration Date"
+                           Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                           Margin="0,0,0,10"/>
+
+                <CheckBox IsChecked="{Binding Customer.IsActive}"
+                         Content="Is Active"
+                         Style="{StaticResource MaterialDesignCheckBox}"
+                         Margin="0,10,0,0"/>
             </StackPanel>
         </ScrollViewer>
 
-        <!-- Actions -->
-        <StackPanel Grid.Row="2" 
-                    Orientation="Horizontal" 
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
                     HorizontalAlignment="Right"
-                    Margin="0,16,0,0">
+                    Margin="0,20,0,0">
             <Button Content="Cancel"
                     Command="{Binding CancelCommand}"
                     Style="{StaticResource MaterialDesignOutlinedButton}"
-                    Margin="0,0,8,0"/>
+                    Margin="0,0,10,0"/>
             <Button Content="Save"
                     Command="{Binding SaveCommand}"
-                    Style="{StaticResource MaterialDesignPrimaryButton}"/>
+                    Style="{StaticResource MaterialDesignRaisedButton}"/>
         </StackPanel>
     </Grid>
-</Page> 
+</Window> 

@@ -42,34 +42,46 @@ namespace DTCBillingSystem.UI.Services
         public void NavigateTo<T>() where T : class
         {
             EnsureInitialized();
-            var view = _serviceProvider.GetRequiredService<T>();
-            _mainFrame!.Navigate(view);
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var view = scope.ServiceProvider.GetRequiredService<T>();
+                _mainFrame!.Navigate(view);
+            }
         }
 
-        public void NavigateTo(Type viewModelType)
+        public void NavigateTo(Type viewType)
         {
             EnsureInitialized();
-            var view = _serviceProvider.GetService(viewModelType);
-            if (view != null)
+            using (var scope = _serviceProvider.CreateScope())
             {
-                _mainFrame!.Navigate(view);
+                var view = scope.ServiceProvider.GetService(viewType);
+                if (view != null)
+                {
+                    _mainFrame!.Navigate(view);
+                }
             }
         }
 
         public void NavigateTo<T>(object parameter) where T : class
         {
             EnsureInitialized();
-            var view = _serviceProvider.GetRequiredService<T>();
-            _mainFrame!.Navigate(view, parameter);
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var view = scope.ServiceProvider.GetRequiredService<T>();
+                _mainFrame!.Navigate(view, parameter);
+            }
         }
 
-        public void NavigateTo(Type viewModelType, object parameter)
+        public void NavigateTo(Type viewType, object parameter)
         {
             EnsureInitialized();
-            var view = _serviceProvider.GetService(viewModelType);
-            if (view != null)
+            using (var scope = _serviceProvider.CreateScope())
             {
-                _mainFrame!.Navigate(view, parameter);
+                var view = scope.ServiceProvider.GetService(viewType);
+                if (view != null)
+                {
+                    _mainFrame!.Navigate(view, parameter);
+                }
             }
         }
 
@@ -89,19 +101,19 @@ namespace DTCBillingSystem.UI.Services
                         {
                             case "dashboardview":
                                 var dashboardViewModel = serviceProvider.GetRequiredService<DashboardViewModel>();
-                                var dashboardView = new DashboardView(dashboardViewModel);
+                                var dashboardView = new DashboardView { DataContext = dashboardViewModel };
                                 _mainFrame!.Navigate(dashboardView);
                                 break;
 
                             case "customersview":
                                 var customersViewModel = serviceProvider.GetRequiredService<CustomersViewModel>();
-                                var customersView = new CustomersView(customersViewModel);
+                                var customersView = new CustomersView { DataContext = customersViewModel };
                                 _mainFrame!.Navigate(customersView);
                                 break;
 
                             case "settingsview":
                                 var settingsViewModel = serviceProvider.GetRequiredService<SettingsViewModel>();
-                                var settingsView = new SettingsView(settingsViewModel);
+                                var settingsView = new SettingsView { DataContext = settingsViewModel };
                                 _mainFrame!.Navigate(settingsView);
                                 break;
 
@@ -136,18 +148,21 @@ namespace DTCBillingSystem.UI.Services
         {
             try
             {
-                var mainWindow = new MainWindow(_serviceProvider);
-                Application.Current.MainWindow = mainWindow;
-                mainWindow.Show();
-
-                // Close the login window if it exists
-                if (_mainWindow != null && _mainWindow is LoginWindow loginWindow)
+                using (var scope = _serviceProvider.CreateScope())
                 {
-                    loginWindow.Close();
-                }
+                    var mainWindow = scope.ServiceProvider.GetRequiredService<MainWindow>();
+                    Application.Current.MainWindow = mainWindow;
+                    mainWindow.Show();
 
-                // Update the current window reference
-                _mainWindow = mainWindow;
+                    // Close the login window if it exists
+                    if (_mainWindow != null && _mainWindow is LoginWindow loginWindow)
+                    {
+                        loginWindow.Close();
+                    }
+
+                    // Update the current window reference
+                    _mainWindow = mainWindow;
+                }
             }
             catch (Exception ex)
             {
@@ -173,9 +188,8 @@ namespace DTCBillingSystem.UI.Services
 
                 using (var scope = _serviceProvider.CreateScope())
                 {
-                    var serviceProvider = scope.ServiceProvider;
-                    var viewModel = serviceProvider.GetRequiredService<DashboardViewModel>();
-                    var view = new DashboardView(viewModel);
+                    var viewModel = scope.ServiceProvider.GetRequiredService<DashboardViewModel>();
+                    var view = new DashboardView { DataContext = viewModel };
 
                     Debug.WriteLine("Navigating to DashboardView");
                     _mainFrame!.Navigate(view);
@@ -216,9 +230,8 @@ namespace DTCBillingSystem.UI.Services
 
                 using (var scope = _serviceProvider.CreateScope())
                 {
-                    var serviceProvider = scope.ServiceProvider;
-                    var viewModel = serviceProvider.GetRequiredService<CustomersViewModel>();
-                    var view = new CustomersView(viewModel);
+                    var viewModel = scope.ServiceProvider.GetRequiredService<CustomersViewModel>();
+                    var view = new CustomersView { DataContext = viewModel };
 
                     Debug.WriteLine("Navigating to CustomersView");
                     _mainFrame!.Navigate(view);

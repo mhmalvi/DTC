@@ -2,12 +2,9 @@ namespace DTCBillingSystem.Core.Models.Enums
 {
     public enum CustomerType
     {
-        Regular,
-        Premium,
-        VIP,
-        Corporate,
-        Government,
-        NonProfit,
-        Temporary
+        Regular = 0,
+        Residential = 1,
+        Commercial = 2,
+        Industrial = 3
     }
 } 

@@ -1,4 +1,3 @@
-using System;
 using System.Windows.Controls;
 using DTCBillingSystem.UI.ViewModels;
 
@@ -6,25 +5,14 @@ namespace DTCBillingSystem.UI.Views
 {
     public partial class DashboardView : UserControl
     {
-        private readonly DashboardViewModel _viewModel;
-
-        public DashboardView(DashboardViewModel viewModel)
+        public DashboardView()
         {
-            try
-            {
-                _viewModel = viewModel ?? throw new ArgumentNullException(nameof(viewModel));
-                InitializeComponent();
-                DataContext = _viewModel;
-            }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show(
-                    $"Error initializing dashboard view: {ex.Message}",
-                    "Initialization Error",
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Error);
-                throw;
-            }
+            InitializeComponent();
+        }
+
+        public DashboardView(DashboardViewModel viewModel) : this()
+        {
+            DataContext = viewModel;
         }
     }
 } 

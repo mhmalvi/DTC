@@ -10,77 +10,35 @@ namespace DTCBillingSystem.Infrastructure.Data
 {
     public class ApplicationDbContext : DbContext
     {
-        private readonly IPasswordHasher _passwordHasher;
-
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IPasswordHasher passwordHasher)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
-            _passwordHasher = passwordHasher;
-            
-            // Initialize DbSet properties
             Customers = Set<Customer>();
-            BillingRates = Set<BillingRate>();
             MonthlyBills = Set<MonthlyBill>();
             PaymentRecords = Set<PaymentRecord>();
             Users = Set<User>();
-            AuditLogs = Set<AuditLog>();
             MeterReadings = Set<MeterReading>();
             PrintJobs = Set<PrintJob>();
+            AuditLogs = Set<AuditLog>();
+            BackupInfos = Set<BackupInfo>();
+            BackupSchedules = Set<BackupSchedule>();
         }
 
-        public DbSet<Customer> Customers { get; set; }
-        public DbSet<BillingRate> BillingRates { get; set; }
-        public DbSet<MonthlyBill> MonthlyBills { get; set; }
-        public DbSet<PaymentRecord> PaymentRecords { get; set; }
-        public DbSet<User> Users { get; set; }
-        public DbSet<AuditLog> AuditLogs { get; set; }
-        public DbSet<MeterReading> MeterReadings { get; set; }
-        public DbSet<PrintJob> PrintJobs { get; set; }
+        public required DbSet<Customer> Customers { get; set; }
+        public required DbSet<MonthlyBill> MonthlyBills { get; set; }
+        public required DbSet<PaymentRecord> PaymentRecords { get; set; }
+        public required DbSet<User> Users { get; set; }
+        public required DbSet<MeterReading> MeterReadings { get; set; }
+        public required DbSet<PrintJob> PrintJobs { get; set; }
+        public required DbSet<AuditLog> AuditLogs { get; set; }
+        public required DbSet<BackupInfo> BackupInfos { get; set; }
+        public required DbSet<BackupSchedule> BackupSchedules { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            
-            // Apply entity configurations from assembly
+
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
-
-            // Configure cascade delete behavior for related entities
-            modelBuilder.Entity<AuditLog>()
-                .HasOne(a => a.User)
-                .WithMany()
-                .HasForeignKey(a => a.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<MeterReading>()
-                .HasOne(m => m.Customer)
-                .WithMany()
-                .HasForeignKey(m => m.CustomerId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<MonthlyBill>()
-                .HasOne(b => b.Customer)
-                .WithMany()
-                .HasForeignKey(b => b.CustomerId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<PaymentRecord>()
-                .HasOne(p => p.Customer)
-                .WithMany()
-                .HasForeignKey(p => p.CustomerId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Configure unique constraints
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Username)
-                .IsUnique();
-
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Email)
-                .IsUnique();
-
-            modelBuilder.Entity<Customer>()
-                .HasIndex(c => c.AccountNumber)
-                .IsUnique();
         }
     }
 } 

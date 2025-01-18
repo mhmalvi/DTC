@@ -78,7 +78,7 @@ namespace DTCBillingSystem.Infrastructure.Services
             if (bill == null)
                 return false;
 
-            await _billRepository.DeleteAsync(id);
+            await _billRepository.DeleteAsync(bill);
             await _auditService.LogActionAsync("Billing", id, "Delete", $"Deleted bill {id}");
             return true;
         }
@@ -104,7 +104,9 @@ namespace DTCBillingSystem.Infrastructure.Services
 
         public async Task<IEnumerable<MonthlyBill>> GetCustomerBillsAsync(int customerId)
         {
-            return await _billRepository.GetCustomerBillsAsync(customerId);
+            var startDate = DateTime.UtcNow.AddMonths(-12); // Get bills from last 12 months
+            var endDate = DateTime.UtcNow;
+            return await _billRepository.GetCustomerBillsAsync(customerId, startDate, endDate);
         }
 
         public async Task<MonthlyBill?> GetBillDetailsAsync(int billId)
@@ -138,7 +140,7 @@ namespace DTCBillingSystem.Infrastructure.Services
 
         public async Task<decimal> GetTotalOutstandingAmountAsync()
         {
-            var bills = await _billRepository.GetOutstandingBillsAsync(DateTime.UtcNow);
+            var bills = await _billRepository.GetOutstandingBillsAsync();
             return bills.Sum(b => b.Amount);
         }
     }

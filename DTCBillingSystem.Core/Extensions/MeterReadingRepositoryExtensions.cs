@@ -1,8 +1,9 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using DTCBillingSystem.Core.Models.Entities;
+using System.Collections.Generic;
 using DTCBillingSystem.Core.Interfaces;
+using DTCBillingSystem.Core.Models.Entities;
 
 namespace DTCBillingSystem.Core.Extensions
 {
@@ -12,16 +13,26 @@ namespace DTCBillingSystem.Core.Extensions
             this IRepository<MeterReading> repository,
             int customerId)
         {
-            var readings = await repository.FindAsync(x => x.CustomerId == customerId);
-            return readings.OrderByDescending(x => x.ReadingDate).FirstOrDefault();
+            var readings = await repository.GetAllAsync(
+                filter: r => r.CustomerId == customerId,
+                null,
+                false);
+
+            return readings.OrderByDescending(r => r.ReadingDate).FirstOrDefault();
         }
 
-        public static async Task<IQueryable<MeterReading>> GetReadingsForCustomerAsync(
+        public static async Task<IEnumerable<MeterReading>> GetReadingsForPeriodAsync(
             this IRepository<MeterReading> repository,
-            int customerId)
+            int customerId,
+            DateTime startDate,
+            DateTime endDate)
         {
-            var readings = await repository.FindAsync(x => x.CustomerId == customerId);
-            return readings.AsQueryable().OrderByDescending(x => x.ReadingDate);
+            var readings = await repository.GetAllAsync(
+                filter: r => r.CustomerId == customerId && r.ReadingDate >= startDate && r.ReadingDate <= endDate,
+                null,
+                false);
+
+            return readings.OrderBy(r => r.ReadingDate);
         }
     }
 } 

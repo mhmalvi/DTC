@@ -17,7 +17,7 @@ try {
         Copy-Item -Path ".\appsettings.json" -Destination $outputDir -Force
         
         # Run the application using dotnet run
-        Write-Host "Starting application..." -ForegroundColor Yellow
+        Write-Host "Starting application..." -ForegroundColor Cyan
         Set-Location -Path ".\DTCBillingSystem.UI"
         dotnet run --configuration Release --no-build
     } else {

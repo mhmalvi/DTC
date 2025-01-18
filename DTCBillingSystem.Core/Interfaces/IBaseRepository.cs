@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Threading.Tasks;
 
 namespace DTCBillingSystem.Core.Interfaces
 {
-    public interface IRepository<T> where T : class
+    public interface IBaseRepository<T> where T : class
     {
         Task<IEnumerable<T>> GetAllAsync(
             Expression<Func<T, bool>>? filter = null,
@@ -17,12 +14,10 @@ namespace DTCBillingSystem.Core.Interfaces
             string? includeProperties = null,
             bool trackChanges = false);
 
-        Task<T?> GetByIdAsync(int id);
+        Task<T?> GetByIdAsync(object id);
         Task AddAsync(T entity);
         Task UpdateAsync(T entity);
-        Task RemoveAsync(T entity);
-        Task RemoveRangeAsync(IEnumerable<T> entities);
-        Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
-        Task<int> CountAsync(Expression<Func<T, bool>>? predicate = null);
+        Task DeleteAsync(T entity);
+        Task DeleteByIdAsync(object id);
     }
 } 

@@ -5,9 +5,13 @@ namespace DTCBillingSystem.UI.Views
 {
     public partial class CustomersView : UserControl
     {
-        public CustomersView(CustomersViewModel viewModel)
+        public CustomersView()
         {
             InitializeComponent();
+        }
+
+        public CustomersView(CustomersViewModel viewModel) : this()
+        {
             DataContext = viewModel;
         }
     }

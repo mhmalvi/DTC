@@ -162,5 +162,20 @@ namespace DTCBillingSystem.Infrastructure.Services
         {
             return await GetCustomersAsync(1, int.MaxValue);
         }
+
+        public async Task<IEnumerable<Customer>> GetCustomersByTypeAsync(CustomerType type)
+        {
+            return await _customerRepository.GetAllAsync(c => c.CustomerType == type);
+        }
+
+        public async Task<Customer?> GetCustomerByAccountNumberAsync(string accountNumber)
+        {
+            return await _customerRepository.GetFirstOrDefaultAsync(c => c.AccountNumber == accountNumber);
+        }
+
+        public async Task<Customer?> GetCustomerByMeterNumberAsync(string meterNumber)
+        {
+            return await _customerRepository.GetFirstOrDefaultAsync(c => c.MeterNumber == meterNumber);
+        }
     }
 } 

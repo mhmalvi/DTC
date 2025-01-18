@@ -1,8 +1,8 @@
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using System.IO;
-using DTCBillingSystem.Core.Interfaces;
+using DTCBillingSystem.Core.Models.Entities;
 
 namespace DTCBillingSystem.Infrastructure.Data
 {
@@ -12,35 +12,29 @@ namespace DTCBillingSystem.Infrastructure.Data
         {
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile("appsettings.json", optional: false)
                 .Build();
 
-            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            var connectionString = configuration.GetConnectionString("DefaultConnection") ?? 
-                "Data Source=DTCBillingSystem.db";
+            var connectionString = configuration.GetConnectionString("DefaultConnection")
+                ?? Path.Combine(Directory.GetCurrentDirectory(), "dtcbilling.db");
 
+            var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
             optionsBuilder.UseSqlite(connectionString);
 
-            // Create a mock IPasswordHasher for design-time
-            var mockPasswordHasher = new MockPasswordHasher();
-
-            return new ApplicationDbContext(optionsBuilder.Options, mockPasswordHasher);
-        }
-    }
-
-    // Mock implementation of IPasswordHasher for design-time
-    internal class MockPasswordHasher : IPasswordHasher
-    {
-        public (byte[] Hash, byte[] Salt) HashPassword(string password)
-        {
-            var mockHash = new byte[] { 0x00, 0x01, 0x02, 0x03 };
-            var mockSalt = new byte[] { 0x04, 0x05, 0x06, 0x07 };
-            return (mockHash, mockSalt);
+            return new ApplicationDbContext(optionsBuilder.Options)
+            {
+                Customers = Set<Customer>(),
+                MonthlyBills = Set<MonthlyBill>(),
+                PaymentRecords = Set<PaymentRecord>(),
+                Users = Set<User>(),
+                MeterReadings = Set<MeterReading>(),
+                PrintJobs = Set<PrintJob>(),
+                AuditLogs = Set<AuditLog>(),
+                BackupInfos = Set<BackupInfo>(),
+                BackupSchedules = Set<BackupSchedule>()
+            };
         }
 
-        public bool VerifyPassword(string password, byte[] hash, byte[] salt)
-        {
-            return true;
-        }
+        private DbSet<T> Set<T>() where T : class => null!;
     }
 } 

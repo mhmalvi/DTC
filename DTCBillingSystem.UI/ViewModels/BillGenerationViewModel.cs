@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Input;
 using DTCBillingSystem.Core.Interfaces;
 using DTCBillingSystem.Core.Models.Entities;
+using DTCBillingSystem.Core.Models.Enums;
 using DTCBillingSystem.UI.Commands;
 
 namespace DTCBillingSystem.UI.ViewModels
@@ -82,7 +83,23 @@ namespace DTCBillingSystem.UI.ViewModels
                     var bill = new MonthlyBill
                     {
                         CustomerId = customer.Id,
+                        BillNumber = $"BILL-{customer.Id}-{SelectedDate:yyyyMM}",
+                        BillingDate = SelectedDate,
                         BillingMonth = SelectedDate,
+                        DueDate = SelectedDate.AddDays(15),
+                        PreviousBalance = 0,
+                        Amount = 0,
+                        TaxAmount = 0,
+                        TotalAmount = 0,
+                        PresentReading = 0,
+                        PreviousReading = 0,
+                        ACPresentReading = 0,
+                        ACPreviousReading = 0,
+                        Consumption = 0,
+                        BlowerFanCharge = 0,
+                        GeneratorCharge = 0,
+                        ServiceCharge = 0,
+                        Status = BillStatus.Pending,
                         CreatedBy = "System",
                         CreatedAt = DateTime.UtcNow,
                         LastModifiedBy = "System",

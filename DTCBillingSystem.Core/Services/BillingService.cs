@@ -62,7 +62,8 @@ namespace DTCBillingSystem.Core.Services
 
         public async Task<IEnumerable<MonthlyBill>> GetBillsByCustomerAsync(int customerId)
         {
-            return await _unitOfWork.MonthlyBills.GetBillsByCustomerIdAsync(customerId);
+            var bills = await _unitOfWork.MonthlyBills.GetAllAsync(filter: b => b.CustomerId == customerId);
+            return bills;
         }
 
         public async Task<MonthlyBill> UpdateBillAsync(MonthlyBill bill)
@@ -100,7 +101,7 @@ namespace DTCBillingSystem.Core.Services
             if (bill.Status == BillStatus.Paid)
                 throw new InvalidOperationException("Cannot delete paid bill");
 
-            await _unitOfWork.MonthlyBills.DeleteAsync(id);
+            await _unitOfWork.MonthlyBills.DeleteAsync(bill);
             await _unitOfWork.SaveChangesAsync();
 
             await _auditService.LogAsync(
@@ -141,7 +142,8 @@ namespace DTCBillingSystem.Core.Services
 
         public async Task<IEnumerable<MonthlyBill>> GetCustomerBillsAsync(int customerId)
         {
-            return await _unitOfWork.MonthlyBills.GetBillsByCustomerIdAsync(customerId);
+            var bills = await _unitOfWork.MonthlyBills.GetAllAsync(filter: b => b.CustomerId == customerId);
+            return bills;
         }
 
         public async Task<MonthlyBill?> GetBillDetailsAsync(int billId)
@@ -166,7 +168,8 @@ namespace DTCBillingSystem.Core.Services
 
         public async Task<int> GetTotalCustomersAsync()
         {
-            return await _unitOfWork.Customers.CountAsync();
+            var customers = await _unitOfWork.Customers.GetAllAsync();
+            return customers.Count();
         }
 
         public async Task<decimal> GetMonthlyRevenueAsync(DateTime month)
@@ -174,20 +177,62 @@ namespace DTCBillingSystem.Core.Services
             var startDate = new DateTime(month.Year, month.Month, 1);
             var endDate = startDate.AddMonths(1).AddDays(-1);
 
-            var bills = await _unitOfWork.MonthlyBills
-                .FindAsync(b => b.Status == BillStatus.Paid &&
-                               b.PaidDate >= startDate &&
-                               b.PaidDate <= endDate);
+            var bills = await _unitOfWork.MonthlyBills.GetAllAsync(
+                filter: b => b.Status == BillStatus.Paid && b.PaidDate >= startDate && b.PaidDate <= endDate);
 
-            return bills.Sum(b => b.Amount);
+            return bills.Sum(b => b.TotalAmount);
         }
 
         public async Task<decimal> GetTotalOutstandingAmountAsync()
         {
-            var bills = await _unitOfWork.MonthlyBills
-                .FindAsync(b => b.Status == BillStatus.Pending);
+            var bills = await _unitOfWork.MonthlyBills.GetAllAsync(
+                filter: b => b.Status == BillStatus.Pending);
 
-            return bills.Sum(b => b.Amount);
+            return bills.Sum(b => b.TotalAmount);
+        }
+
+        public async Task<IEnumerable<MonthlyBill>> GetBillsByDateRangeAsync(DateTime startDate, DateTime endDate)
+        {
+            var bills = await _unitOfWork.MonthlyBills.GetAllAsync(
+                filter: b => b.BillingDate >= startDate && b.BillingDate <= endDate);
+
+            return bills;
+        }
+
+        public async Task<MonthlyBill?> GetBillByDateAndCustomerAsync(DateTime billingDate, int customerId)
+        {
+            var bills = await _unitOfWork.MonthlyBills.GetAllAsync(
+                filter: b => b.BillingDate.Month == billingDate.Month && b.BillingDate.Year == billingDate.Year && b.CustomerId == customerId);
+
+            return bills.FirstOrDefault();
+        }
+
+        public async Task<bool> HasBillForMonthAsync(int customerId, DateTime billingDate)
+        {
+            var bills = await _unitOfWork.MonthlyBills.GetAllAsync(
+                filter: b => b.CustomerId == customerId && b.BillingDate.Month == billingDate.Month && b.BillingDate.Year == billingDate.Year);
+
+            return bills.Any();
+        }
+
+        public async Task<decimal> GetTotalBilledAmountAsync()
+        {
+            var bills = await _unitOfWork.MonthlyBills.GetAllAsync();
+            return bills.Sum(b => b.TotalAmount);
+        }
+
+        public async Task<decimal> GetTotalBilledAmountForCustomerAsync(int customerId)
+        {
+            var bills = await _unitOfWork.MonthlyBills.GetAllAsync(filter: b => b.CustomerId == customerId);
+            return bills.Sum(b => b.TotalAmount);
+        }
+
+        public async Task<decimal> GetTotalBilledAmountForMonthAsync(DateTime date)
+        {
+            var bills = await _unitOfWork.MonthlyBills.GetAllAsync(
+                filter: b => b.BillingDate.Month == date.Month && b.BillingDate.Year == date.Year);
+
+            return bills.Sum(b => b.TotalAmount);
         }
     }
 } 
