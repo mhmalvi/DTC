@@ -161,28 +161,77 @@ namespace DTCBillingSystem.UI.Services
             try
             {
                 Debug.WriteLine("NavigateToMainWindow called");
+                
+                MainWindow? mainWindow = null;
                 await Application.Current.Dispatcher.InvokeAsync(() =>
                 {
-                    // Create and show the main window
-                    var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-                    mainWindow.Show();
-                    
-                    // Set as the main application window
-                    Application.Current.MainWindow = mainWindow;
-
-                    // Close the login window if it exists
-                    foreach (Window window in Application.Current.Windows)
+                    try
                     {
-                        if (window is LoginWindow)
-                        {
-                            window.Close();
-                            break;
-                        }
-                    }
+                        Debug.WriteLine("Creating main window");
+                        // Create the main window
+                        mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+                        Debug.WriteLine("Main window created successfully");
+                        
+                        // Set as the main application window
+                        Application.Current.MainWindow = mainWindow;
+                        Debug.WriteLine("Set as main application window");
+                        
+                        // Update the current window reference
+                        _mainWindow = mainWindow;
+                        Debug.WriteLine("Navigation service main window reference updated");
 
-                    // Update the current window reference
-                    _mainWindow = mainWindow;
+                        // Show the window
+                        mainWindow.Show();
+                        mainWindow.Activate(); // Ensure window is brought to front
+                        Debug.WriteLine("Main window shown and activated");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Error in dispatcher: {ex}");
+                        throw;
+                    }
                 });
+
+                // Wait for the window to be loaded
+                if (mainWindow != null)
+                {
+                    var tcs = new TaskCompletionSource<bool>();
+                    
+                    mainWindow.Loaded += (s, e) =>
+                    {
+                        Debug.WriteLine("Main window Loaded event triggered");
+                        tcs.TrySetResult(true);
+                    };
+
+                    // Wait for the window to be loaded with a timeout
+                    using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(5));
+                    cts.Token.Register(() => tcs.TrySetCanceled());
+                    
+                    try
+                    {
+                        await tcs.Task;
+                        Debug.WriteLine("Main window successfully loaded");
+                        
+                        // Close login window after main window is loaded
+                        await Application.Current.Dispatcher.InvokeAsync(() =>
+                        {
+                            foreach (Window window in Application.Current.Windows)
+                            {
+                                if (window is LoginWindow)
+                                {
+                                    Debug.WriteLine("Found login window, closing it");
+                                    window.Close();
+                                    break;
+                                }
+                            }
+                        });
+                    }
+                    catch (TaskCanceledException)
+                    {
+                        Debug.WriteLine("Timeout waiting for main window to load");
+                        throw new TimeoutException("Timeout waiting for main window to load");
+                    }
+                }
                 
                 Debug.WriteLine("Main window navigation completed");
             }

@@ -11,7 +11,7 @@ A comprehensive billing system for managing customer accounts, meter readings, a
 
 ## Prerequisites
 
-- .NET 6.0 SDK or later
+- .NET 8.0 SDK or later
 - Windows PowerShell
 - Visual Studio 2022 (optional)
 

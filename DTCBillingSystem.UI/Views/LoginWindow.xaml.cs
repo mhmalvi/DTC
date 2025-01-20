@@ -3,7 +3,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using DTCBillingSystem.UI.ViewModels;
+using DTCBillingSystem.UI.Services;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics;
 
 namespace DTCBillingSystem.UI.Views
 {
@@ -49,7 +51,42 @@ namespace DTCBillingSystem.UI.Views
 
         private void ViewModel_LoginSuccessful(object? sender, EventArgs e)
         {
-            Close();
+            try
+            {
+                Debug.WriteLine("Login successful event triggered");
+                // Don't close the login window until we're sure the main window is ready
+                var navigationService = ServiceScope.ServiceProvider.GetRequiredService<INavigationService>();
+                Debug.WriteLine("Retrieved navigation service");
+                
+                navigationService.NavigateToMainWindow().ContinueWith(task =>
+                {
+                    Debug.WriteLine($"Navigation task completed with status: {task.Status}");
+                    if (task.IsFaulted)
+                    {
+                        Debug.WriteLine($"Navigation failed with error: {task.Exception}");
+                        Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            MessageBox.Show($"Failed to open main window: {task.Exception?.InnerException?.Message}",
+                                          "Navigation Error",
+                                          MessageBoxButton.OK,
+                                          MessageBoxImage.Error);
+                        });
+                    }
+                    else
+                    {
+                        Debug.WriteLine("Navigation successful, closing login window");
+                        Application.Current.Dispatcher.Invoke(() => Close());
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error in ViewModel_LoginSuccessful: {ex}");
+                MessageBox.Show($"Error during navigation: {ex.Message}",
+                              "Navigation Error",
+                              MessageBoxButton.OK,
+                              MessageBoxImage.Error);
+            }
         }
 
         private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)

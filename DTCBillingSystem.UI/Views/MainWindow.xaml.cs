@@ -4,6 +4,7 @@ using System.Windows;
 using DTCBillingSystem.UI.Services;
 using DTCBillingSystem.UI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics;
 
 namespace DTCBillingSystem.UI.Views
 {
@@ -29,18 +30,16 @@ namespace DTCBillingSystem.UI.Views
                     throw new InvalidOperationException("MainFrame not found in XAML");
                 }
 
-                // Initialize navigation service with the main frame
-                _navigationService.Initialize(MainFrame, this);
-
-                // Set DataContext after initialization
+                // Set DataContext before initialization
                 DataContext = _viewModel;
 
                 // Subscribe to window events
-                ContentRendered += MainWindow_ContentRendered;
+                Loaded += MainWindow_Loaded;
                 Closing += MainWindow_Closing;
             }
             catch (Exception ex)
             {
+                Debug.WriteLine($"Error in MainWindow constructor: {ex}");
                 MessageBox.Show($"Error initializing MainWindow: {ex.Message}\n\nDetails: {ex}",
                               "Initialization Error",
                               MessageBoxButton.OK,
@@ -49,18 +48,36 @@ namespace DTCBillingSystem.UI.Views
             }
         }
 
-        private void MainWindow_ContentRendered(object? sender, EventArgs e)
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             try
             {
+                Debug.WriteLine("MainWindow_Loaded called");
+                
+                // Initialize navigation service
+                if (MainFrame != null && _navigationService != null)
+                {
+                    Debug.WriteLine("Initializing navigation service in MainWindow");
+                    _navigationService.Initialize(MainFrame, this);
+                    
+                    // Navigate to dashboard
+                    Debug.WriteLine("Navigating to dashboard from MainWindow_Loaded");
+                    _navigationService.NavigateToDashboard();
+                    Debug.WriteLine("Dashboard navigation completed in MainWindow_Loaded");
+                }
+                else
+                {
+                    Debug.WriteLine("MainFrame or NavigationService is null in MainWindow_Loaded");
+                    throw new InvalidOperationException("MainFrame or NavigationService is null");
+                }
+                
                 _viewModel.OnContentRendered();
-                // Navigate to dashboard after window is fully rendered
-                _navigationService.NavigateToDashboard();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error during content rendering: {ex.Message}",
-                              "Rendering Error",
+                Debug.WriteLine($"Error in MainWindow_Loaded: {ex}");
+                MessageBox.Show($"Error initializing main window: {ex.Message}",
+                              "Initialization Error",
                               MessageBoxButton.OK,
                               MessageBoxImage.Error);
             }
@@ -74,10 +91,7 @@ namespace DTCBillingSystem.UI.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error during window closing: {ex.Message}",
-                              "Closing Error",
-                              MessageBoxButton.OK,
-                              MessageBoxImage.Error);
+                Debug.WriteLine($"Error in MainWindow_Closing: {ex}");
             }
         }
     }
