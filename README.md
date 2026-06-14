@@ -1,6 +1,8 @@
 <!-- repo-card -->
 ![DTC](docs/assets/social-card.png)
 
+![DTC — architecture](docs/assets/architecture.png)
+
 <div align="center">
 
 # DTC Billing System
