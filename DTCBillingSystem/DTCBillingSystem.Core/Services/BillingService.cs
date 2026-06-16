@@ -1,286 +1,151 @@
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
-using DTCBillingSystem.Core.Interfaces;
-using DTCBillingSystem.Core.Models;
+using DTCBillingSystem.Shared.Interfaces;
+using DTCBillingSystem.Shared.Models.Entities;
+using DTCBillingSystem.Shared.Models.Enums;
+using DTCBillingSystem.Core.Extensions;
 
 namespace DTCBillingSystem.Core.Services
 {
     public class BillingService : IBillingService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ILogger<BillingService> _logger;
         private readonly IAuditService _auditService;
+        private readonly ILogger<BillingService> _logger;
 
         public BillingService(
             IUnitOfWork unitOfWork,
-            ILogger<BillingService> logger,
-            IAuditService auditService)
+            IAuditService auditService,
+            ILogger<BillingService> logger)
         {
             _unitOfWork = unitOfWork;
-            _logger = logger;
             _auditService = auditService;
+            _logger = logger;
         }
 
-        public async Task<MonthlyBill> GenerateBillAsync(int customerId, DateTime billingMonth)
+        public async Task<IEnumerable<MonthlyBill>> GenerateMonthlyBillsAsync(DateTime billingDate)
         {
-            try
+            _logger.LogInformation($"Starting monthly bill generation for {billingDate:MMMM yyyy}");
+            var bills = new List<MonthlyBill>();
+            
+            var customers = await _unitOfWork.Customers.GetAllAsync();
+            foreach (var customer in customers)
             {
-                // Check if bill already exists for this month
-                var exists = await _unitOfWork.MonthlyBillsExt.HasBillForMonthAsync(customerId, billingMonth);
-                if (exists)
+                try
                 {
-                    throw new InvalidOperationException($"Bill already exists for customer {customerId} for {billingMonth:MMM yyyy}");
+                    var bill = await GenerateBillForCustomerAsync(customer.Id, billingDate);
+                    bills.Add(bill);
                 }
-
-                // Get customer details
-                var customer = await _unitOfWork.CustomersExt.GetCustomerWithBillsAsync(customerId);
-                if (customer == null)
+                catch (Exception ex)
                 {
-                    throw new KeyNotFoundException($"Customer with ID {customerId} not found");
+                    _logger.LogError(ex, $"Failed to generate bill for customer {customer.Id}");
                 }
-
-                if (!customer.IsActive)
-                {
-                    throw new InvalidOperationException($"Cannot generate bill for inactive customer {customer.Name}");
-                }
-
-                // Get previous bill for readings
-                var previousBill = await _unitOfWork.MonthlyBillsExt.GetCustomerLatestBillAsync(customerId);
-
-                // Create new bill
-                var bill = new MonthlyBill
-                {
-                    CustomerId = customerId,
-                    BillingMonth = new DateTime(billingMonth.Year, billingMonth.Month, 1),
-                    PreviousReading = previousBill?.PresentReading ?? 0,
-                    ACPreviousReading = previousBill?.ACPresentReading ?? 0,
-                    Status = BillStatus.Pending,
-                    DueDate = DateTime.UtcNow.AddDays(30)
-                };
-
-                await _unitOfWork.MonthlyBills.AddAsync(bill);
-                await _unitOfWork.SaveChangesAsync();
-
-                await _auditService.LogActionAsync(
-                    "MonthlyBill",
-                    bill.Id,
-                    AuditAction.Created,
-                    null,
-                    $"Generated bill for {customer.Name} ({customer.ShopNo}) for {billingMonth:MMM yyyy}"
-                );
-
-                return bill;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error generating bill for customer {CustomerId} for {BillingMonth}", 
-                    customerId, billingMonth);
-                throw;
-            }
+
+            return bills;
         }
 
-        public async Task<MonthlyBill> UpdateBillReadingsAsync(
-            int billId,
-            decimal presentReading,
-            decimal acPresentReading,
-            decimal blowerFanCharge,
-            decimal generatorCharge,
-            decimal serviceCharge)
+        public async Task<MonthlyBill> GenerateBillForCustomerAsync(int customerId, DateTime billingDate)
         {
-            try
+            var customer = await _unitOfWork.Customers.GetByIdAsync(customerId)
+                ?? throw new ArgumentException($"Customer with ID {customerId} not found.");
+
+            var latestReading = await _unitOfWork.MeterReadings.GetLatestReadingForCustomerAsync(customerId);
+            if (latestReading == null)
             {
-                var bill = await _unitOfWork.MonthlyBillsExt.GetBillWithDetailsAsync(billId);
-                if (bill == null)
-                {
-                    throw new KeyNotFoundException($"Bill with ID {billId} not found");
-                }
-
-                if (bill.Status != BillStatus.Pending)
-                {
-                    throw new InvalidOperationException($"Cannot update readings for bill in {bill.Status} status");
-                }
-
-                var oldValues = new
-                {
-                    bill.PresentReading,
-                    bill.ACPresentReading,
-                    bill.BlowerFanCharge,
-                    bill.GeneratorCharge,
-                    bill.ServiceCharge,
-                    bill.TotalAmount
-                };
-
-                bill.PresentReading = presentReading;
-                bill.ACPresentReading = acPresentReading;
-                bill.BlowerFanCharge = blowerFanCharge;
-                bill.GeneratorCharge = generatorCharge;
-                bill.ServiceCharge = serviceCharge;
-
-                // Calculate total amount
-                await CalculateBillTotalAsync(bill);
-
-                await _unitOfWork.MonthlyBills.UpdateAsync(bill);
-                await _unitOfWork.SaveChangesAsync();
-
-                var newValues = new
-                {
-                    bill.PresentReading,
-                    bill.ACPresentReading,
-                    bill.BlowerFanCharge,
-                    bill.GeneratorCharge,
-                    bill.ServiceCharge,
-                    bill.TotalAmount
-                };
-
-                await _auditService.LogActionAsync(
-                    "MonthlyBill",
-                    bill.Id,
-                    AuditAction.Updated,
-                    oldValues,
-                    newValues
-                );
-
-                return bill;
+                throw new InvalidOperationException($"No meter readings found for customer {customerId}");
             }
-            catch (Exception ex)
+
+            var billingRate = await _unitOfWork.BillingRates.GetByCustomerTypeAsync(customer.Type)
+                ?? throw new InvalidOperationException($"No billing rate found for customer type {customer.Type}");
+
+            var billNumber = await GenerateBillNumberAsync(customerId);
+            var bill = new MonthlyBill
             {
-                _logger.LogError(ex, "Error updating readings for bill {BillId}", billId);
-                throw;
-            }
+                BillNumber = billNumber,
+                CustomerId = customerId,
+                Customer = customer,
+                BillingDate = billingDate,
+                DueDate = billingDate.AddDays(30),
+                PreviousReading = latestReading.PreviousReading,
+                CurrentReading = latestReading.CurrentReading,
+                Consumption = latestReading.Consumption,
+                Amount = latestReading.Consumption * billingRate.Rate,
+                TaxAmount = latestReading.Consumption * billingRate.Rate * billingRate.TaxRate,
+                Status = BillStatus.Pending,
+                BillingPeriod = billingDate.ToString("MMMM yyyy")
+            };
+
+            bill.TotalAmount = bill.Amount + bill.TaxAmount;
+
+            await _unitOfWork.MonthlyBills.AddAsync(bill);
+            await _unitOfWork.SaveChangesAsync();
+
+            return bill;
         }
 
-        public async Task<PaymentRecord> RecordPaymentAsync(
-            int billId,
-            decimal amount,
-            PaymentMethod paymentMethod,
-            string transactionReference,
-            string receivedBy,
-            string notes = null)
+        public async Task<PaymentRecord> ProcessPaymentAsync(int billId, decimal amount, PaymentMethod paymentMethod, string reference)
         {
-            try
+            var bill = await _unitOfWork.MonthlyBills.GetByIdAsync(billId)
+                ?? throw new ArgumentException($"Bill with ID {billId} not found.");
+
+            if (bill.Status == BillStatus.Paid)
             {
-                var bill = await _unitOfWork.MonthlyBillsExt.GetBillWithDetailsAsync(billId);
-                if (bill == null)
-                {
-                    throw new KeyNotFoundException($"Bill with ID {billId} not found");
-                }
-
-                if (bill.Status == BillStatus.Paid)
-                {
-                    throw new InvalidOperationException("Cannot add payment to a fully paid bill");
-                }
-
-                // Calculate late payment charges if applicable
-                decimal lateCharges = 0;
-                if (DateTime.UtcNow.Date > bill.DueDate.Date)
-                {
-                    lateCharges = CalculateLatePaymentCharges(bill);
-                }
-
-                var payment = new PaymentRecord
-                {
-                    BillId = billId,
-                    AmountPaid = amount,
-                    PaymentDate = DateTime.UtcNow,
-                    PaymentMethod = paymentMethod,
-                    TransactionReference = transactionReference,
-                    LatePaymentCharges = lateCharges,
-                    ReceivedBy = receivedBy,
-                    Notes = notes
-                };
-
-                await _unitOfWork.PaymentRecords.AddAsync(payment);
-
-                // Update bill status
-                var totalPaid = bill.Payments.Sum(p => p.AmountPaid) + amount;
-                bill.Status = totalPaid >= bill.TotalAmount ? BillStatus.Paid : BillStatus.PartiallyPaid;
-
-                await _unitOfWork.MonthlyBills.UpdateAsync(bill);
-                await _unitOfWork.SaveChangesAsync();
-
-                await _auditService.LogActionAsync(
-                    "PaymentRecord",
-                    payment.Id,
-                    AuditAction.Created,
-                    null,
-                    $"Payment of {amount:C2} recorded for bill {billId}"
-                );
-
-                return payment;
+                throw new InvalidOperationException("Bill has already been paid");
             }
-            catch (Exception ex)
+
+            var payment = new PaymentRecord
             {
-                _logger.LogError(ex, "Error recording payment for bill {BillId}", billId);
-                throw;
-            }
+                BillId = billId,
+                Bill = bill,
+                Amount = amount,
+                PaymentMethod = paymentMethod,
+                PaymentDate = DateTime.UtcNow,
+                Status = PaymentStatus.Completed,
+                Reference = reference
+            };
+
+            await _unitOfWork.PaymentRecords.AddAsync(payment);
+
+            bill.Status = amount >= bill.TotalAmount ? BillStatus.Paid : BillStatus.Pending;
+            bill.LastModifiedAt = DateTime.UtcNow;
+
+            await _unitOfWork.SaveChangesAsync();
+
+            return payment;
         }
 
-        public async Task<decimal> GetCustomerOutstandingBalanceAsync(int customerId)
+        public async Task<decimal> CalculateLatePaymentChargeAsync(int billId)
         {
-            try
+            var bill = await _unitOfWork.MonthlyBills.GetByIdAsync(billId)
+                ?? throw new ArgumentException($"Bill with ID {billId} not found.");
+
+            if (bill.Status == BillStatus.Paid || DateTime.UtcNow <= bill.DueDate)
             {
-                return await _unitOfWork.MonthlyBillsExt.GetTotalOutstandingAsync(customerId);
+                return 0;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting outstanding balance for customer {CustomerId}", customerId);
-                throw;
-            }
+
+            var customer = await _unitOfWork.Customers.GetByIdAsync(bill.CustomerId)
+                ?? throw new InvalidOperationException($"Customer with ID {bill.CustomerId} not found");
+
+            var billingRate = await _unitOfWork.BillingRates.GetByCustomerTypeAsync(customer.Type)
+                ?? throw new InvalidOperationException($"No billing rate found for customer type {customer.Type}");
+
+            var daysLate = (DateTime.UtcNow - bill.DueDate).Days;
+            return bill.TotalAmount * billingRate.LatePaymentRate * daysLate;
         }
 
-        private async Task CalculateBillTotalAsync(MonthlyBill bill)
+        private async Task<string> GenerateBillNumberAsync(int customerId)
         {
-            try
-            {
-                // Get current rates
-                var electricityRate = await GetCurrentRateAsync("Electricity");
-                var acRate = await GetCurrentRateAsync("AC");
+            var customer = await _unitOfWork.Customers.GetByIdAsync(customerId)
+                ?? throw new ArgumentException($"Customer with ID {customerId} not found.");
 
-                // Calculate electricity charges
-                var unitsConsumed = bill.PresentReading - bill.PreviousReading;
-                var electricityCharge = unitsConsumed * electricityRate;
+            var currentDate = DateTime.UtcNow;
+            var billCount = await _unitOfWork.MonthlyBills.CountAsync(b => b.CustomerId == customerId);
 
-                // Calculate AC charges
-                var acUnitsConsumed = bill.ACPresentReading - bill.ACPreviousReading;
-                var acCharge = acUnitsConsumed * acRate;
-
-                // Calculate total
-                bill.TotalAmount = electricityCharge + acCharge + 
-                                 bill.BlowerFanCharge + bill.GeneratorCharge + 
-                                 bill.ServiceCharge;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error calculating bill total for bill {BillId}", bill.Id);
-                throw;
-            }
-        }
-
-        private async Task<decimal> GetCurrentRateAsync(string rateType)
-        {
-            var currentRate = await _unitOfWork.BillingRates.FindAsync(r => 
-                r.RateType == rateType && 
-                r.IsActive && 
-                r.EffectiveDate <= DateTime.UtcNow && 
-                (!r.EndDate.HasValue || r.EndDate.Value > DateTime.UtcNow));
-
-            var rate = currentRate.FirstOrDefault();
-            if (rate == null)
-            {
-                throw new InvalidOperationException($"No active rate found for {rateType}");
-            }
-
-            return rate.Rate;
-        }
-
-        private decimal CalculateLatePaymentCharges(MonthlyBill bill)
-        {
-            var daysLate = (DateTime.UtcNow.Date - bill.DueDate.Date).Days;
-            if (daysLate <= 0) return 0;
-
-            // 2% of remaining balance per month
-            var remainingBalance = bill.TotalAmount - bill.Payments.Sum(p => p.AmountPaid);
-            var monthsLate = Math.Ceiling(daysLate / 30.0m);
-            return remainingBalance * 0.02m * monthsLate;
+            return $"{customer.CustomerCode}-{currentDate:yyyyMM}-{billCount + 1:D4}";
         }
     }
 } 

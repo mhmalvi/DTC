@@ -34,7 +34,7 @@ namespace DTCBillingSystem.Core.Models
 
         protected BaseEntity()
         {
-            CreatedAt = DateTime.UtcNow;
+            CreatedAt = DateTime.Now;
         }
     }
 } 

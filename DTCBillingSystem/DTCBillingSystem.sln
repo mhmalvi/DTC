@@ -1,41 +1,36 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DTCBillingSystem", "DTCBillingSystem", "{9F9FFB62-A19F-47CE-8C52-699574CA7A94}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTCBillingSystem.Core", "DTCBillingSystem.Core\DTCBillingSystem.Core.csproj", "{A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTCBillingSystem.Core", "DTCBillingSystem\DTCBillingSystem.Core\DTCBillingSystem.Core.csproj", "{DAC78444-2939-487F-913C-A694D4C6DED5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTCBillingSystem.Shared", "DTCBillingSystem.Shared\DTCBillingSystem.Shared.csproj", "{3B7ECAAA-ECB2-414C-A70A-338F40BAB602}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTCBillingSystem.Infrastructure", "DTCBillingSystem\DTCBillingSystem.Infrastructure\DTCBillingSystem.Infrastructure.csproj", "{E7C7C422-EAE0-4059-AAE3-E17E38E6A678}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTCBillingSystem.UI", "DTCBillingSystem\DTCBillingSystem.UI\DTCBillingSystem.UI.csproj", "{D491D82D-42F0-4754-9E91-FC73AA416CC4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DTCBillingSystem.Infrastructure", "DTCBillingSystem.Infrastructure\DTCBillingSystem.Infrastructure.csproj", "{0734A7FD-712D-4156-8025-20279DA51ED2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B7ECAAA-ECB2-414C-A70A-338F40BAB602}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B7ECAAA-ECB2-414C-A70A-338F40BAB602}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B7ECAAA-ECB2-414C-A70A-338F40BAB602}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B7ECAAA-ECB2-414C-A70A-338F40BAB602}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0734A7FD-712D-4156-8025-20279DA51ED2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0734A7FD-712D-4156-8025-20279DA51ED2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0734A7FD-712D-4156-8025-20279DA51ED2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0734A7FD-712D-4156-8025-20279DA51ED2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{DAC78444-2939-487F-913C-A694D4C6DED5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DAC78444-2939-487F-913C-A694D4C6DED5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DAC78444-2939-487F-913C-A694D4C6DED5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DAC78444-2939-487F-913C-A694D4C6DED5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E7C7C422-EAE0-4059-AAE3-E17E38E6A678}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E7C7C422-EAE0-4059-AAE3-E17E38E6A678}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E7C7C422-EAE0-4059-AAE3-E17E38E6A678}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E7C7C422-EAE0-4059-AAE3-E17E38E6A678}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D491D82D-42F0-4754-9E91-FC73AA416CC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D491D82D-42F0-4754-9E91-FC73AA416CC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D491D82D-42F0-4754-9E91-FC73AA416CC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D491D82D-42F0-4754-9E91-FC73AA416CC4}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{DAC78444-2939-487F-913C-A694D4C6DED5} = {9F9FFB62-A19F-47CE-8C52-699574CA7A94}
-		{E7C7C422-EAE0-4059-AAE3-E17E38E6A678} = {9F9FFB62-A19F-47CE-8C52-699574CA7A94}
-		{D491D82D-42F0-4754-9E91-FC73AA416CC4} = {9F9FFB62-A19F-47CE-8C52-699574CA7A94}
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B1C2D3E4-F5G6-H7I8-J9K0-L1M2N3O4P5Q6}
 	EndGlobalSection
 EndGlobal

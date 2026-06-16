@@ -1,7 +1,10 @@
+using System;
+using System.Threading.Tasks;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using DTCBillingSystem.Core.Interfaces;
-using DTCBillingSystem.Core.Models;
+using DTCBillingSystem.Shared.Interfaces;
+using DTCBillingSystem.Shared.Models.Entities;
+using DTCBillingSystem.Shared.Models.Enums;
 
 namespace DTCBillingSystem.Core.Services
 {
@@ -9,226 +12,97 @@ namespace DTCBillingSystem.Core.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<AuditService> _logger;
-        private readonly ICurrentUserService _currentUserService;
 
-        public AuditService(
-            IUnitOfWork unitOfWork,
-            ILogger<AuditService> logger,
-            ICurrentUserService currentUserService)
+        public AuditService(IUnitOfWork unitOfWork, ILogger<AuditService> logger)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
-            _currentUserService = currentUserService;
         }
 
-        public async Task LogActionAsync(
-            string entityType,
-            int entityId,
-            AuditAction action,
-            object oldValues,
-            object newValues)
+        public async Task LogCreateAsync<T>(T entity, Guid userId, string? notes = null) where T : class
         {
-            try
+            var auditLog = new AuditLog
             {
-                var auditLog = new AuditLog
-                {
-                    EntityType = entityType,
-                    EntityId = entityId,
-                    Action = action,
-                    UserId = _currentUserService.UserId,
-                    Timestamp = DateTime.UtcNow,
-                    IpAddress = _currentUserService.IpAddress
-                };
+                EntityType = typeof(T).Name,
+                EntityId = GetEntityId(entity),
+                Action = AuditAction.Create.ToString(),
+                OldValues = null,
+                NewValues = JsonSerializer.Serialize(entity),
+                AffectedColumns = null,
+                UserId = userId,
+                ClientIp = "127.0.0.1", // TODO: Get actual IP address
+                Timestamp = DateTime.UtcNow
+            };
 
-                // Serialize old values if provided
-                if (oldValues != null)
-                {
-                    auditLog.OldValues = JsonSerializer.Serialize(oldValues, new JsonSerializerOptions
-                    {
-                        WriteIndented = true
-                    });
-                }
-
-                // Serialize new values if provided
-                if (newValues != null)
-                {
-                    // If newValues is a string, use it directly, otherwise serialize
-                    auditLog.NewValues = newValues is string ? newValues.ToString() 
-                        : JsonSerializer.Serialize(newValues, new JsonSerializerOptions
-                        {
-                            WriteIndented = true
-                        });
-                }
-
-                await _unitOfWork.AuditLogs.AddAsync(auditLog);
-                await _unitOfWork.SaveChangesAsync();
-
-                _logger.LogInformation(
-                    "Audit log created for {EntityType} {EntityId}: {Action}",
-                    entityType, entityId, action);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Error creating audit log for {EntityType} {EntityId}: {Action}",
-                    entityType, entityId, action);
-                throw;
-            }
+            await _unitOfWork.AuditLogs.AddAsync(auditLog);
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<AuditLog>> GetEntityAuditLogsAsync(string entityType, int entityId)
+        public async Task LogUpdateAsync<T>(T entity, Guid userId, string? notes = null) where T : class
         {
-            try
+            var auditLog = new AuditLog
             {
-                var logs = await _unitOfWork.AuditLogs.FindAsync(l =>
-                    l.EntityType == entityType && l.EntityId == entityId);
+                EntityType = typeof(T).Name,
+                EntityId = GetEntityId(entity),
+                Action = AuditAction.Update.ToString(),
+                OldValues = null, // TODO: Get old values from tracking
+                NewValues = JsonSerializer.Serialize(entity),
+                AffectedColumns = null,
+                UserId = userId,
+                ClientIp = "127.0.0.1", // TODO: Get actual IP address
+                Timestamp = DateTime.UtcNow
+            };
 
-                return logs.OrderByDescending(l => l.Timestamp);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Error retrieving audit logs for {EntityType} {EntityId}",
-                    entityType, entityId);
-                throw;
-            }
+            await _unitOfWork.AuditLogs.AddAsync(auditLog);
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<AuditLog>> GetUserAuditLogsAsync(int userId)
+        public async Task LogDeleteAsync<T>(T entity, Guid userId, string? notes = null) where T : class
         {
-            try
+            var auditLog = new AuditLog
             {
-                var logs = await _unitOfWork.AuditLogs.FindAsync(l => l.UserId == userId);
-                return logs.OrderByDescending(l => l.Timestamp);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving audit logs for user {UserId}", userId);
-                throw;
-            }
+                EntityType = typeof(T).Name,
+                EntityId = GetEntityId(entity),
+                Action = AuditAction.Delete.ToString(),
+                OldValues = JsonSerializer.Serialize(entity),
+                NewValues = null,
+                AffectedColumns = null,
+                UserId = userId,
+                ClientIp = "127.0.0.1", // TODO: Get actual IP address
+                Timestamp = DateTime.UtcNow
+            };
+
+            await _unitOfWork.AuditLogs.AddAsync(auditLog);
+            await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<(IEnumerable<AuditLog> Logs, int TotalCount)> GetAuditLogsPagedAsync(
-            int pageIndex,
-            int pageSize,
-            string entityType = null,
-            AuditAction? action = null,
-            DateTime? fromDate = null,
-            DateTime? toDate = null,
-            int? userId = null)
+        private Guid GetEntityId<T>(T entity) where T : class
         {
-            try
+            var idProperty = typeof(T).GetProperty("Id");
+            if (idProperty == null)
             {
-                // Build the predicate based on filter parameters
-                Expression<Func<AuditLog, bool>> predicate = l => true;
-
-                if (!string.IsNullOrEmpty(entityType))
-                {
-                    predicate = predicate.And(l => l.EntityType == entityType);
-                }
-
-                if (action.HasValue)
-                {
-                    predicate = predicate.And(l => l.Action == action.Value);
-                }
-
-                if (fromDate.HasValue)
-                {
-                    predicate = predicate.And(l => l.Timestamp >= fromDate.Value);
-                }
-
-                if (toDate.HasValue)
-                {
-                    predicate = predicate.And(l => l.Timestamp <= toDate.Value);
-                }
-
-                if (userId.HasValue)
-                {
-                    predicate = predicate.And(l => l.UserId == userId.Value);
-                }
-
-                return await _unitOfWork.AuditLogs.GetPagedAsync(pageIndex, pageSize, predicate);
+                throw new InvalidOperationException($"Entity {typeof(T).Name} does not have an Id property");
             }
-            catch (Exception ex)
+
+            var id = idProperty.GetValue(entity);
+            if (id == null)
             {
-                _logger.LogError(ex, "Error retrieving paged audit logs");
-                throw;
+                throw new InvalidOperationException($"Entity {typeof(T).Name} has a null Id");
             }
-        }
 
-        public async Task<IEnumerable<AuditLog>> GetRecentActivityAsync(int count = 50)
-        {
-            try
+            if (id is Guid guidId)
             {
-                var logs = await _unitOfWork.AuditLogs.FindAsync(l => true);
-                return logs.OrderByDescending(l => l.Timestamp).Take(count);
+                return guidId;
             }
-            catch (Exception ex)
+            else if (id is int intId)
             {
-                _logger.LogError(ex, "Error retrieving recent activity logs");
-                throw;
+                // Convert int to Guid using a deterministic method
+                return new Guid($"00000000-0000-0000-0000-{intId:D12}");
             }
-        }
-
-        public async Task CleanupOldLogsAsync(int daysToKeep)
-        {
-            try
+            else
             {
-                var cutoffDate = DateTime.UtcNow.AddDays(-daysToKeep);
-                var oldLogs = await _unitOfWork.AuditLogs.FindAsync(l => l.Timestamp < cutoffDate);
-
-                foreach (var log in oldLogs)
-                {
-                    await _unitOfWork.AuditLogs.DeleteAsync(log);
-                }
-
-                await _unitOfWork.SaveChangesAsync();
-
-                _logger.LogInformation(
-                    "Cleaned up audit logs older than {DaysToKeep} days",
-                    daysToKeep);
+                throw new InvalidOperationException($"Entity {typeof(T).Name} Id type {id.GetType().Name} is not supported");
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error cleaning up old audit logs");
-                throw;
-            }
-        }
-    }
-
-    // Extension method for combining predicates
-    public static class PredicateBuilder
-    {
-        public static Expression<Func<T, bool>> And<T>(
-            this Expression<Func<T, bool>> first,
-            Expression<Func<T, bool>> second)
-        {
-            var parameter = Expression.Parameter(typeof(T));
-            var firstBody = first.Body.Replace(first.Parameters[0], parameter);
-            var secondBody = second.Body.Replace(second.Parameters[0], parameter);
-            var body = Expression.AndAlso(firstBody, secondBody);
-            return Expression.Lambda<Func<T, bool>>(body, parameter);
-        }
-
-        private static Expression Replace(this Expression expression, Expression searchEx, Expression replaceEx)
-        {
-            return new ExpressionReplacer(searchEx, replaceEx).Visit(expression);
-        }
-    }
-
-    internal class ExpressionReplacer : ExpressionVisitor
-    {
-        private readonly Expression _from, _to;
-
-        public ExpressionReplacer(Expression from, Expression to)
-        {
-            _from = from;
-            _to = to;
-        }
-
-        public override Expression Visit(Expression node)
-        {
-            return node == _from ? _to : base.Visit(node);
         }
     }
 } 
